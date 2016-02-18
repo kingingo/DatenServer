@@ -8,11 +8,19 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class OnlinePlayer {
+	public static enum Setting {
+		PREMIUM_LOGIN,
+		PASSWORD;
+	}
+	
 	@Getter
 	private String name;
 	@Getter
 	private UUID uuid;
 	private boolean isPremium;
+	@Getter
+	private String loginPassword;
+	
 	@Getter
 	private StatsManager statsManager;
 	private Client owner;
@@ -35,5 +43,15 @@ public class OnlinePlayer {
 	
 	protected void load(){
 		System.out.println("Playerloading not implimented yet!");
+	}
+
+	public void setPassword(String value) {
+		this.loginPassword = value;
+		System.out.println("Password setting not implimented yet!");
+	}
+
+	public void setPremium(Boolean valueOf) {
+		isPremium = valueOf;
+		System.out.println("Premium setting!");
 	}
 }

@@ -6,9 +6,19 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 import dev.wolveringer.dataserver.connection.Client;
+import dev.wolveringer.dataserver.connection.ClientType;
 
 public class ServerThread {
 	private static ArrayList<Client> clients = new ArrayList<>();
+	
+	public static ArrayList<Client> getBungeecords(){
+		ArrayList<Client> out = new ArrayList<>();
+		for(Client c : new ArrayList<>(clients))
+			if(c.getType() == ClientType.BUNGEECORD)
+				out.add(c);
+		return out;
+	}
+	
 	private ServerSocket socket;
 	private InetSocketAddress localAddr;
 	private Thread acceptThread;
