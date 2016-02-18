@@ -11,6 +11,7 @@ import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketForward;
 import dev.wolveringer.dataserver.protocoll.packets.PacketHandschakeInStart;
+import dev.wolveringer.dataserver.protocoll.packets.PacketInBanStatsRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInChangePlayerSettings;
 import dev.wolveringer.dataserver.protocoll.packets.PacketChatMessage;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInConnectionStatus;
@@ -116,6 +117,9 @@ public class PacketHandlerBoss {
 					break;
 				}
 			owner.writePacket(new PacketOutPlayerSettings(player.getUuid(), values.toArray(new SettingValue[0])));
+		}
+		else if(packet instanceof PacketInBanStatsRequest){
+			System.out.println("Packet forward not implimented yet!");
 		}
 		else if(packet instanceof PacketInConnectionStatus){
 			if(((PacketInConnectionStatus)packet).getStatus() == Status.CONNECTED){
