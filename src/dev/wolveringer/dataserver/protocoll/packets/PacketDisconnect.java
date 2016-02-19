@@ -2,11 +2,13 @@ package dev.wolveringer.dataserver.protocoll.packets;
 
 import dev.wolveringer.dataserver.protocoll.DataBuffer;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
-public class PacketOutDisconnect extends Packet{
+public class PacketDisconnect extends Packet{
+	@Getter
 	private String reson = null;
 	
 	@Override

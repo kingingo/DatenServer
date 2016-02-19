@@ -1,5 +1,6 @@
 package dev.wolveringer.connection.server;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -29,7 +30,8 @@ public class ServerThread {
 		this.localAddr = localAddr;
 	}
 	
-	public void start(){
+	public void start() throws IOException{
+		socket = new ServerSocket(localAddr.getPort(), 0, localAddr.getAddress());
 		acceptThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -47,4 +49,10 @@ public class ServerThread {
 		acceptThread.start();
 	}
 	
+	
+	public static void main(String[] args) throws IOException {
+		System.out.println("Stating test server");
+		ServerThread server = new ServerThread(new InetSocketAddress("localhost", 1111));
+		server.start();
+	}
 }

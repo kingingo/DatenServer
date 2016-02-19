@@ -13,8 +13,8 @@ public abstract class Packet {
 		private PacketDirection() {}
 	}
 	
-	private static Constructor<? extends Packet> inPackets[] = new Constructor[255];
-	private static Constructor<? extends Packet> outPackets[] = new Constructor[255];
+	private static Constructor<? extends Packet> inPackets[] = new Constructor[256];
+	private static Constructor<? extends Packet> outPackets[] = new Constructor[256];
 	
 	public static Packet createPacket(int id, DataBuffer buffer) {
 		try {
@@ -46,17 +46,34 @@ public abstract class Packet {
 	protected static void registerPacket(int id,Class<? extends Packet> packet,PacketDirection direction){
 		try {
 			if(direction == PacketDirection.TO_CLIENT)
-				outPackets[id] = packet.getConstructor();
+				outPackets[id] = packet.getConstructors().length == 1 ? (Constructor<? extends Packet>) packet.getConstructors()[0] : packet.getConstructor();
 			else
-				inPackets[id] = packet.getConstructor();
-		} catch (NoSuchMethodException | SecurityException e) {
+				inPackets[id] = packet.getConstructors().length == 1 ? (Constructor<? extends Packet>) packet.getConstructors()[0] : packet.getConstructor();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	static {
-		registerPacket(0xFF, PacketInDisconnect.class,PacketDirection.TO_SERVER);
-		registerPacket(0xFF, PacketOutDisconnect.class,PacketDirection.TO_CLIENT);
+		registerPacket(0xFF, PacketDisconnect.class, PacketDirection.TO_CLIENT);
+		registerPacket(0xFF, PacketDisconnect.class, PacketDirection.TO_SERVER);
+		
+		registerPacket(0x00, PacketHandschakeInStart.class, PacketDirection.TO_SERVER);
+		
+		registerPacket(0x01, PacketInBanStatsRequest.class, PacketDirection.TO_SERVER);
+		registerPacket(0x02, PacketInChangePlayerSettings.class, PacketDirection.TO_SERVER);
+		registerPacket(0x03, PacketInPlayerSettingsRequest.class, PacketDirection.TO_SERVER);
+		registerPacket(0x04, PacketInConnectionStatus.class,  PacketDirection.TO_SERVER);
+		registerPacket(0x05, PacketInServerSwitch.class, PacketDirection.TO_SERVER);
+		registerPacket(0x06, PacketInStatsEdit.class, PacketDirection.TO_SERVER);
+		registerPacket(0x07, PacketInStatsRequest.class, PacketDirection.TO_SERVER);
+		
+		registerPacket(0xF0, PacketOutPacketStatus.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x00, PacketOutHandschakeAccept.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x01, PacketOutStats.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x02, PacketOutPlayerSettings.class, PacketDirection.TO_CLIENT);
 	}
 
 	@Getter

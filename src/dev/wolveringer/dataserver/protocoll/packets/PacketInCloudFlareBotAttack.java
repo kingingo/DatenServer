@@ -1,5 +1,8 @@
 package dev.wolveringer.dataserver.protocoll.packets;
 
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
 public class PacketInCloudFlareBotAttack extends Packet{
 	private boolean attack;
 	

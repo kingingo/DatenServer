@@ -28,11 +28,11 @@ public class SocketWriter {
 		dbuffer.writeInt(id);
 		dbuffer.writeUUID(packet.getPacketUUID());
 		packet.write(dbuffer);
+		dbuffer.resetReaderIndex();
 
 		ByteArrayOutputStream os = new ByteArrayOutputStream(4 + dbuffer.writerIndex()); // [INT(Length)|4][DATA|~]
-		os.write(new byte[] { (byte) (dbuffer.readableBytes() >>> 24), (byte) (dbuffer.readableBytes() >>> 16), (byte) (dbuffer.readableBytes() >>> 8), (byte) dbuffer.readableBytes() });
-		os.write(dbuffer.array());
-		
+		os.write(new byte[] { (byte) (dbuffer.writerIndex() >>> 24), (byte) (dbuffer.writerIndex() >>> 16), (byte) (dbuffer.writerIndex() >>> 8), (byte) dbuffer.writerIndex() });
+		os.write(dbuffer.array(),0,dbuffer.writerIndex());
 		out.write(os.toByteArray());
 		out.flush();
 	}

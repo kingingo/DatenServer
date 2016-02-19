@@ -39,7 +39,7 @@ public class PacketInStatsEdit extends Packet {
 		for (int i = 0; i < changes.length; i++) {
 			Game game = Game.values()[buffer.readByte()];
 			Action action = Action.values()[buffer.readByte()];
-			StatsKey key = StatsKey.values()[buffer.readableBytes()];
+			StatsKey key = StatsKey.values()[buffer.readByte()];
 			Object value = null;
 			int id = -1;
 			switch (id = buffer.readByte()) { // Value Type

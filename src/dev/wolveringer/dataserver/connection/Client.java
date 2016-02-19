@@ -5,7 +5,7 @@ import java.net.Socket;
 
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
-import dev.wolveringer.dataserver.protocoll.packets.PacketOutDisconnect;
+import dev.wolveringer.dataserver.protocoll.packets.PacketDisconnect;
 import lombok.Getter;
 
 public class Client {
@@ -40,7 +40,7 @@ public class Client {
 	}
 	
 	public void disconnect(String message){
-		writePacket(new PacketOutDisconnect(message));
+		writePacket(new PacketDisconnect(message));
 	}
 	
 	protected void closePipeline(){

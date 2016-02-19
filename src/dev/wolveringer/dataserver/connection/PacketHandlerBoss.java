@@ -1,6 +1,7 @@
 package dev.wolveringer.dataserver.connection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 import dev.wolveringer.connection.server.ServerThread;
@@ -15,7 +16,6 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketInBanStatsRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInChangePlayerSettings;
 import dev.wolveringer.dataserver.protocoll.packets.PacketChatMessage;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInConnectionStatus;
-import dev.wolveringer.dataserver.protocoll.packets.PacketInDisconnect;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInPlayerSettingsRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInConnectionStatus.Status;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPlayerSettings.SettingValue;
@@ -26,6 +26,7 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketOutHandschakeAccept;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPacketStatus;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPlayerSettings;
 import dev.wolveringer.dataserver.protocoll.packets.PacketChatMessage.Target;
+import dev.wolveringer.dataserver.protocoll.packets.PacketDisconnect;
 
 public class PacketHandlerBoss {
 	private Client owner;
@@ -38,7 +39,7 @@ public class PacketHandlerBoss {
 	public void handle(Packet packet) {
 		if (!handschakeComplete) {
 			if (packet instanceof PacketHandschakeInStart) {
-				if (!((PacketHandschakeInStart) packet).getPassword().equals(Main.Password)) {
+				if (!Arrays.equals(((PacketHandschakeInStart) packet).getPassword(), Main.Password)) {
 					owner.disconnect("Password incorrect");
 					return;
 				}
@@ -119,7 +120,7 @@ public class PacketHandlerBoss {
 			owner.writePacket(new PacketOutPlayerSettings(player.getUuid(), values.toArray(new SettingValue[0])));
 		}
 		else if(packet instanceof PacketInBanStatsRequest){
-			System.out.println("Packet forward not implimented yet!");
+			System.out.println("Ban request not implimented yet!");
 		}
 		else if(packet instanceof PacketInConnectionStatus){
 			if(((PacketInConnectionStatus)packet).getStatus() == Status.CONNECTED){
@@ -154,9 +155,9 @@ public class PacketHandlerBoss {
 			}
 			owner.writePacket(new PacketOutPacketStatus(packet, errors.toArray(new PacketOutPacketStatus.Error[0])));
 		}
-		else if(packet instanceof PacketInDisconnect){
+		else if(packet instanceof PacketDisconnect){
 			owner.closePipeline();
-			System.out.println("Client["+owner.getHost()+"] disconnected ("+((PacketInDisconnect)packet).getReson()+")");
+			System.out.println("Client["+owner.getHost()+"] disconnected ("+((PacketDisconnect)packet).getReson()+")");
 			return;
 		}
 	}

@@ -1,5 +1,8 @@
 package dev.wolveringer.dataserver.protocoll.packets;
 
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
 public class PacketInCloudFlareRecord extends Packet{
 	public static enum Action {
 		ADD,

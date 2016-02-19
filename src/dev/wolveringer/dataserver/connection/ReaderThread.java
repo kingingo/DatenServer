@@ -23,8 +23,11 @@ public class ReaderThread {
 			@Override
 			public void run() {
 				try {
-					while (active && in.available() > 0) {
-						readPacket();
+					while (active) {
+						if(in.available() > 0)
+							readPacket();
+						else
+							Thread.sleep(10);
 					}
 				} catch (Exception e) {
 					if (!active)
@@ -38,16 +41,18 @@ public class ReaderThread {
 	}
 
 	private void readPacket() throws IOException {
+		byte[] data = new byte[4];
 		int length = (in.read() << 24) & 0xff000000 | (in.read() << 16) & 0x00ff0000 | (in.read() << 8) & 0x0000ff00 | (in.read() << 0) & 0x000000ff;
-		if (length < 0) {
-			System.out.println("Reader index wrong (Wrong length)");
+		if (length <= 0) {
+			System.out.println("Reader index wrong (Wrong length ("+length+"))");
 			return;
 		}
 		byte[] bbuffer = new byte[length];
 		in.read(bbuffer);
 		DataBuffer buffer = new DataBuffer(bbuffer);
 		Packet packet = Packet.createPacket(buffer.readInt(), buffer);
-		System.out.println("Handle packet -> " + packet + " | Method not implemented yet");
+		System.out.println(packet);
+		client.getHandlerBoss().handle(packet);
 	}
 
 	public void start() {

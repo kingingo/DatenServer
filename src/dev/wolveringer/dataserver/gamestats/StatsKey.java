@@ -41,7 +41,7 @@ public enum StatsKey {
 	@Getter
 	private String mySQLSyntax;
 	@Getter
-	private String statsType;
+	private String mySQLName;
 	@Getter
 	private String contraction;
 	@Getter
@@ -51,7 +51,7 @@ public enum StatsKey {
 
 	private StatsKey(String mySQLSyntax, String TYP, String contraction, boolean mysql, Class<?> type) {
 		this.mySQLSyntax = mySQLSyntax;
-		this.statsType = TYP;
+		this.mySQLName = TYP;
 		this.contraction = contraction;
 		this.mysql = mysql;
 		this.type = type;
@@ -59,7 +59,7 @@ public enum StatsKey {
 
 	public static StatsKey get(String s) {
 		for (StatsKey stats : values()) {
-			if (stats.getStatsType().equalsIgnoreCase(s))
+			if (stats.getMySQLName().equalsIgnoreCase(s))
 				return stats;
 		}
 		return null;

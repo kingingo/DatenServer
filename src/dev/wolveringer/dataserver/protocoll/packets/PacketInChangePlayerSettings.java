@@ -5,7 +5,9 @@ import java.util.UUID;
 import dev.wolveringer.dataserver.player.OnlinePlayer.Setting;
 import dev.wolveringer.dataserver.protocoll.DataBuffer;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 public class PacketInChangePlayerSettings extends Packet{
 	@Getter
 	private UUID player;

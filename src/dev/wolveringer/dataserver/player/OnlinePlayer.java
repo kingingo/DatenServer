@@ -15,7 +15,6 @@ public class OnlinePlayer {
 	
 	@Getter
 	private String name;
-	@Getter
 	private UUID uuid;
 	private boolean isPremium;
 	@Getter
@@ -53,5 +52,10 @@ public class OnlinePlayer {
 	public void setPremium(Boolean valueOf) {
 		isPremium = valueOf;
 		System.out.println("Premium setting!");
+	}
+	public UUID getUuid() {
+		if(uuid == null)
+			System.out.println("UUID = null"); //TODO load
+		return uuid;
 	}
 }
