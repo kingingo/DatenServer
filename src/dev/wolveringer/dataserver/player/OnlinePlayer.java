@@ -1,24 +1,29 @@
 package dev.wolveringer.dataserver.player;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 import dev.wolveringer.dataserver.connection.Client;
 import dev.wolveringer.dataserver.gamestats.StatsManager;
+import dev.wolveringer.dataserver.uuid.UUIDManager;
+import dev.wolveringer.mysql.MySQL;
 import lombok.Getter;
 import lombok.Setter;
 
 public class OnlinePlayer {
 	public static enum Setting {
 		PREMIUM_LOGIN,
-		PASSWORD;
+		PASSWORD,
+		UUID;
 	}
 	
 	@Getter
 	private String name;
 	private UUID uuid;
-	private boolean isPremium;
+	private boolean isPremium = false;
 	@Getter
-	private String loginPassword;
+	private String loginPassword = null;
 	
 	@Getter
 	private StatsManager statsManager;
@@ -27,8 +32,9 @@ public class OnlinePlayer {
 	@Setter
 	private String server;
 	
-	public OnlinePlayer(UUID uuid,Client owner) {
-		this.uuid = uuid;
+	public OnlinePlayer(String name,Client owner) {
+		this.name = name.toLowerCase();
+		this.uuid = UUIDManager.getUUID(name.toLowerCase());
 		this.owner = owner;
 	}
 	
@@ -41,17 +47,36 @@ public class OnlinePlayer {
 	}
 	
 	protected void load(){
-		System.out.println("Playerloading not implimented yet!");
+		ArrayList<String[]> response = MySQL.getInstance().querySync("SELECT `premium`,`password` FROM `users` WHERE uuid='"+uuid+"'", 1);
+		if(response.size() == 0){
+			MySQL.getInstance().commandSync("INSERT INTO `users`(`player`, `uuid`, `premium`, `password`, `last_login`) VALUES ('"+name+"','"+uuid.toString()+"','"+isPremium+"','null','-1')");
+		}
+		else
+		{
+			this.isPremium = Boolean.parseBoolean(response.get(0)[0]);
+			if(response.get(0).length >= 2)
+				this.loginPassword = response.get(0)[1].equalsIgnoreCase("null") ? null : response.get(0)[1];
+			else
+				System.out.println(Arrays.asList(response.get(0)));
+			
+		}
+		statsManager = new StatsManager();
 	}
 
 	public void setPassword(String value) {
 		this.loginPassword = value;
-		System.out.println("Password setting not implimented yet!");
+		MySQL.getInstance().commandSync("UPDATE `users` SET `password`='"+value+"' WHERE uuid='"+uuid.toString()+"'"); //Cript?
 	}
 
 	public void setPremium(Boolean valueOf) {
+		if(valueOf == isPremium)
+			return;
 		isPremium = valueOf;
-		System.out.println("Premium setting!");
+		UUIDManager.setPremiumUUID(name, valueOf);
+		UUID newUUID = UUIDManager.getUUID(name);
+		MySQL.getInstance().commandSync("UPDATE `users` SET `premium`='"+valueOf.toString()+"',`uuid`='"+newUUID+"' WHERE uuid='"+uuid.toString()+"'");
+		PlayerManager.changeUUID(uuid, newUUID);
+		this.uuid = newUUID;
 	}
 	public UUID getUuid() {
 		if(uuid == null)

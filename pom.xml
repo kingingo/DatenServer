@@ -103,6 +103,11 @@
 			<artifactId>commons-lang3</artifactId>
 			<version>3.4</version>
 		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.38</version>
+		</dependency>
 		<!-- Youtube API (Not used yet) <dependency> <groupId>com.google.api.client</groupId> 
 			<artifactId>google-api-data-youtube-v2</artifactId> <version>1.0.10-alpha</version> 
 			</dependency> -->

@@ -41,7 +41,6 @@ public class ReaderThread {
 	}
 
 	private void readPacket() throws IOException {
-		byte[] data = new byte[4];
 		int length = (in.read() << 24) & 0xff000000 | (in.read() << 16) & 0x00ff0000 | (in.read() << 8) & 0x0000ff00 | (in.read() << 0) & 0x000000ff;
 		if (length <= 0) {
 			System.out.println("Reader index wrong (Wrong length ("+length+"))");
@@ -49,10 +48,15 @@ public class ReaderThread {
 		}
 		byte[] bbuffer = new byte[length];
 		in.read(bbuffer);
-		DataBuffer buffer = new DataBuffer(bbuffer);
-		Packet packet = Packet.createPacket(buffer.readInt(), buffer);
-		System.out.println(packet);
-		client.getHandlerBoss().handle(packet);
+		ThreadHandleManager.join(new Runnable() {
+			@Override
+			public void run() {
+				DataBuffer buffer = new DataBuffer(bbuffer);
+				Packet packet = Packet.createPacket(buffer.readInt(), buffer);
+				System.out.println(packet);
+				client.getHandlerBoss().handle(packet);
+			}
+		});
 	}
 
 	public void start() {

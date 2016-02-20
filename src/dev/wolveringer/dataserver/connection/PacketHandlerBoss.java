@@ -19,9 +19,13 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketInConnectionStatus;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInPlayerSettingsRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInConnectionStatus.Status;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPlayerSettings.SettingValue;
+import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse;
+import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse.UUIDKey;
+import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerSwitch;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsEdit;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsRequest;
+import dev.wolveringer.dataserver.protocoll.packets.PacketInUUIDRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutHandschakeAccept;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPacketStatus;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPlayerSettings;
@@ -97,7 +101,7 @@ public class PacketHandlerBoss {
 			default:
 				break;
 			}
-			owner.writePacket(player.getStatsManager().getStats(((PacketInStatsRequest) packet).getGame()));
+			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		}
 		else if(packet instanceof PacketInPlayerSettingsRequest){
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketInPlayerSettingsRequest) packet).getPlayer());
@@ -113,6 +117,9 @@ public class PacketHandlerBoss {
 					break;
 				case PREMIUM_LOGIN:
 					values.add(new SettingValue(s, player.isPremium()+""));
+					break;
+				case UUID:
+					values.add(new SettingValue(s, player.getUuid().toString()));
 					break;
 				default:
 					break;
@@ -159,6 +166,18 @@ public class PacketHandlerBoss {
 			owner.closePipeline();
 			System.out.println("Client["+owner.getHost()+"] disconnected ("+((PacketDisconnect)packet).getReson()+")");
 			return;
+		}
+		else if(packet instanceof PacketInUUIDRequest){
+			UUIDKey[] out = new UUIDKey[((PacketInUUIDRequest) packet).getPlayers().length];
+			int i = 0;
+			for(String player : ((PacketInUUIDRequest) packet).getPlayers()){
+				UUID uuid = UUIDManager.getUUID(player);
+				UUIDManager.saveUpdatePremiumName(uuid, player);
+				uuid = UUIDManager.getUUID(player); //UUID after update
+				out[i] = new UUIDKey(player, uuid);
+				i++;
+			}
+			owner.writePacket(new PacketOutUUIDResponse(out));
 		}
 	}
 

@@ -2,12 +2,14 @@ package dev.wolveringer.mysql;
 
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MySQL {
 	private static MySQL instance;
@@ -27,6 +29,10 @@ public class MySQL {
 			//BungeeCord.getInstance().getScheduler().runAsync(Main.getMain(), run);
 		}
 	};
+	
+	public static void setInstance(MySQL instance) {
+		MySQL.instance = instance;
+	}
 	
 	private Connection conn = null;
 	private String dbHost = null;
@@ -52,10 +58,9 @@ public class MySQL {
 		dbUser = user;
 		dbPassword = Password;
 		getConnectionInstance();
-		instance = this;
 	}
 	
-	private Connection getConnectionInstance() {
+	public Connection getConnectionInstance() {
 		if (conn == null) {
 			try {
 				Class.forName("com.mysql.jdbc.Driver");
@@ -85,7 +90,7 @@ public class MySQL {
 				String sql = select;
 				ResultSet result = query.executeQuery(sql);
 				int spaltenzahl = result.getMetaData().getColumnCount();
-				spalteninhalt(Math.min(spaltenzahl, limit == -1 ? Integer.MAX_VALUE : limit), result, x);
+				spalteninhalt(limit == -1 ? Integer.MAX_VALUE : limit,spaltenzahl, result, x);
 			}
 			catch (SQLException e) {
 				e.printStackTrace();
@@ -106,11 +111,14 @@ public class MySQL {
 		});
 	}
 	
-	private void spalteninhalt(int spaltenzahl, ResultSet result, ArrayList<String[]> x) {
-		String[] temp = new String[spaltenzahl];
-		try {
+	private void spalteninhalt(int zeilenAnzahl,int spalten, ResultSet result, ArrayList<String[]> x) {
+		try{
+			int c = 0;
 			while (result.next()) {
-				for (int k = 1; k <= spaltenzahl; k++) {
+				if(c >= zeilenAnzahl)
+					break;
+				String[] temp = new String[spalten];
+				for (int k = 1; k <= spalten; k++) {
 					String y = result.getMetaData().getColumnName(k);
 					try {
 						String name = result.getString(y);
@@ -121,6 +129,7 @@ public class MySQL {
 					}
 				}
 				x.add(temp);
+				c++;
 			}
 		}
 		catch (SQLException e) {
@@ -197,5 +206,19 @@ public class MySQL {
 	}
 	public static interface Callback<T>{
 		public void done(T obj,Throwable ex);
+	}
+	public List<String> getTables() {
+		ArrayList<String> tables = new ArrayList<>();
+		try{
+			DatabaseMetaData md = conn.getMetaData();
+			ResultSet rs = md.getTables(null, null, "%", null);
+			while (rs.next()) {
+				tables.add(rs.getString(3));
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		System.out.println("Tables: "+tables);
+		return tables;
 	}
 }

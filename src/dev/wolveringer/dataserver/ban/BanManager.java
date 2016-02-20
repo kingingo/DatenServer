@@ -9,7 +9,7 @@ public class BanManager {
 	
 	
 	public void loadBans(){
-		
+		System.out.println("Ban loading not implimented yet!");
 	}
 	
 	

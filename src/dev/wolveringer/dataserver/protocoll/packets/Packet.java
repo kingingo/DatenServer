@@ -69,11 +69,16 @@ public abstract class Packet {
 		registerPacket(0x05, PacketInServerSwitch.class, PacketDirection.TO_SERVER);
 		registerPacket(0x06, PacketInStatsEdit.class, PacketDirection.TO_SERVER);
 		registerPacket(0x07, PacketInStatsRequest.class, PacketDirection.TO_SERVER);
+		registerPacket(0x08, PacketInUUIDRequest.class, PacketDirection.TO_SERVER);
 		
 		registerPacket(0xF0, PacketOutPacketStatus.class, PacketDirection.TO_CLIENT);
 		registerPacket(0x00, PacketOutHandschakeAccept.class, PacketDirection.TO_CLIENT);
 		registerPacket(0x01, PacketOutStats.class, PacketDirection.TO_CLIENT);
 		registerPacket(0x02, PacketOutPlayerSettings.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x03, PacketOutUUIDResponse.class, PacketDirection.TO_CLIENT);
+		
+		registerPacket(0xFF, PacketDisconnect.class, PacketDirection.TO_CLIENT);
+		registerPacket(0xFF, PacketDisconnect.class, PacketDirection.TO_SERVER);
 	}
 
 	@Getter

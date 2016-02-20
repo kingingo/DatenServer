@@ -160,7 +160,7 @@ public class StatsManager {
 		for(Statistic s : statistics){
 			values += "`"+s.getStatsKey().getMySQLName()+"`='"+s.getValue()+"',";
 		}
-		String mySQLSyntax = "UPDATE `users_SkyWars` SET "+values.substring(0, values.length()-1)+" WHERE UUID='"+owner.getUuid()+"'";
+		String mySQLSyntax = "UPDATE `users_"+game.getKuerzel()+"` SET "+values.substring(0, values.length()-1)+" WHERE UUID='"+owner.getUuid()+"'";
 		MySQL.getInstance().commandSync(mySQLSyntax);
 	}
 	
