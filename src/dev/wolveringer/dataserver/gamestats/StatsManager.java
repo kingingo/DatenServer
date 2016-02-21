@@ -14,7 +14,9 @@ public class StatsManager {
 
 		static {
 			types.put(int.class, 0);
+			types.put(Integer.class, 0);
 			types.put(double.class, 1);
+			types.put(Double.class, 1);
 			types.put(String.class, 2);
 		}
 
@@ -24,7 +26,19 @@ public class StatsManager {
 		public Statistic(StatsKey stat, Object output) {
 			this.stat = stat;
 			if (output != null)
+			switch (types.get(stat.getType())) {
+			case 0:
+				this.output = (int) Integer.valueOf(output.toString());
+				break;
+			case 1:
+				this.output = (double) Double.valueOf(output.toString());
+				break;
+			case 2:
 				this.output = output;
+				break;
+			default:
+				throw new RuntimeException("No class found");
+			}
 			else {
 				switch (types.get(stat.getType())) {
 				case 0:
@@ -43,11 +57,11 @@ public class StatsManager {
 		}
 
 		public int asInt() {
-			return (int) output;
+			return (int) Integer.valueOf(output.toString());
 		}
 
 		public double asDouble() {
-			return (double) output;
+			return (double) Double.valueOf(output.toString());
 		}
 
 		public String asString() {
@@ -67,8 +81,8 @@ public class StatsManager {
 		}
 
 		protected void applayChange(PacketInStatsEdit.EditStats change) {
-			if (change.getValue().getClass().equals(output.getClass()))
-				throw new RuntimeException(change.getValue().getClass() + " cant be a " + output.getClass() + " statistic");
+			if (types.get(change.getValue().getClass()) != types.get(output.getClass()))
+				throw new RuntimeException("A "+change.getValue().getClass() + "["+change.getValue()+"] cant be cast to a " + output.getClass() + "["+output+"] statistic");
 			switch (change.getAction()) {
 			case ADD:
 				switch (types.get(change.getValue().getClass())) {
@@ -126,6 +140,10 @@ public class StatsManager {
 	private OnlinePlayer owner;
 	private HashMap<Game, Statistic[]> stats = new HashMap<>();
 
+	public StatsManager(OnlinePlayer owner) {
+		this.owner = owner;
+	}
+	
 	public PacketOutStats getStats(Game game) {
 		if (!stats.containsKey(game))
 			loadStats(game);
@@ -161,7 +179,7 @@ public class StatsManager {
 			values += "`"+s.getStatsKey().getMySQLName()+"`='"+s.getValue()+"',";
 		}
 		String mySQLSyntax = "UPDATE `users_"+game.getKuerzel()+"` SET "+values.substring(0, values.length()-1)+" WHERE UUID='"+owner.getUuid()+"'";
-		MySQL.getInstance().commandSync(mySQLSyntax);
+		MySQL.getInstance().command(mySQLSyntax);
 	}
 	
 	private Statistic[] loadStats(Game game) {
@@ -179,7 +197,7 @@ public class StatsManager {
 			return insertStats(game);
 		}
 		Statistic[] statistiks = new Statistic[keys.length];
-		for (int i = 0; i < data.size(); i++) {
+		for (int i = 0; i < data.get(0).length; i++) {
 			statistiks[i] = new Statistic(keys[i], data.get(0)[i]);
 		}
 		stats.put(game, statistiks);
@@ -192,6 +210,7 @@ public class StatsManager {
 		for (int i = 0; i < statistiks.length; i++) {
 			statistiks[i] = new Statistic(keys[i], null);
 		}
+		stats.put(game, statistiks);
 		// "INSERT INTO users_"+typ.getKürzel()+" ("+tt.substring(0,
 		// tt.length()-1)+") VALUES ("+ti.subSequence(0, ti.length()-1)+");"
 		String rowNames = "";
@@ -222,7 +241,6 @@ public class StatsManager {
 		}
 		//INSERT INTO `gems_list`(`name`, `gems`, `uuid`) VALUES ([value-1],[value-2],[value-3])
 		String mySQLSyntax = "INSERT INTO `users_"+Game.BedWars.getKuerzel()+"` (`player`,`UUID`,"+rowNames.substring(0, rowNames.length()-1)+") VALUES ('Underknown','underknown',"+values.substring(0, values.length()-1)+")";
-		
 		System.out.println(mySQLSyntax);
 	}
 }

@@ -57,24 +57,27 @@ public class MySQL {
 		database = base;
 		dbUser = user;
 		dbPassword = Password;
-		getConnectionInstance();
 	}
 	
 	public Connection getConnectionInstance() {
-		if (conn == null) {
-			try {
-				Class.forName("com.mysql.jdbc.Driver");
-				conn = DriverManager.getConnection("jdbc:mysql://" + dbHost + ":" + dbPort + "/" + database + "?" + "user=" + dbUser + "&" + "password=" + dbPassword + "&autoReconnect=true");
-				System.out.print("Connect true!");
-				connect = true;
+		try {
+			if (conn == null || conn.isClosed() || !conn.isValid(500)) {
+				try {
+					Class.forName("com.mysql.jdbc.Driver");
+					conn = DriverManager.getConnection("jdbc:mysql://" + dbHost + ":" + dbPort + "/" + database + "?" + "user=" + dbUser + "&" + "password=" + dbPassword + "&autoReconnect=true");
+					System.out.println("Connect true!");
+					connect = true;
+				}
+				catch (ClassNotFoundException e) {
+					System.out.println("Treiber nicht gefunden");
+				}
+				catch (SQLException e) {
+					System.out.println("Connect nicht moeglich");
+					connect = false;
+				}
 			}
-			catch (ClassNotFoundException e) {
-				System.out.println("Treiber nicht gefunden");
-			}
-			catch (SQLException e) {
-				System.out.println("Connect nicht moeglich");
-				connect = false;
-			}
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		return conn;
 	}
@@ -210,7 +213,7 @@ public class MySQL {
 	public List<String> getTables() {
 		ArrayList<String> tables = new ArrayList<>();
 		try{
-			DatabaseMetaData md = conn.getMetaData();
+			DatabaseMetaData md = getConnectionInstance().getMetaData();
 			ResultSet rs = md.getTables(null, null, "%", null);
 			while (rs.next()) {
 				tables.add(rs.getString(3));

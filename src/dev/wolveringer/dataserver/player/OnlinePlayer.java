@@ -30,7 +30,7 @@ public class OnlinePlayer {
 	private Client owner;
 	@Getter
 	@Setter
-	private String server;
+	private String server = "undefined";
 	
 	public OnlinePlayer(String name,Client owner) {
 		this.name = name.toLowerCase();
@@ -60,12 +60,16 @@ public class OnlinePlayer {
 				System.out.println(Arrays.asList(response.get(0)));
 			
 		}
-		statsManager = new StatsManager();
+		statsManager = new StatsManager(this);
+	}
+	
+	public void save(){
+		statsManager.save();
 	}
 
 	public void setPassword(String value) {
 		this.loginPassword = value;
-		MySQL.getInstance().commandSync("UPDATE `users` SET `password`='"+value+"' WHERE uuid='"+uuid.toString()+"'"); //Cript?
+		MySQL.getInstance().command("UPDATE `users` SET `password`='"+value+"' WHERE uuid='"+uuid.toString()+"'"); //Cript?
 	}
 
 	public void setPremium(Boolean valueOf) {

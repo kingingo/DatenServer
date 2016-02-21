@@ -20,6 +20,14 @@ public class PacketOutStats extends Packet{
 		buffer.writeByte(stats.length);
 		
 		for(StatsManager.Statistic stat : stats){
+			if(stat == null){
+				System.out.println("Stat null");
+				continue;
+			}
+			else if(stat.getStatsKey() == null){
+				System.out.println("Key = null");
+				continue;
+			}
 			buffer.writeByte(stat.getStatsKey().ordinal());
 			buffer.writeByte(stat.getTypeId());
 			switch (stat.getTypeId()) {

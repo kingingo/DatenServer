@@ -12,10 +12,12 @@ public class PacketInBanStatsRequest extends Packet{
 	private UUID player;
 	@Getter
 	private String ip;
-	
+	@Getter
+	private String name;
 	@Override
 	public void read(DataBuffer buffer) {
 		player = buffer.readUUID();
 		ip = buffer.readString();
+		name = buffer.readString();
 	}
 }
