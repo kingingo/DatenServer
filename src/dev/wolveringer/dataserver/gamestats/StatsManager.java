@@ -23,22 +23,23 @@ public class StatsManager {
 		private StatsKey stat;
 		private Object output;
 		private boolean needSave = false;
+
 		public Statistic(StatsKey stat, Object output) {
 			this.stat = stat;
 			if (output != null)
-			switch (types.get(stat.getType())) {
-			case 0:
-				this.output = (int) Integer.valueOf(output.toString());
-				break;
-			case 1:
-				this.output = (double) Double.valueOf(output.toString());
-				break;
-			case 2:
-				this.output = output;
-				break;
-			default:
-				throw new RuntimeException("No class found");
-			}
+				switch (types.get(stat.getType())) {
+				case 0:
+					this.output = (int) Integer.valueOf(output.toString());
+					break;
+				case 1:
+					this.output = (double) Double.valueOf(output.toString());
+					break;
+				case 2:
+					this.output = output;
+					break;
+				default:
+					throw new RuntimeException("No class found");
+				}
 			else {
 				switch (types.get(stat.getType())) {
 				case 0:
@@ -82,7 +83,7 @@ public class StatsManager {
 
 		protected void applayChange(PacketInStatsEdit.EditStats change) {
 			if (types.get(change.getValue().getClass()) != types.get(output.getClass()))
-				throw new RuntimeException("A "+change.getValue().getClass() + "["+change.getValue()+"] cant be cast to a " + output.getClass() + "["+output+"] statistic");
+				throw new RuntimeException("A " + change.getValue().getClass() + "[" + change.getValue() + "] cant be cast to a " + output.getClass() + "[" + output + "] statistic");
 			switch (change.getAction()) {
 			case ADD:
 				switch (types.get(change.getValue().getClass())) {
@@ -132,8 +133,23 @@ public class StatsManager {
 			}
 			needSave = true;
 		}
+
 		public boolean needSave() {
 			return needSave;
+		}
+	}
+
+	public static void initTables() {
+		for (Game game : Game.values()) {
+			if (!game.isMySQL())
+				continue;
+			StatsKey[] stats = game.getStats();
+			String tt = "player varchar(30),UUID varchar(100),";
+			for (StatsKey s : stats) {
+				tt = tt + s.getMySQLSyntax() + ",";
+			}
+			String t = "CREATE TABLE IF NOT EXISTS users_" + game.getKuerzel() + "(" + tt.substring(0, tt.length() - 1) + ")";
+			MySQL.getInstance().command(t);
 		}
 	}
 
@@ -143,7 +159,7 @@ public class StatsManager {
 	public StatsManager(OnlinePlayer owner) {
 		this.owner = owner;
 	}
-	
+
 	public PacketOutStats getStats(Game game) {
 		if (!stats.containsKey(game))
 			loadStats(game);
@@ -160,28 +176,28 @@ public class StatsManager {
 		}
 	}
 
-	public void save(){
-		for(Game game : stats.keySet()){
+	public void save() {
+		for (Game game : stats.keySet()) {
 			ArrayList<Statistic> needSaves = new ArrayList<>();
-			for(Statistic s : stats.get(game)){
-				if(s.needSave())
+			for (Statistic s : stats.get(game)) {
+				if (s.needSave())
 					needSaves.add(s);
 			}
-			if(needSaves.size() != 0){
-				save(game,needSaves.toArray(new Statistic[0]));
+			if (needSaves.size() != 0) {
+				save(game, needSaves.toArray(new Statistic[0]));
 			}
 		}
 	}
-	
-	private void save(Game game,Statistic...statistics){
+
+	private void save(Game game, Statistic... statistics) {
 		String values = "";
-		for(Statistic s : statistics){
-			values += "`"+s.getStatsKey().getMySQLName()+"`='"+s.getValue()+"',";
+		for (Statistic s : statistics) {
+			values += "`" + s.getStatsKey().getMySQLName() + "`='" + s.getValue() + "',";
 		}
-		String mySQLSyntax = "UPDATE `users_"+game.getKuerzel()+"` SET "+values.substring(0, values.length()-1)+" WHERE UUID='"+owner.getUuid()+"'";
+		String mySQLSyntax = "UPDATE `users_" + game.getKuerzel() + "` SET " + values.substring(0, values.length() - 1) + " WHERE UUID='" + owner.getUuid() + "'";
 		MySQL.getInstance().command(mySQLSyntax);
 	}
-	
+
 	private Statistic[] loadStats(Game game) {
 		// Table name: users_"+typ.getKürzel()
 		StatsKey[] keys = game.getStats();
@@ -215,18 +231,19 @@ public class StatsManager {
 		// tt.length()-1)+") VALUES ("+ti.subSequence(0, ti.length()-1)+");"
 		String rowNames = "";
 		String values = "";
-		for(Statistic s : statistiks){
-			rowNames += "`"+s.getStatsKey().getMySQLName()+"`,";
-			values += "`"+s.getValue()+"`,";
+		for (Statistic s : statistiks) {
+			rowNames += "`" + s.getStatsKey().getMySQLName() + "`,";
+			values += "'" + s.getValue() + "',";
 		}
 		//INSERT INTO `gems_list`(`name`, `gems`, `uuid`) VALUES ([value-1],[value-2],[value-3])
-		String mySQLSyntax = "INSERT INTO `users_"+game.getKuerzel()+"` (`player`,`UUID`,"+rowNames.substring(0, rowNames.length()-1)+") VALUES ('"+owner.getName()+"','"+owner.getUuid().toString()+"',"+values.substring(0, values.length()-1)+")";
+		String mySQLSyntax = "INSERT INTO `users_" + game.getKuerzel() + "` (`player`,`UUID`," + rowNames.substring(0, rowNames.length() - 1) + ") VALUES ('" + owner.getName() + "','" + owner.getUuid().toString() + "'," + values.substring(0, values.length() - 1) + ")";
 		MySQL.getInstance().commandSync(mySQLSyntax);
 		return statistiks;
 	}
 
 	public static void main(String[] args) {
-		StatsKey[] keys = Game.SheepWars.getStats();
+		Game game = Game.Money;
+		StatsKey[] keys = game.getStats();
 		Statistic[] statistiks = new Statistic[keys.length];
 		for (int i = 0; i < statistiks.length; i++) {
 			statistiks[i] = new Statistic(keys[i], null);
@@ -235,12 +252,12 @@ public class StatsManager {
 		// tt.length()-1)+") VALUES ("+ti.subSequence(0, ti.length()-1)+");"
 		String rowNames = "";
 		String values = "";
-		for(Statistic s : statistiks){
-			rowNames += "`"+s.getStatsKey().getMySQLName()+"`,";
-			values += "`"+s.getValue()+"`,";
+		for (Statistic s : statistiks) {
+			rowNames += "`" + s.getStatsKey().getMySQLName() + "`,";
+			values += "`" + s.getValue() + "`,";
 		}
 		//INSERT INTO `gems_list`(`name`, `gems`, `uuid`) VALUES ([value-1],[value-2],[value-3])
-		String mySQLSyntax = "INSERT INTO `users_"+Game.BedWars.getKuerzel()+"` (`player`,`UUID`,"+rowNames.substring(0, rowNames.length()-1)+") VALUES ('Underknown','underknown',"+values.substring(0, values.length()-1)+")";
+		String mySQLSyntax = "INSERT INTO `users_" + game.getKuerzel() + "` (`player`,`UUID`," + rowNames.substring(0, rowNames.length() - 1) + ") VALUES ('null','null'," + values.substring(0, values.length() - 1) + ")";
 		System.out.println(mySQLSyntax);
 	}
 }

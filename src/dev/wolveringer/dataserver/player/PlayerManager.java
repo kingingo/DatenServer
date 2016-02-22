@@ -14,10 +14,11 @@ public class PlayerManager {
 	}
 	
 	public static void loadPlayer(String player,Client owner){
+		for(OnlinePlayer p : getPlayer())
+			if(p.getName().equalsIgnoreCase(player))
+				return;
 		OnlinePlayer var0 = new OnlinePlayer(player,owner);
-		
-		if(!players.containsKey(var0.getUuid()))
-			players.put(var0.getUuid(), var0);
+		players.put(var0.getUuid(), var0);
 		if(var0 != null)
 			var0.load();
 	}

@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import dev.wolveringer.dataserver.connection.Client;
+import dev.wolveringer.dataserver.connection.ClientType;
 import dev.wolveringer.dataserver.gamestats.StatsManager;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.mysql.MySQL;
@@ -37,13 +38,18 @@ public class OnlinePlayer {
 		this.uuid = UUIDManager.getUUID(name.toLowerCase());
 		this.owner = owner;
 	}
-	
 	public boolean isPremium() {
 		return isPremium;
 	}
 	
 	public Client getPlayerBungeecord() {
+		if(owner != null && owner.getType() != ClientType.BUNGEECORD)
+			return null;
 		return owner;
+	}
+	
+	public void setOwner(Client owner) {
+		this.owner = owner;
 	}
 	
 	protected void load(){
@@ -86,5 +92,9 @@ public class OnlinePlayer {
 		if(uuid == null)
 			System.out.println("UUID = null"); //TODO load
 		return uuid;
+	}
+	@Override
+	public String toString() {
+		return "OnlinePlayer [name=" + name + ", uuid=" + uuid + ", isPremium=" + isPremium + ", loginPassword=" + loginPassword + ", statsManager=" + statsManager + ", owner=" + owner + ", server=" + server + "]";
 	}
 }

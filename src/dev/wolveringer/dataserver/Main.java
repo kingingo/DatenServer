@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.ban.BanManager;
+import dev.wolveringer.dataserver.gamestats.StatsManager;
 import dev.wolveringer.dataserver.save.SaveManager;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
 import dev.wolveringer.dataserver.terminal.Terminal;
@@ -27,6 +28,7 @@ public class Main {
 		MySQL.setInstance(new MySQL("148.251.143.2", "3306", "games", "root", "55P_YHmK8MXlPiqEpGKuH_5WVlhsXT"));
 		UUIDManager.init();
 		BanManager.setManager(new BanManager());
+		StatsManager.initTables();
 		SaveManager.setSaveManager(new SaveManager().start());
 		System.out.println("Server started");
 		ServerThread server = new ServerThread(new InetSocketAddress("localhost", 1111));

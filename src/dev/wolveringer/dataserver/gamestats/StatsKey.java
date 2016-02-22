@@ -36,8 +36,9 @@ public enum StatsKey {
 	TTT_PAESSE("paesse int", "paesse", "Paesse", true, int.class),
 	TTT_KARMA("karma int", "karma", "Karma", true, int.class),
 	TTT_DETECTIVE_PUNKTE("detectivepunkte int", "detectivepunkte", "Detective-Punkte", true, int.class),
-	TTT_TRAITOR_PUNKTE("traitorpunkte int", "traitorpunkte", "Traitor-Punkte", true, int.class);
-
+	TTT_TRAITOR_PUNKTE("traitorpunkte int", "traitorpunkte", "Traitor-Punkte", true, int.class),
+	COINS("coins int", "coins", "Coins", true, int.class),
+	GEMS("gems int", "gems", "Gems", true, int.class);
 	@Getter
 	private String mySQLSyntax;
 	@Getter

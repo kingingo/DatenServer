@@ -22,9 +22,12 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketInConnectionStatus;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInPlayerSettingsRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInConnectionStatus.Status;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInGetServer;
+import dev.wolveringer.dataserver.protocoll.packets.PacketInNameRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPlayerSettings.SettingValue;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse;
+import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse.UUIDKey;
+import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction.PlayerAction;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerSwitch;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsEdit;
@@ -32,7 +35,9 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInUUIDRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutBanStats;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutHandschakeAccept;
+import dev.wolveringer.dataserver.protocoll.packets.PacketOutNameResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPacketStatus;
+import dev.wolveringer.dataserver.protocoll.packets.PacketOutPacketStatus.Error;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPlayerServer;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPlayerSettings;
 import dev.wolveringer.dataserver.protocoll.packets.PacketChatMessage.Target;
@@ -70,6 +75,7 @@ public class PacketHandlerBoss {
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(0, "Player not found")));
 				return;
 			}
+			player.setOwner(owner);
 			player.setServer(((PacketInServerSwitch) packet).getServer());
 			System.out.println("Player switched (" + ((PacketInServerSwitch) packet).getPlayer() + ") -> " + ((PacketInServerSwitch) packet).getServer());
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
@@ -86,6 +92,7 @@ public class PacketHandlerBoss {
 		else if(packet instanceof PacketInStatsRequest){
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketInStatsRequest) packet).getPlayer());
 			if(player == null){
+				System.out.println(((PacketInStatsRequest) packet).getPlayer()+":"+PlayerManager.getPlayer());
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(0, "Player not found")));
 				return;
 			}
@@ -158,8 +165,11 @@ public class PacketHandlerBoss {
 					OnlinePlayer player = PlayerManager.getPlayer(UUID.fromString(target.getTarget()));
 					if(player == null)
 						errors.add(new PacketOutPacketStatus.Error(0, "Player \""+target.getTarget()+"\" isnt online!"));
-					else
-						player.getPlayerBungeecord().writePacket(new PacketChatMessage(((PacketChatMessage) packet).getMessage(), new Target[]{target}));
+					else{
+						Client client = player.getPlayerBungeecord();
+						if(client != null)
+							client.writePacket(new PacketChatMessage(((PacketChatMessage) packet).getMessage(), new Target[]{target}));
+					}
 				default:
 					break;
 				}
@@ -199,6 +209,32 @@ public class PacketHandlerBoss {
 			PacketInBanPlayer p = (PacketInBanPlayer) packet;
 			BanManager.getManager().banPlayer(p.getName(), p.getIp(), p.getUuid(), p.getBannerName(), p.getBannerUuid(), p.getBannerIp(), p.getLevel(), p.getEnd(), p.getReson());
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
+		}
+		else if(packet instanceof PacketInNameRequest){
+			UUIDKey[] out = new UUIDKey[((PacketInNameRequest) packet).getUuids().length];
+			int i = 0;
+			for(UUID player : ((PacketInNameRequest) packet).getUuids()){
+				out[i] = new UUIDKey(UUIDManager.getName(player), player);
+				i++;
+			}
+			owner.writePacket(new PacketOutNameResponse(out));
+		}
+		else if(packet instanceof PacketServerAction){
+			ArrayList<Error> errors = new ArrayList<>();
+			for(PlayerAction action : ((PacketServerAction) packet).getActions()){
+				OnlinePlayer player = PlayerManager.getPlayer(action.getPlayer());
+				if(player == null){
+					errors.add(new PacketOutPacketStatus.Error(0, "Player "+action.getPlayer()+" not found"));
+					continue;
+				}
+				Client owner = player.getPlayerBungeecord();
+				if(owner == null){
+					errors.add(new PacketOutPacketStatus.Error(0, "Player "+action.getPlayer()+" ist online"));
+					continue;
+				}
+				owner.writePacket(new PacketServerAction(new PlayerAction[]{action}));
+			}
+			owner.writePacket(new PacketOutPacketStatus(packet, errors.toArray(new Error[0])));
 		}
 	}
 

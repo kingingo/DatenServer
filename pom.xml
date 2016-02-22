@@ -108,8 +108,17 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.38</version>
 		</dependency>
-		<!-- Youtube API (Not used yet) <dependency> <groupId>com.google.api.client</groupId> 
-			<artifactId>google-api-data-youtube-v2</artifactId> <version>1.0.10-alpha</version> 
-			</dependency> -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>10.0.1</version>
+		</dependency>
+		<!-- Youtube API (Not used yet) 
+		<dependency>
+		    <groupId>com.google.api.client</groupId> 
+			<artifactId>google-api-data-youtube-v2</artifactId>
+			<version>1.0.10-alpha</version> 
+		</dependency>
+		 -->
 	</dependencies>
 </project>

@@ -6,6 +6,7 @@ import java.net.Socket;
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketDisconnect;
+import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus;
 import lombok.Getter;
 
 public class Client {
@@ -20,6 +21,7 @@ public class Client {
 	@Getter
 	protected String name;
 	private ServerThread server;
+	private ServerStatus status;
 	
 	public Client(Socket socket,ServerThread owner) {
 		this.socket = socket;
@@ -57,5 +59,9 @@ public class Client {
 	}
 	protected PacketHandlerBoss getHandlerBoss(){
 		return boss;
+	}
+	
+	public ServerStatus getStatus() {
+		return status;
 	}
 }

@@ -72,6 +72,8 @@ public abstract class Packet {
 		registerPacket(0x08, PacketInUUIDRequest.class, PacketDirection.TO_SERVER);
 		registerPacket(0x09, PacketInGetServer.class, PacketDirection.TO_SERVER);
 		registerPacket(0x0A, PacketInBanPlayer.class, PacketDirection.TO_SERVER);
+		registerPacket(0x0B, PacketInNameRequest.class, PacketDirection.TO_SERVER);
+		registerPacket(0x0C, PacketServerAction.class, PacketDirection.TO_CLIENT);
 		
 		registerPacket(0xF0, PacketOutPacketStatus.class, PacketDirection.TO_CLIENT);
 		registerPacket(0x00, PacketOutHandschakeAccept.class, PacketDirection.TO_CLIENT);
@@ -80,6 +82,8 @@ public abstract class Packet {
 		registerPacket(0x03, PacketOutUUIDResponse.class, PacketDirection.TO_CLIENT);
 		registerPacket(0x04, PacketOutPlayerServer.class, PacketDirection.TO_CLIENT);
 		registerPacket(0x05, PacketOutBanStats.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x06, PacketOutNameResponse.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x07, PacketServerAction.class, PacketDirection.TO_CLIENT);
 		
 		registerPacket(0xFF, PacketDisconnect.class, PacketDirection.TO_CLIENT);
 		registerPacket(0xFF, PacketDisconnect.class, PacketDirection.TO_SERVER);

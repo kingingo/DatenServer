@@ -13,9 +13,13 @@ public class ServerThread {
 	private static ArrayList<Client> clients = new ArrayList<>();
 	
 	public static ArrayList<Client> getBungeecords(){
+		return getServer(ClientType.BUNGEECORD);
+	}
+	
+	public static ArrayList<Client> getServer(ClientType type){
 		ArrayList<Client> out = new ArrayList<>();
 		for(Client c : new ArrayList<>(clients))
-			if(c.getType() == ClientType.BUNGEECORD)
+			if(c.getType() == type)
 				out.add(c);
 		return out;
 	}

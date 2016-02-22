@@ -65,6 +65,12 @@ public class UUIDManager {
 			instance.checkRename0(player, curruntName);
 	}
 	
+	public static String getName(UUID uuid){
+		if(instance.uuidToString.containsKey(uuid))
+			return instance.uuidToString.get(uuid);
+		return null;
+	}
+	
 	/**
 	 * Run it Async!
 	 * @param player
@@ -78,6 +84,8 @@ public class UUIDManager {
 	private HashMap<String, String> tables_uuid;
 	private HashMap<String, String> tables_names;
 
+	private HashMap<UUID, String> uuidToString = new HashMap<>();
+	
 	public static void init(){
 		instance = new UUIDManager();
 	}
@@ -88,9 +96,11 @@ public class UUIDManager {
 	}
 
 	private void loadPremiumUUIDS() {
-		ArrayList<String[]> out = MySQL.getInstance().querySync("SELECT uuid,player FROM users WHERE `premium`='true'", -1);
+		ArrayList<String[]> out = MySQL.getInstance().querySync("SELECT premium,uuid,player FROM users", -1);
 		for(String[] s : out){
-			premiumUUIDS.put(s[1],UUID.fromString(s[0]));
+			if(s[0].equalsIgnoreCase("true"))
+				premiumUUIDS.put(s[2],UUID.fromString(s[1]));
+			uuidToString.put(UUID.fromString(s[1]), s[2]);
 		}
 		System.out.println("Loaded "+out.size()+" Premium Player");
 	}
@@ -378,11 +388,10 @@ public class UUIDManager {
 			lastUpdate.put(curruntName, System.currentTimeMillis());
 			HttpURLConnection connection = (HttpURLConnection) new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + player.toString().replace("-", "")).openConnection(getProxy());
 			JSONObject response = (JSONObject) new JSONObject(new InputStreamReader(connection.getInputStream()));
-			String name = (String) response.get("name");
-			if (name == null) {
-				premiumUUIDS.remove(curruntName);
+			if (!response.has("name")) {
 				return;
 			}
+			String name = (String) response.get("name");
 			if(name.equalsIgnoreCase(curruntName))
 				return;
 			String cause = response.has("cause") ? (String) response.get("cause") : null;
@@ -415,6 +424,8 @@ public class UUIDManager {
 
 			if (new_uuid != null) {
 				this.premiumUUIDS.put(name.toLowerCase(), new_uuid);
+				this.uuidToString.remove(oldUUID);
+				this.uuidToString.put(new_uuid, name.toLowerCase());
 				replaceUUID(oldUUID, new_uuid);
 				MySQL.getInstance().commandSync("UPDATE users SET premium='true' WHERE uuid='" + new_uuid + "'");
 				//TODO UUID UPDATE?
@@ -427,7 +438,9 @@ public class UUIDManager {
 			}
 			UUID oldUUID = this.premiumUUIDS.get(name.toLowerCase());
 			this.premiumUUIDS.remove(name.toLowerCase());
+			this.uuidToString.remove(oldUUID);
 			UUID new_uuid = getOfflineUUID(name);
+			this.uuidToString.put(new_uuid, name.toLowerCase());
 			replaceUUID(oldUUID, new_uuid);
 			MySQL.getInstance().commandSync("UPDATE users SET premium='false' WHERE uuid='" + new_uuid + "'");
 			//TODO UUID UPDATE?

@@ -23,6 +23,7 @@ public enum Game {
 	WARZ(true, "WarZ-Server", "WarZ", ServerType.WARZ, new StatsKey[] { StatsKey.KILLS, StatsKey.DEATHS, StatsKey.ANIMAL_KILLS, StatsKey.ANIMAL_DEATHS, StatsKey.MONSTER_KILLS, StatsKey.MONSTER_DEATHS }),
 	CaveWars(true, "CaveWars", "CW", ServerType.GAME, new StatsKey[] { StatsKey.KILLS, StatsKey.DEATHS, StatsKey.WIN, StatsKey.LOSE, StatsKey.SHEEPWARS_KILLED_SHEEPS }),
 	Masterbuilders(true, "Master Builders", "MB", ServerType.GAME, new StatsKey[] { StatsKey.LOSE, StatsKey.WIN }),
+	Money(true, "Money", "MONEY", ServerType.BUNGEECORD, new StatsKey[] { StatsKey.COINS, StatsKey.GEMS }),
 	NONE(true, "NONE", "FAIL", ServerType.GAME, null);
 
 	@Getter
@@ -57,6 +58,10 @@ public enum Game {
 				return t;
 		}
 		return null;
+	}
+	
+	public boolean isMySQL(){
+		return stats != null;
 	}
 
 }
