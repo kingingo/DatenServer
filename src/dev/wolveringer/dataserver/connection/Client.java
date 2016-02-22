@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 import dev.wolveringer.connection.server.ServerThread;
+import dev.wolveringer.dataserver.gamestats.Game;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketDisconnect;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus;
@@ -26,6 +27,8 @@ public class Client {
 	public Client(Socket socket,ServerThread owner) {
 		this.socket = socket;
 		this.server = owner;
+		if(owner == null && server == null)
+			return; //TESTING MODE
 		try{
 			this.writer = new SocketWriter(this, socket.getOutputStream());
 			this.reader = new ReaderThread(this, socket.getInputStream());
@@ -38,19 +41,27 @@ public class Client {
 	}	
 	
 	public void disconnect(){
+		if(server == null && server == null)
+			return; //TESTING MODE
 		disconnect(null);
 	}
 	
 	public void disconnect(String message){
+		if(server == null && server == null)
+			return; //TESTING MODE
 		writePacket(new PacketDisconnect(message));
 	}
 	
 	protected void closePipeline(){
+		if(server == null && server == null)
+			return; //TESTING MODE
 		reader.close();
 		writer.close();
 	}
 	
 	public void writePacket(Packet packet){
+		if(server == null && server == null)
+			return; //TESTING MODE
 		try {
 			writer.write(packet);
 		} catch (IOException e) {
@@ -63,5 +74,9 @@ public class Client {
 	
 	public ServerStatus getStatus() {
 		return status;
+	}
+
+	public void setGame(Game game) {
+		System.out.println("Game setting not implimented");
 	}
 }

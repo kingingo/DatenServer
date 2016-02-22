@@ -12,6 +12,10 @@ import dev.wolveringer.dataserver.connection.ClientType;
 public class ServerThread {
 	private static ArrayList<Client> clients = new ArrayList<>();
 	
+	public static void registerTestServer(Client client){
+		clients.add(client);
+	}
+	
 	public static ArrayList<Client> getBungeecords(){
 		return getServer(ClientType.BUNGEECORD);
 	}
