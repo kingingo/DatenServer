@@ -33,6 +33,11 @@ public class AcardeManager {
 			return arraylist;
 		};
 	};
+	
+	public static void serverConnected(Game game){
+		if(serverChanging.get(game).size() > 0)
+			serverChanging.get(game).remove(0);
+	}
 
 	public static HashMap<Game, ArrayList<Client>> balance() {
 		HashMap<Game, ArrayList<Client>> servers = buildGameServerLobbyIndex();
@@ -59,8 +64,8 @@ public class AcardeManager {
 				for (int i = 0; i < fills; i++) {
 					Client next = freeServer.next();
 					System.out.println("Setting "+next.getName()+" to "+game);
-					next.setGame(game);
 					serverChanging.get(game).add(UUID.randomUUID());
+					next.setGame(game);
 					//Move freeServer.next() to gamemode game
 				}
 			}
@@ -154,11 +159,43 @@ public class AcardeManager {
 		//Register Fake server
 		for(int i = 0;i<200;i++)
 			ServerThread.registerTestServer(new ClientAdapter("a"+i,0));
-		System.out.println(balance());
-		System.out.println(balance());
+		balance();
+		
 		for(Client c : ServerThread.getServer(ClientType.ACARDE))
 			c.getStatus().setLobby(new Random().nextBoolean());
-		System.out.println(balance());
+		
+		writeServers();
+		
+		balance();
+		
+		for(Client c : ServerThread.getServer(ClientType.ACARDE))
+			c.getStatus().setLobby(new Random().nextBoolean());
+		
+		writeServers();
+		
+		balance();
+		
+		for(Client c : ServerThread.getServer(ClientType.ACARDE))
+			c.getStatus().setLobby(new Random().nextBoolean());
+		
+		writeServers();
+		
+balance();
+		
+		for(Client c : ServerThread.getServer(ClientType.ACARDE))
+			c.getStatus().setLobby(new Random().nextBoolean());
+		
+		writeServers();
+	}
+	
+	private static void writeServers(){
+		HashMap<Game, ArrayList<Client>> servers = buildGameServerLobbyIndex();
+		if (servers.size() == 0) //Keine server registriert
+			System.out.println("No servers");
+		sortLobbysByPlayers(servers);
+		ArrayList<Client> var0 = buildFreeServerIndex(servers); //Cut server > MIN_FREE_SERVER
+		System.out.println("Server: "+servers);
+		
 	}
 	
 	private static class ClientAdapter extends Client{
