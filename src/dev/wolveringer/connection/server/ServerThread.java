@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import dev.wolveringer.dataserver.connection.Client;
 import dev.wolveringer.dataserver.connection.ClientType;
 
+//TODO Bungeecord Server management
+//TODO Event Setserver
+
 public class ServerThread {
 	private static ArrayList<Client> clients = new ArrayList<>();
 	
@@ -27,11 +30,22 @@ public class ServerThread {
 				out.add(c);
 		return out;
 	}
+
+	public static Client getServer(String name){
+		for(Client c : new ArrayList<>(clients))
+			if(c.getName() != null)
+			if(c.getName().equalsIgnoreCase(name))
+				return c;
+		return null;
+	}
+	public static void removeServer(Client client) {
+		clients.remove(client);
+	}
 	
 	private ServerSocket socket;
 	private InetSocketAddress localAddr;
 	private Thread acceptThread;
-	
+	private Thread timeoutThread;
 	
 	
 	public ServerThread(InetSocketAddress localAddr) {
@@ -54,7 +68,30 @@ public class ServerThread {
 				}
 			}
 		});
+		timeoutThread = new Thread(){
+			public void run() {
+				while (!socket.isClosed()) {
+					for(Client c : new ArrayList<>(clients)){
+						if(c.getLastPingTime() != -1)
+							if(System.currentTimeMillis()-c.getLastPingTime()>10000 && c.isConnected()){
+								System.out.println("Time out: "+c.getHost()+"["+c.getName()+"]");
+								try{
+									c.disconnect("Timeout");
+								}catch(Exception e){
+									e.printStackTrace();
+								}
+							}
+					}
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			};
+		};
 		acceptThread.start();
+		timeoutThread.start();
 	}
 	
 	

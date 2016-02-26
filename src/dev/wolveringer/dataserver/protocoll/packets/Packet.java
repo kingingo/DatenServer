@@ -73,7 +73,13 @@ public abstract class Packet {
 		registerPacket(0x09, PacketInGetServer.class, PacketDirection.TO_SERVER);
 		registerPacket(0x0A, PacketInBanPlayer.class, PacketDirection.TO_SERVER);
 		registerPacket(0x0B, PacketInNameRequest.class, PacketDirection.TO_SERVER);
-		registerPacket(0x0C, PacketServerAction.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x0C, PacketServerAction.class, PacketDirection.TO_SERVER);
+		registerPacket(0x0D, PacketInServerStatus.class, PacketDirection.TO_SERVER);
+		registerPacket(0x0E, PacketInServerStatusRequest.class, PacketDirection.TO_SERVER);
+		registerPacket(0x0F, PacketChatMessage.class, PacketDirection.TO_SERVER);
+		registerPacket(0x10, PacketServerMessage.class, PacketDirection.TO_SERVER);
+		registerPacket(0x11, PacketForward.class, PacketDirection.TO_SERVER);
+		registerPacket(0x12, PacketSettingUpdate.class, PacketDirection.TO_SERVER);
 		
 		registerPacket(0xF0, PacketOutPacketStatus.class, PacketDirection.TO_CLIENT);
 		registerPacket(0x00, PacketOutHandschakeAccept.class, PacketDirection.TO_CLIENT);
@@ -84,9 +90,18 @@ public abstract class Packet {
 		registerPacket(0x05, PacketOutBanStats.class, PacketDirection.TO_CLIENT);
 		registerPacket(0x06, PacketOutNameResponse.class, PacketDirection.TO_CLIENT);
 		registerPacket(0x07, PacketServerAction.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x08, PacketOutServerStatus.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x09, PacketChatMessage.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x0A, PacketOutGammodeChange.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x0B, PacketServerMessage.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x0C, PacketForward.class, PacketDirection.TO_CLIENT);
+		registerPacket(0x0D, PacketSettingUpdate.class, PacketDirection.TO_CLIENT);
 		
 		registerPacket(0xFF, PacketDisconnect.class, PacketDirection.TO_CLIENT);
 		registerPacket(0xFF, PacketDisconnect.class, PacketDirection.TO_SERVER);
+		
+		registerPacket(0xFE, PacketPingPong.class, PacketDirection.TO_CLIENT);
+		registerPacket(0xFE, PacketPingPong.class, PacketDirection.TO_SERVER);
 	}
 
 	@Getter

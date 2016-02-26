@@ -30,6 +30,8 @@ public class Main {
 		BanManager.setManager(new BanManager());
 		StatsManager.initTables();
 		SaveManager.setSaveManager(new SaveManager().start());
+		TickSeduller s = new TickSeduller();
+		s.start();
 		System.out.println("Server started");
 		ServerThread server = new ServerThread(new InetSocketAddress("localhost", 1111));
 		server.start();

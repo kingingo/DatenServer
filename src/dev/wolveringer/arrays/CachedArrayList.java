@@ -128,6 +128,8 @@ public class CachedArrayList<E> extends ArrayList<E> {
 
 	@Override
 	public boolean remove(Object o) {
+		if(!times.containsKey(o))
+			return false;
 		long r = times.get(o);
 		times.remove(o);
 		if (r != 0L) {

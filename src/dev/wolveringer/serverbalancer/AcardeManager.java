@@ -1,5 +1,6 @@
 package dev.wolveringer.serverbalancer;
 
+import java.lang.invoke.LambdaConversionException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -9,7 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -19,10 +19,14 @@ import dev.wolveringer.dataserver.connection.Client;
 import dev.wolveringer.dataserver.connection.ClientType;
 import dev.wolveringer.dataserver.connection.ServerStatus;
 import dev.wolveringer.dataserver.gamestats.Game;
+import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus.GameState;
 
 public class AcardeManager {
 	private static final int MIN_FREE_SERVER = 3;
 
+	private static HashMap<Game, ArrayList<Client>> lastCalculated = new HashMap<>();
+	
+	@SuppressWarnings("serial")
 	private static HashMap<Game, CachedArrayList<UUID>> serverChanging = new HashMap<Game, CachedArrayList<UUID>>() {
 		public CachedArrayList<UUID> get(Object key) {
 			CachedArrayList<UUID> arraylist = super.get(key);
@@ -33,10 +37,14 @@ public class AcardeManager {
 			return arraylist;
 		};
 	};
+	private static CachedArrayList<String> notFree = new CachedArrayList<>(1, TimeUnit.MINUTES);
 	
 	public static void serverConnected(Game game){
 		if(serverChanging.get(game).size() > 0)
 			serverChanging.get(game).remove(0);
+	}
+	public static void serverDisconnected(String name){
+		notFree.remove(name);
 	}
 
 	public static HashMap<Game, ArrayList<Client>> balance() {
@@ -45,32 +53,40 @@ public class AcardeManager {
 			return null;
 		sortLobbysByPlayers(servers);
 		ArrayList<Client> var0 = buildFreeServerIndex(servers); //Cut server > MIN_FREE_SERVER
-		servers = shortByNeeded(servers); //SHort games by needed Server
+		servers = shortByNeeded(servers); //Short games by needed Server
 		int freeServersLeft = var0.size();
 		Iterator<Client> freeServer = var0.iterator();
 
-		int needed = calculateNeededServers(servers);
-
+		int oneeded = calculateNeededServers(servers); //Orginal needed
+		int needed = oneeded;
+		if(needed == 0)
+			needed = servers.size(); //Adding left servers to games
 		for (Game game : Game.values()) {
 			if(!game.isArcade())
+				continue;
+			if(freeServersLeft <= 0)
 				continue;
 			if(!servers.containsKey(game))
 				servers.put(game, new CachedArrayList<>(1, TimeUnit.MINUTES));
 			if (servers.get(game).size() < MIN_FREE_SERVER) {
-				int fills = calculateMinServerPerGame(needed, freeServersLeft) - servers.get(game).size();
-				freeServersLeft -= fills;
+				int fills = calculateMinServerPerGame(needed, freeServersLeft);
 				needed -= fills;
 				//System.out.println("Fills: "+fills+" Game: "+game);
 				for (int i = 0; i < fills; i++) {
+					if(!freeServer.hasNext())
+						continue;
+					freeServersLeft--;
 					Client next = freeServer.next();
 					System.out.println("Setting "+next.getName()+" to "+game);
 					serverChanging.get(game).add(UUID.randomUUID());
+					notFree.add(next.getName());
 					next.setGame(game);
 					//Move freeServer.next() to gamemode game
 				}
 			}
 		}
-		System.out.println("Free Server left: "+freeServersLeft);
+		lastCalculated = (HashMap<Game, ArrayList<Client>>) servers.clone();
+		System.out.println("Free Server left: "+freeServersLeft+" Orginal needed Servers: "+oneeded);
 		return servers;
 	}
 
@@ -148,53 +164,19 @@ public class AcardeManager {
 		};
 
 		for (Client c : ServerThread.getServer(ClientType.ACARDE)) {
-			if (c.getStatus() != null && c.getStatus().getTyp() != null && c.getStatus().isLobby())
+			if (c.getStatus() != null && c.getStatus().getTyp() != null && c.getStatus().isVisiable() && c.getStatus().getState() == GameState.LobbyPhase && !notFree.contains(c.getName()))
 				out.get(c.getStatus().getTyp()).add(c);
 		}
 
 		return out;
 	}
 
-	public static void main(String[] args) {
-		//Register Fake server
-		for(int i = 0;i<200;i++)
-			ServerThread.registerTestServer(new ClientAdapter("a"+i,0));
-		balance();
-		
-		for(Client c : ServerThread.getServer(ClientType.ACARDE))
-			c.getStatus().setLobby(new Random().nextBoolean());
-		
-		writeServers();
-		
-		balance();
-		
-		for(Client c : ServerThread.getServer(ClientType.ACARDE))
-			c.getStatus().setLobby(new Random().nextBoolean());
-		
-		writeServers();
-		
-		balance();
-		
-		for(Client c : ServerThread.getServer(ClientType.ACARDE))
-			c.getStatus().setLobby(new Random().nextBoolean());
-		
-		writeServers();
-		
-balance();
-		
-		for(Client c : ServerThread.getServer(ClientType.ACARDE))
-			c.getStatus().setLobby(new Random().nextBoolean());
-		
-		writeServers();
-	}
-	
-	private static void writeServers(){
-		HashMap<Game, ArrayList<Client>> servers = buildGameServerLobbyIndex();
-		if (servers.size() == 0) //Keine server registriert
+	public static void writeServers(){
+		if (lastCalculated.size() == 0) //Keine server registriert
 			System.out.println("No servers");
-		sortLobbysByPlayers(servers);
-		ArrayList<Client> var0 = buildFreeServerIndex(servers); //Cut server > MIN_FREE_SERVER
-		System.out.println("Server: "+servers);
+		for(Game g : lastCalculated.keySet()){
+			System.out.println("game: "+g+" Server: "+lastCalculated.get(g));
+		}
 		
 	}
 	
@@ -204,7 +186,8 @@ balance();
 			public ClientAdapter(String name,int player) {
 				super(null, null);
 				status = new ServerStatus(null);
-				status.setLobby(true);
+				status.setVisiable(true);
+				status.setServerId(name);
 				status.setMaxPlayers(100);
 				status.setMots("");
 				status.setPlayers(player);
@@ -228,6 +211,10 @@ balance();
 			@Override
 			public ClientType getType() {
 				return ClientType.ACARDE;
+			}
+			@Override
+			public String toString() {
+				return "lobby: "+status.isVisiable()+" Name: "+name;
 			}
 	}
 }

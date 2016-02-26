@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ThreadHandleManager {
 
-	private static final int MAX_THREADS = 100;
+	private static final int MAX_THREADS = 400;
 	private static AtomicInteger threads = new AtomicInteger(0);
 	private static List<Runnable> todo = (List<Runnable>) Collections.synchronizedList(new ArrayList<Runnable>());
 

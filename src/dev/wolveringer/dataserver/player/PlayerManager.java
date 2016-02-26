@@ -2,6 +2,7 @@ package dev.wolveringer.dataserver.player;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 import dev.wolveringer.dataserver.connection.Client;
@@ -17,6 +18,7 @@ public class PlayerManager {
 		for(OnlinePlayer p : getPlayer())
 			if(p.getName().equalsIgnoreCase(player))
 				return;
+		System.out.println("Insert player");
 		OnlinePlayer var0 = new OnlinePlayer(player,owner);
 		players.put(var0.getUuid(), var0);
 		if(var0 != null)
@@ -52,5 +54,15 @@ public class PlayerManager {
 	public static void unload(String player) {
 		OnlinePlayer players = getPlayer(player);
 		PlayerManager.players.remove(players.getUuid());
+	}
+	
+	public static List<String> getPlayers(String server){
+		ArrayList<String> out = new ArrayList<>();
+		for(OnlinePlayer c : getPlayer()){
+			if(c.isPlaying())
+				if(server == null || c.getServer().equalsIgnoreCase(server))
+					out.add(c.getName());
+		}
+		return out;
 	}
 }

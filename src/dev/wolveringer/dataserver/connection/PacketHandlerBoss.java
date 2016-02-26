@@ -2,7 +2,10 @@ package dev.wolveringer.dataserver.connection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+
+import com.mysql.fabric.Server;
 
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.Main;
@@ -20,12 +23,20 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketInChangePlayerSettings
 import dev.wolveringer.dataserver.protocoll.packets.PacketChatMessage;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInConnectionStatus;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInPlayerSettingsRequest;
+import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus;
+import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus.GameState;
+import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatusRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInConnectionStatus.Status;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInGetServer;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInNameRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPlayerSettings.SettingValue;
+import dev.wolveringer.dataserver.protocoll.packets.PacketOutServerStatus;
+import dev.wolveringer.dataserver.protocoll.packets.PacketOutServerStatus.Action;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse;
+import dev.wolveringer.dataserver.protocoll.packets.PacketPingPong;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction;
+import dev.wolveringer.dataserver.protocoll.packets.PacketServerMessage;
+import dev.wolveringer.dataserver.protocoll.packets.PacketSettingUpdate;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse.UUIDKey;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction.PlayerAction;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
@@ -60,9 +71,10 @@ public class PacketHandlerBoss {
 				}
 				owner.host = ((PacketHandschakeInStart) packet).getHost();
 				owner.type = ((PacketHandschakeInStart) packet).getType();
+				owner.name = ((PacketHandschakeInStart) packet).getName();
 				owner.writePacket(new PacketOutHandschakeAccept());
-				System.out.println("Client connected ("+owner.host+"|"+owner.type+")");
 				handschakeComplete = true;
+				System.out.println("Client connected (" + owner.host + "|" + owner.type + ")");
 			}
 			return;
 		}
@@ -71,7 +83,7 @@ public class PacketHandlerBoss {
 			owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Packet forward not implimented yet!")));
 		} else if (packet instanceof PacketInServerSwitch) {
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketInServerSwitch) packet).getPlayer());
-			if(player == null){
+			if (player == null) {
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(0, "Player not found")));
 				return;
 			}
@@ -81,26 +93,24 @@ public class PacketHandlerBoss {
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		} else if (packet instanceof PacketInStatsEdit) {
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketInStatsEdit) packet).getPlayer());
-			if(player == null){
+			if (player == null) {
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(0, "Player not found")));
 				return;
 			}
 			player.getStatsManager().applayChanges((PacketInStatsEdit) packet);
 			System.out.println("Player stats change (" + ((PacketInStatsEdit) packet).getPlayer() + ")");
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
-		}
-		else if(packet instanceof PacketInStatsRequest){
+		} else if (packet instanceof PacketInStatsRequest) {
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketInStatsRequest) packet).getPlayer());
-			if(player == null){
-				System.out.println(((PacketInStatsRequest) packet).getPlayer()+":"+PlayerManager.getPlayer());
+			if (player == null) {
+				System.out.println(((PacketInStatsRequest) packet).getPlayer() + ":" + PlayerManager.getPlayer());
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(0, "Player not found")));
 				return;
 			}
 			owner.writePacket(player.getStatsManager().getStats(((PacketInStatsRequest) packet).getGame()));
-		}
-		else if(packet instanceof PacketInChangePlayerSettings){
+		} else if (packet instanceof PacketInChangePlayerSettings) {
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketInChangePlayerSettings) packet).getPlayer());
-			if(player == null){
+			if (player == null) {
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(0, "Player not found")));
 				return;
 			}
@@ -111,80 +121,84 @@ public class PacketHandlerBoss {
 			case PREMIUM_LOGIN:
 				player.setPremium(Boolean.valueOf(((PacketInChangePlayerSettings) packet).getValue()));
 				break;
+			case LANGUAGE:
+				player.setLanguage(LanguageType.get(((PacketInChangePlayerSettings) packet).getValue()));
+				break;
 			default:
 				break;
 			}
+			Client bungeecord = player.getPlayerBungeecord();
+			bungeecord.writePacket(new PacketSettingUpdate(player.getUuid(),((PacketInChangePlayerSettings) packet).getSetting(), ((PacketInChangePlayerSettings) packet).getValue()));
+			Client server = ServerThread.getServer(player.getServer());
+			if(server != null)
+				server.writePacket(new PacketSettingUpdate(player.getUuid(),((PacketInChangePlayerSettings) packet).getSetting(), ((PacketInChangePlayerSettings) packet).getValue()));
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
-		}
-		else if(packet instanceof PacketInPlayerSettingsRequest){
+		} else if (packet instanceof PacketInPlayerSettingsRequest) {
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketInPlayerSettingsRequest) packet).getPlayer());
-			if(player == null){
+			if (player == null) {
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(0, "Player not found")));
 				return;
 			}
 			ArrayList<SettingValue> values = new ArrayList<>();
-			for(Setting s : ((PacketInPlayerSettingsRequest) packet).getSettings())
+			for (Setting s : ((PacketInPlayerSettingsRequest) packet).getSettings())
 				switch (s) {
 				case PASSWORD:
 					values.add(new SettingValue(s, player.getLoginPassword()));
 					break;
 				case PREMIUM_LOGIN:
-					values.add(new SettingValue(s, player.isPremium()+""));
+					values.add(new SettingValue(s, player.isPremium() + ""));
 					break;
 				case UUID:
 					values.add(new SettingValue(s, player.getUuid().toString()));
+					break;
+				case LANGUAGE:
+					values.add(new SettingValue(s, player.getLang().getDef()));
 					break;
 				default:
 					break;
 				}
 			owner.writePacket(new PacketOutPlayerSettings(player.getUuid(), values.toArray(new SettingValue[0])));
-		}
-		else if(packet instanceof PacketInConnectionStatus){
-			if(((PacketInConnectionStatus)packet).getStatus() == Status.CONNECTED){
+		} else if (packet instanceof PacketInConnectionStatus) {
+			if (((PacketInConnectionStatus) packet).getStatus() == Status.CONNECTED) {
 				System.out.println("Player connected (" + ((PacketInConnectionStatus) packet).getPlayer() + ")");
 				PlayerManager.loadPlayer(((PacketInConnectionStatus) packet).getPlayer(), owner);
-			}
-			else
-			{
+			} else {
 				System.out.println("Player disconnected (" + ((PacketInConnectionStatus) packet).getPlayer() + ")");
 				PlayerManager.getPlayer(((PacketInConnectionStatus) packet).getPlayer()).save();
 				PlayerManager.unload(((PacketInConnectionStatus) packet).getPlayer());
 			}
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
-		}
-		else if(packet instanceof PacketChatMessage){
+		} else if (packet instanceof PacketChatMessage) {
 			ArrayList<PacketOutPacketStatus.Error> errors = new ArrayList<>();
-			loop:
-			for(Target target : ((PacketChatMessage) packet).getTargets()){
+			loop: for (Target target : ((PacketChatMessage) packet).getTargets()) {
 				switch (target.getType()) {
 				case BROTCAST:
-					for(Client clients : ServerThread.getBungeecords())
-						clients.writePacket(new PacketChatMessage(((PacketChatMessage) packet).getMessage(), new Target[]{target}));
+					for (Client clients : ServerThread.getBungeecords())
+						if(clients != owner)
+						clients.writePacket(new PacketChatMessage(((PacketChatMessage) packet).getMessage(), new Target[] { target }));
 					break loop;
 				case PLAYER:
 					OnlinePlayer player = PlayerManager.getPlayer(UUID.fromString(target.getTarget()));
-					if(player == null)
-						errors.add(new PacketOutPacketStatus.Error(0, "Player \""+target.getTarget()+"\" isnt online!"));
-					else{
+					if (player == null || !player.isPlaying())
+						errors.add(new PacketOutPacketStatus.Error(0, "Player \"" + target.getTarget() + "\" isnt online!"));
+					else {
 						Client client = player.getPlayerBungeecord();
-						if(client != null)
-							client.writePacket(new PacketChatMessage(((PacketChatMessage) packet).getMessage(), new Target[]{target}));
+						if (client != null)
+							client.writePacket(new PacketChatMessage(((PacketChatMessage) packet).getMessage(), new Target[] { target }));
 					}
 				default:
 					break;
 				}
 			}
 			owner.writePacket(new PacketOutPacketStatus(packet, errors.toArray(new PacketOutPacketStatus.Error[0])));
-		}
-		else if(packet instanceof PacketDisconnect){
+		} else if (packet instanceof PacketDisconnect) {
 			owner.closePipeline();
-			System.out.println("Client["+owner.getHost()+"] disconnected ("+((PacketDisconnect)packet).getReson()+")");
+			System.out.println("Client[" + owner.getHost() + "] disconnected (" + ((PacketDisconnect) packet).getReson() + ")");
 			return;
-		}
-		else if(packet instanceof PacketInUUIDRequest){
+		} else if (packet instanceof PacketInUUIDRequest) {
 			UUIDKey[] out = new UUIDKey[((PacketInUUIDRequest) packet).getPlayers().length];
 			int i = 0;
-			for(String player : ((PacketInUUIDRequest) packet).getPlayers()){
+			for (String player : ((PacketInUUIDRequest) packet).getPlayers()) {
 				UUID uuid = UUIDManager.getUUID(player);
 				UUIDManager.saveUpdatePremiumName(uuid, player);
 				uuid = UUIDManager.getUUID(player); //UUID after update
@@ -192,49 +206,127 @@ public class PacketHandlerBoss {
 				i++;
 			}
 			owner.writePacket(new PacketOutUUIDResponse(out));
-		}
-		else if(packet instanceof PacketInGetServer){
+		} else if (packet instanceof PacketInGetServer) {
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketInGetServer) packet).getPlayer());
-			if(player == null){
+			if (player == null) {
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(0, "Player not found")));
 				return;
 			}
 			owner.writePacket(new PacketOutPlayerServer(player.getUuid(), player.getServer()));
-		}
-		else if(packet instanceof PacketInBanStatsRequest){
+		} else if (packet instanceof PacketInBanStatsRequest) {
 			BanEntity e = BanManager.getManager().getEntity(((PacketInBanStatsRequest) packet).getName(), ((PacketInBanStatsRequest) packet).getIp(), ((PacketInBanStatsRequest) packet).getPlayer());
 			owner.writePacket(new PacketOutBanStats(packet.getPacketUUID(), e));
-		}
-		else if(packet instanceof PacketInBanPlayer){
+		} else if (packet instanceof PacketInBanPlayer) {
 			PacketInBanPlayer p = (PacketInBanPlayer) packet;
 			BanManager.getManager().banPlayer(p.getName(), p.getIp(), p.getUuid(), p.getBannerName(), p.getBannerUuid(), p.getBannerIp(), p.getLevel(), p.getEnd(), p.getReson());
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
-		}
-		else if(packet instanceof PacketInNameRequest){
+		} else if (packet instanceof PacketInNameRequest) {
 			UUIDKey[] out = new UUIDKey[((PacketInNameRequest) packet).getUuids().length];
 			int i = 0;
-			for(UUID player : ((PacketInNameRequest) packet).getUuids()){
+			for (UUID player : ((PacketInNameRequest) packet).getUuids()) {
 				out[i] = new UUIDKey(UUIDManager.getName(player), player);
 				i++;
 			}
 			owner.writePacket(new PacketOutNameResponse(out));
-		}
-		else if(packet instanceof PacketServerAction){
+		} else if (packet instanceof PacketServerAction) {
 			ArrayList<Error> errors = new ArrayList<>();
-			for(PlayerAction action : ((PacketServerAction) packet).getActions()){
+			for (PlayerAction action : ((PacketServerAction) packet).getActions()) {
 				OnlinePlayer player = PlayerManager.getPlayer(action.getPlayer());
-				if(player == null){
-					errors.add(new PacketOutPacketStatus.Error(0, "Player "+action.getPlayer()+" not found"));
+				if (player == null) {
+					errors.add(new PacketOutPacketStatus.Error(0, "Player " + action.getPlayer() + " not found"));
 					continue;
 				}
 				Client owner = player.getPlayerBungeecord();
-				if(owner == null){
-					errors.add(new PacketOutPacketStatus.Error(0, "Player "+action.getPlayer()+" ist online"));
+				if (owner == null) {
+					errors.add(new PacketOutPacketStatus.Error(0, "Player " + action.getPlayer() + " ist online"));
 					continue;
 				}
-				owner.writePacket(new PacketServerAction(new PlayerAction[]{action}));
+				owner.writePacket(new PacketServerAction(new PlayerAction[] { action }));
 			}
 			owner.writePacket(new PacketOutPacketStatus(packet, errors.toArray(new Error[0])));
+		} else if (packet instanceof PacketInServerStatus) {
+			owner.getStatus().applayPacket((PacketInServerStatus) packet);
+			owner.writePacket(new PacketOutPacketStatus(packet, null));
+		} else if (packet instanceof PacketInServerStatusRequest) {
+			switch (((PacketInServerStatusRequest) packet).getAction()) {
+			case BUNGEECORD:
+				for (Client client : ServerThread.getBungeecords())
+					if (client.getName().equalsIgnoreCase(((PacketInServerStatusRequest) packet).getValue())) {
+						List<String> player = client.getPlayers();
+						owner.writePacket(new PacketOutServerStatus(Action.BUNGEECORD, ((PacketInServerStatusRequest) packet).getValue(),client.getStatus().getServerId(),client.getStatus().isVisiable(),client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), ((PacketInServerStatusRequest) packet).isPlayer() ? player : null));
+						return;
+					}
+				break;
+			case SERVER:
+				List<String> player = PlayerManager.getPlayers(((PacketInServerStatusRequest) packet).getValue());
+				Client client = ServerThread.getServer(((PacketInServerStatusRequest) packet).getValue());
+				if(client == null){
+					owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Server/Bungeecord not found")));
+					return;
+				}
+				if (player != null) {
+					owner.writePacket(new PacketOutServerStatus(Action.SERVER, ((PacketInServerStatusRequest) packet).getValue(),client.getStatus().getServerId(),client.getStatus().isVisiable(),client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), ((PacketInServerStatusRequest) packet).isPlayer() ? player : null));
+					return;
+				}
+				break;
+			case GENERAL:
+				List<String> players = PlayerManager.getPlayers(null);
+				if (players != null) {
+					owner.writePacket(new PacketOutServerStatus(Action.GENERAL, ((PacketInServerStatusRequest) packet).getValue(),"network",true,GameState.NONE, players.size(), -1, ((PacketInServerStatusRequest) packet).isPlayer() ? players : null));
+					return;
+				}
+				break;
+			default:
+				break;
+			}
+			owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Server/Bungeecord not found")));
+		}
+		else if(packet instanceof PacketPingPong){
+			owner.writePacket(packet);
+			owner.lastPing = System.currentTimeMillis()-((PacketPingPong)packet).getTime();
+			owner.lastPingTime = System.currentTimeMillis();
+		}
+		else if(packet instanceof PacketServerMessage){
+			for(dev.wolveringer.dataserver.protocoll.packets.PacketServerMessage.Target t : ((PacketServerMessage) packet).getTargets()){
+				if(t.getTargetType() != null){
+					ArrayList<Client> targets = ServerThread.getServer(t.getTargetType());
+					for(Client tc : targets)
+						if(tc != owner)
+						tc.writePacket(packet);
+				}
+				else
+				{
+					Client client = ServerThread.getServer(t.getTarget());
+					if(client == null){
+						owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Target not found")));
+						return;
+					}
+					else
+					{
+						client.writePacket(packet);
+					}
+				}
+			}
+			owner.writePacket(new PacketOutPacketStatus(packet, null));
+		}
+		else if(packet instanceof PacketForward){
+			if(((PacketForward)packet).getCtarget() != null){
+				ArrayList<Client> targets = ServerThread.getServer(((PacketForward)packet).getCtarget());
+				for(Client tc : targets)
+					if(tc != owner)
+						tc.writePacket(packet);
+			}
+			else {
+				Client client = ServerThread.getServer(((PacketForward)packet).getTarget());
+				if(client == null){
+					owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Target not found")));
+				}
+				else
+				{
+					client.writePacket(packet);
+				}
+			}
+			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		}
 	}
 

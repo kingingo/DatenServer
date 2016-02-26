@@ -51,9 +51,10 @@ public class ReaderThread {
 		ThreadHandleManager.join(new Runnable() {
 			@Override
 			public void run() {
+				if(!active) //Drop packet
+					return;
 				DataBuffer buffer = new DataBuffer(bbuffer);
 				Packet packet = Packet.createPacket(buffer.readInt(), buffer);
-				System.out.println(packet);
 				client.getHandlerBoss().handle(packet);
 			}
 		});
@@ -80,7 +81,7 @@ public class ReaderThread {
 			} catch (Exception e) {
 			}
 		if (reader != null) {
-			reader.stop();
+			reader.interrupt();
 		}
 	}
 

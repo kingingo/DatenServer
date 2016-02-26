@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import dev.wolveringer.dataserver.connection.Client;
 import dev.wolveringer.dataserver.connection.ClientType;
+import dev.wolveringer.dataserver.connection.LanguageType;
 import dev.wolveringer.dataserver.gamestats.StatsManager;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.mysql.MySQL;
@@ -16,6 +17,7 @@ public class OnlinePlayer {
 	public static enum Setting {
 		PREMIUM_LOGIN,
 		PASSWORD,
+		LANGUAGE,
 		UUID;
 	}
 	
@@ -25,7 +27,8 @@ public class OnlinePlayer {
 	private boolean isPremium = false;
 	@Getter
 	private String loginPassword = null;
-	
+	@Getter
+	private LanguageType lang;
 	@Getter
 	private StatsManager statsManager;
 	private Client owner;
@@ -64,7 +67,14 @@ public class OnlinePlayer {
 				this.loginPassword = response.get(0)[1].equalsIgnoreCase("null") ? null : response.get(0)[1];
 			else
 				System.out.println(Arrays.asList(response.get(0)));
-			
+			ArrayList<String[]> r = MySQL.getInstance().querySync("SELECT `language` FROM `language_user` WHERE uuid='"+uuid+"'", 1);
+			if(r.size() == 0){
+				lang = LanguageType.get(r.get(0)[0]);
+			}
+			else{
+				lang = LanguageType.ENGLISH;
+				MySQL.getInstance().command("INSERT INTO `language_user`(`uuid`, `language`) VALUES ('"+getUuid()+"','"+lang.getDef()+"')");
+			}
 		}
 		statsManager = new StatsManager(this);
 	}
@@ -73,6 +83,11 @@ public class OnlinePlayer {
 		statsManager.save();
 	}
 
+	public void setLanguage(LanguageType lang){
+		this.lang = lang;
+		MySQL.getInstance().command("UPDATE `language_user` SET `language`='"+lang.getDef()+"' WHERE `uuid`='"+uuid+"'");
+	}
+	
 	public void setPassword(String value) {
 		this.loginPassword = value;
 		MySQL.getInstance().command("UPDATE `users` SET `password`='"+value+"' WHERE uuid='"+uuid.toString()+"'"); //Cript?
@@ -93,6 +108,10 @@ public class OnlinePlayer {
 			System.out.println("UUID = null"); //TODO load
 		return uuid;
 	}
+	public boolean isPlaying(){
+		return !server.equalsIgnoreCase("undefined");
+	}
+	
 	@Override
 	public String toString() {
 		return "OnlinePlayer [name=" + name + ", uuid=" + uuid + ", isPremium=" + isPremium + ", loginPassword=" + loginPassword + ", statsManager=" + statsManager + ", owner=" + owner + ", server=" + server + "]";
