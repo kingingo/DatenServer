@@ -16,16 +16,20 @@ public class Main {
 	public static byte[] Password = "HelloWorld".getBytes();
 	private static Terminal terminal;
 	
+	private static boolean supportTerminal = true;
+	
 	public static void main(String[] args) throws InterruptedException, IOException {
-		//terminal = new Terminal();
-		//terminal.init();
+		if(supportTerminal){
+			terminal = new Terminal();
+			terminal.init();
+		}
 		
 		getConsoleWriter().write("§aHello world");
 		System.out.println("§bHello world");
 		
 		
 		//TODO init MySQL
-		MySQL.setInstance(new MySQL("148.251.143.2", "3306", "games", "root", "55P_YHmK8MXlPiqEpGKuH_5WVlhsXT"));
+		MySQL.setInstance(new MySQL("148.251.143.2", "3306", "test", "root", "55P_YHmK8MXlPiqEpGKuH_5WVlhsXT"));
 		UUIDManager.init();
 		BanManager.setManager(new BanManager());
 		StatsManager.initTables();
@@ -42,12 +46,13 @@ public class Main {
 	}
 
 	public static ConsoleWriter getConsoleWriter() {
-		return new ConsoleWriter(null){
-			@Override
-			public void write(String string) {
-				System.out.println(string);
-			}
-		};
-		//return terminal.getConsolenWriter();
+		if(!supportTerminal)
+			return new ConsoleWriter(null){
+				@Override
+				public void write(String string) {
+					System.out.println(string);
+				}
+			};
+		return terminal.getConsolenWriter();
 	}
 }

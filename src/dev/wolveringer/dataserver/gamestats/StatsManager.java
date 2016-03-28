@@ -5,142 +5,16 @@ import java.util.HashMap;
 
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsEdit;
+import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsEdit.EditStats;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutStats;
+import dev.wolveringer.gamestats.Statistic;
 import dev.wolveringer.mysql.MySQL;
 
 public class StatsManager {
-	public static class Statistic {
-		private static HashMap<Class<?>, Integer> types = new HashMap<>();
-
-		static {
-			types.put(int.class, 0);
-			types.put(Integer.class, 0);
-			types.put(double.class, 1);
-			types.put(Double.class, 1);
-			types.put(String.class, 2);
-		}
-
-		private StatsKey stat;
-		private Object output;
-		private boolean needSave = false;
-
-		public Statistic(StatsKey stat, Object output) {
-			this.stat = stat;
-			if (output != null)
-				switch (types.get(stat.getType())) {
-				case 0:
-					this.output = (int) Integer.valueOf(output.toString());
-					break;
-				case 1:
-					this.output = (double) Double.valueOf(output.toString());
-					break;
-				case 2:
-					this.output = output;
-					break;
-				default:
-					throw new RuntimeException("No class found");
-				}
-			else {
-				switch (types.get(stat.getType())) {
-				case 0:
-					this.output = (int) 0;
-					break;
-				case 1:
-					this.output = (double) 0D;
-					break;
-				case 2:
-					this.output = "";
-					break;
-				default:
-					throw new RuntimeException("No class found");
-				}
-			}
-		}
-
-		public int asInt() {
-			return (int) Integer.valueOf(output.toString());
-		}
-
-		public double asDouble() {
-			return (double) Double.valueOf(output.toString());
-		}
-
-		public String asString() {
-			return (String) output;
-		}
-
-		public int getTypeId() {
-			return types.get(stat.getType());
-		}
-
-		public StatsKey getStatsKey() {
-			return stat;
-		}
-
-		public Object getValue() {
-			return output;
-		}
-
-		protected void applayChange(PacketInStatsEdit.EditStats change) {
-			if (types.get(change.getValue().getClass()) != types.get(output.getClass()))
-				throw new RuntimeException("A " + change.getValue().getClass() + "[" + change.getValue() + "] cant be cast to a " + output.getClass() + "[" + output + "] statistic");
-			switch (change.getAction()) {
-			case ADD:
-				switch (types.get(change.getValue().getClass())) {
-				case 0:
-					output = asInt() + (int) change.getValue();
-					break;
-				case 1:
-					output = asDouble() + (double) change.getValue();
-					break;
-				case 2:
-					throw new RuntimeException("String is not addable");
-				default:
-					throw new RuntimeException("No class found");
-				}
-				break;
-			case REMOVE:
-				switch (types.get(change.getValue().getClass())) {
-				case 0:
-					output = asInt() - (int) change.getValue();
-					break;
-				case 1:
-					output = asDouble() - (double) change.getValue();
-					break;
-				case 2:
-					throw new RuntimeException("String is not removeable");
-				default:
-					throw new RuntimeException("No class found");
-				}
-				break;
-			case SET:
-				switch (types.get(change.getValue().getClass())) {
-				case 0:
-					output = (int) change.getValue();
-					break;
-				case 1:
-					output = (double) change.getValue();
-					break;
-				case 2:
-					output = change.getValue();
-					break;
-				default:
-					throw new RuntimeException("No class found");
-				}
-				break;
-			default:
-				throw new RuntimeException("Type not found");
-			}
-			needSave = true;
-		}
-
-		public boolean needSave() {
-			return needSave;
-		}
-	}
+	
 
 	public static void initTables() {
-		for (Game game : Game.values()) {
+		for (GameType game : GameType.values()) {
 			if (!game.isMySQL())
 				continue;
 			StatsKey[] stats = game.getStats();
@@ -154,13 +28,66 @@ public class StatsManager {
 	}
 
 	private OnlinePlayer owner;
-	private HashMap<Game, Statistic[]> stats = new HashMap<>();
+	private HashMap<GameType, Statistic[]> stats = new HashMap<>();
 
 	public StatsManager(OnlinePlayer owner) {
 		this.owner = owner;
 	}
 
-	public PacketOutStats getStats(Game game) {
+	private void applayChange(Statistic statistic,EditStats change) {
+		if (Statistic.types.get(change.getValue().getClass()) != Statistic.types.get(statistic.getValue().getClass()))
+			throw new RuntimeException("A " + change.getValue().getClass() + "[" + change.getValue() + "] cant be cast to a " + statistic.getValue().getClass() + "[" + statistic.getValue() + "] statistic");
+		switch (change.getAction()) {
+		case ADD:
+			switch (Statistic.types.get(change.getValue().getClass())) {
+			case 0:
+				statistic.setOutput(statistic.asInt() + (int) change.getValue());
+				break;
+			case 1:
+				statistic.setOutput(statistic.asDouble() + (double) change.getValue());
+				break;
+			case 2:
+				throw new RuntimeException("String is not addable");
+			default:
+				throw new RuntimeException("No class found");
+			}
+			break;
+		case REMOVE:
+			switch (Statistic.types.get(change.getValue().getClass())) {
+			case 0:
+				statistic.setOutput(statistic.asInt() - (int) change.getValue());
+				break;
+			case 1:
+				statistic.setOutput(statistic.asDouble() - (double) change.getValue());
+				break;
+			case 2:
+				throw new RuntimeException("String is not removeable");
+			default:
+				throw new RuntimeException("No class found");
+			}
+			break;
+		case SET:
+			switch (Statistic.types.get(change.getValue().getClass())) {
+			case 0:
+				statistic.setOutput((int) change.getValue());
+				break;
+			case 1:
+				statistic.setOutput((double) change.getValue());;
+				break;
+			case 2:
+				statistic.setOutput(change.getValue()+"");;
+				break;
+			default:
+				throw new RuntimeException("No class found");
+			}
+			break;
+		default:
+			throw new RuntimeException("Type not found");
+		}
+		statistic.setNeedSave(true);
+	}
+	
+	public PacketOutStats getStats(GameType game) {
 		if (!stats.containsKey(game))
 			loadStats(game);
 		return new PacketOutStats(owner.getUuid(), game, stats.get(game));
@@ -172,12 +99,12 @@ public class StatsManager {
 				loadStats(stat.getGame());
 			for (Statistic s : stats.get(stat.getGame()))
 				if (s.getStatsKey() == stat.getKey())
-					s.applayChange(stat);
+					applayChange(s,stat);
 		}
 	}
 
 	public void save() {
-		for (Game game : stats.keySet()) {
+		for (GameType game : stats.keySet()) {
 			ArrayList<Statistic> needSaves = new ArrayList<>();
 			for (Statistic s : stats.get(game)) {
 				if (s.needSave())
@@ -189,7 +116,7 @@ public class StatsManager {
 		}
 	}
 
-	private void save(Game game, Statistic... statistics) {
+	private void save(GameType game, Statistic... statistics) {
 		String values = "";
 		for (Statistic s : statistics) {
 			values += "`" + s.getStatsKey().getMySQLName() + "`='" + s.getValue() + "',";
@@ -198,7 +125,7 @@ public class StatsManager {
 		MySQL.getInstance().command(mySQLSyntax);
 	}
 
-	private Statistic[] loadStats(Game game) {
+	private Statistic[] loadStats(GameType game) {
 		// Table name: users_"+typ.getKürzel()
 		StatsKey[] keys = game.getStats();
 		String mySQLSyntax = "SELECT ";
@@ -220,7 +147,7 @@ public class StatsManager {
 		return statistiks;
 	}
 
-	private Statistic[] insertStats(Game game) {
+	private Statistic[] insertStats(GameType game) {
 		StatsKey[] keys = game.getStats();
 		Statistic[] statistiks = new Statistic[keys.length];
 		for (int i = 0; i < statistiks.length; i++) {
@@ -242,7 +169,7 @@ public class StatsManager {
 	}
 
 	public static void main(String[] args) {
-		Game game = Game.Money;
+		GameType game = GameType.Money;
 		StatsKey[] keys = game.getStats();
 		Statistic[] statistiks = new Statistic[keys.length];
 		for (int i = 0; i < statistiks.length; i++) {

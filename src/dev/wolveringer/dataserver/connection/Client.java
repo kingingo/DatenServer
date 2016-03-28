@@ -5,15 +5,13 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mysql.fabric.Server;
-
+import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.connection.server.ServerThread;
-import dev.wolveringer.dataserver.gamestats.Game;
+import dev.wolveringer.dataserver.gamestats.GameType;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketDisconnect;
-import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutGammodeChange;
 import dev.wolveringer.serverbalancer.AcardeManager;
 import lombok.Getter;
@@ -126,7 +124,7 @@ public class Client {
 	public long getLastPingTime() {
 		return lastPingTime;
 	}
-	public void setGame(Game game) {
+	public void setGame(GameType game) {
 		writePacket(new PacketOutGammodeChange(game));
 	}
 

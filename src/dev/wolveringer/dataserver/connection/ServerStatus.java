@@ -1,6 +1,7 @@
 package dev.wolveringer.dataserver.connection;
 
-import dev.wolveringer.dataserver.gamestats.Game;
+import dev.wolveringer.client.connection.ClientType;
+import dev.wolveringer.dataserver.gamestats.GameType;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus.GameState;
 import dev.wolveringer.serverbalancer.AcardeManager;
@@ -13,7 +14,7 @@ public class ServerStatus {
 	private int players = -1;
 	private int maxPlayers = -1;
 	private String mots = "underknown"; //Message of the server :D equals <-> Message of the day (MOTD)
-	private Game typ;
+	private GameType typ;
 	private GameState state;
 	private boolean visiable = false;
 	private Client owner;

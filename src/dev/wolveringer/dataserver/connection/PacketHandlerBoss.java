@@ -2,6 +2,7 @@ package dev.wolveringer.dataserver.connection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,9 +12,11 @@ import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.Main;
 import dev.wolveringer.dataserver.ban.BanEntity;
 import dev.wolveringer.dataserver.ban.BanManager;
+import dev.wolveringer.dataserver.gamestats.GameType;
+import dev.wolveringer.dataserver.gamestats.TopStatsManager;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
-import dev.wolveringer.dataserver.player.OnlinePlayer.Setting;
 import dev.wolveringer.dataserver.player.PlayerManager;
+import dev.wolveringer.dataserver.player.Setting;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketForward;
 import dev.wolveringer.dataserver.protocoll.packets.PacketHandschakeInStart;
@@ -28,10 +31,14 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus.GameSta
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatusRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInConnectionStatus.Status;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInGetServer;
+import dev.wolveringer.dataserver.protocoll.packets.PacketInLobbyServerRequest;
+import dev.wolveringer.dataserver.protocoll.packets.PacketInLobbyServerRequest.GameRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInNameRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPlayerSettings.SettingValue;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutServerStatus;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutServerStatus.Action;
+import dev.wolveringer.dataserver.protocoll.packets.PacketOutTopTen;
+import dev.wolveringer.dataserver.protocoll.packets.PacketOutTopTen.RankInformation;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketPingPong;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction;
@@ -40,12 +47,17 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketSettingUpdate;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse.UUIDKey;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction.PlayerAction;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
+import dev.wolveringer.serverbalancer.AcardeManager;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerSwitch;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsEdit;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsRequest;
+import dev.wolveringer.dataserver.protocoll.packets.PacketInTopTenRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInUUIDRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutBanStats;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutHandschakeAccept;
+import dev.wolveringer.dataserver.protocoll.packets.PacketOutLobbyServer;
+import dev.wolveringer.dataserver.protocoll.packets.PacketOutLobbyServer.GameServers;
+import dev.wolveringer.dataserver.protocoll.packets.PacketOutLobbyServer.ServerKey;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutNameResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPacketStatus;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPacketStatus.Error;
@@ -246,6 +258,7 @@ public class PacketHandlerBoss {
 			owner.writePacket(new PacketOutPacketStatus(packet, errors.toArray(new Error[0])));
 		} else if (packet instanceof PacketInServerStatus) {
 			owner.getStatus().applayPacket((PacketInServerStatus) packet);
+			System.out.println("Change status");
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		} else if (packet instanceof PacketInServerStatusRequest) {
 			switch (((PacketInServerStatusRequest) packet).getAction()) {
@@ -327,6 +340,28 @@ public class PacketHandlerBoss {
 				}
 			}
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
+		}
+		else if(packet instanceof PacketInLobbyServerRequest){
+			GameServers[] response = new GameServers[((PacketInLobbyServerRequest) packet).getRequest().length];
+			HashMap<GameType, ArrayList<Client>> servers = AcardeManager.getLastCalculated();
+			for (int i = 0; i < response.length; i++){
+				GameRequest request = ((PacketInLobbyServerRequest) packet).getRequest()[i];
+				ServerKey[] sresponse = new ServerKey[Math.min(request.getMaxServers(), servers.get(request.getGame()).size())];
+				for(int j = 0;j<sresponse.length;j++){
+					Client c = servers.get(request.getGame()).get(j);
+					sresponse[j] = new ServerKey(c.getStatus().getServerId(), c.getStatus().getPlayers(), c.getStatus().getMaxPlayers(), c.getStatus().getMots());
+				}
+				response[i] = new GameServers(request.getGame(), sresponse);
+			}
+			owner.writePacket(new PacketOutLobbyServer(response));
+		}
+		else if(packet instanceof PacketInTopTenRequest){
+			ArrayList<String[]> out = TopStatsManager.getManager().getTopTen(((PacketInTopTenRequest) packet).getGame(), ((PacketInTopTenRequest) packet).getCondition());
+			RankInformation[] infos = new RankInformation[out.size()];
+			for (int i = 0; i < infos.length; i++) {
+				infos[i] = new RankInformation(out.get(i)[0], out.get(i)[1]);
+			}
+			owner.writePacket(new PacketOutTopTen(((PacketInTopTenRequest) packet).getGame(), ((PacketInTopTenRequest) packet).getCondition(), infos));
 		}
 	}
 

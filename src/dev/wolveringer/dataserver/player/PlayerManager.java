@@ -10,6 +10,8 @@ import dev.wolveringer.dataserver.connection.Client;
 public class PlayerManager {
 	private static HashMap<UUID, OnlinePlayer> players = new HashMap<>();
 	
+	private static ArrayList<OnlinePlayer> cc = new ArrayList<>();
+	
 	public static ArrayList<OnlinePlayer> getPlayer(){
 		return new ArrayList<>(players.values());
 	}
@@ -18,6 +20,12 @@ public class PlayerManager {
 		for(OnlinePlayer p : getPlayer())
 			if(p.getName().equalsIgnoreCase(player))
 				return;
+		for(OnlinePlayer p : cc)
+			if(p.getName().equalsIgnoreCase(player)){
+				p.load();
+				players.put(p.getUuid(), p);
+				return;
+			}
 		System.out.println("Insert player");
 		OnlinePlayer var0 = new OnlinePlayer(player,owner);
 		players.put(var0.getUuid(), var0);
@@ -46,13 +54,15 @@ public class PlayerManager {
 			return;
 		OnlinePlayer player = players.get(old);
 		if(player != null){
-			players.remove(player);
+			players.remove(old);
 			players.put(_new, player);
 		}
 	}
 
 	public static void unload(String player) {
 		OnlinePlayer players = getPlayer(player);
+		if(players.isDisableUnload())
+			cc.add(players);
 		PlayerManager.players.remove(players.getUuid());
 	}
 	

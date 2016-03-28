@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
 
+import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.dataserver.connection.Client;
-import dev.wolveringer.dataserver.connection.ClientType;
 import dev.wolveringer.dataserver.connection.LanguageType;
 import dev.wolveringer.dataserver.gamestats.StatsManager;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
@@ -14,13 +14,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class OnlinePlayer {
-	public static enum Setting {
-		PREMIUM_LOGIN,
-		PASSWORD,
-		LANGUAGE,
-		UUID;
-	}
-	
 	@Getter
 	private String name;
 	private UUID uuid;
@@ -35,6 +28,9 @@ public class OnlinePlayer {
 	@Getter
 	@Setter
 	private String server = "undefined";
+	@Getter
+	@Setter
+	private boolean disableUnload;
 	
 	public OnlinePlayer(String name,Client owner) {
 		this.name = name.toLowerCase();
@@ -94,6 +90,7 @@ public class OnlinePlayer {
 	}
 
 	public void setPremium(Boolean valueOf) {
+		System.out.println("Setpremium from "+isPremium+" to "+valueOf);
 		if(valueOf == isPremium)
 			return;
 		isPremium = valueOf;
@@ -109,7 +106,7 @@ public class OnlinePlayer {
 		return uuid;
 	}
 	public boolean isPlaying(){
-		return !server.equalsIgnoreCase("undefined");
+		return !server.equalsIgnoreCase("undefined") && owner.isConnected();
 	}
 	
 	@Override

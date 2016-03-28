@@ -65,7 +65,7 @@ public class BanManager {
 					old.setLevel(level);
 				if(old.getEnd() != end)
 					old.setTime(end);
-				old.save();
+				saveEntity(old);
 				return;
 			}
 			else
@@ -79,6 +79,19 @@ public class BanManager {
 			{
 				MySQL.getInstance().command("INSERT INTO `BG_BAN`(`name`, `nameip`, `name_uuid`, `banner`, `bannerip`, `banner_uuid`, `time`, `reason`, `level`, `aktiv`) VALUES ('"+name+"','"+ip+"','"+uuid+"','"+banner+"','"+bannerIP+"','"+bannerUUID+"','"+new Date()+"','"+reson+"','"+level+"','true')");
 			}
+	}
+	
+	public void saveEntity(BanEntity e){
+		if(e.needSave()){
+			if(e.isTempBanned()){
+				MySQL.getInstance().command("UPDATE `BG_ZEITBAN` SET `time`='"+e.getEnd()+"',`reason`='"+e.getReson()+"',`aktiv`='"+e.isActive()+"' WHERE nameip='"+e.getIp()+"' AND name_uuid='"+(e.getUuids().size() >= 1?e.getUuids().get(0):"null")+"' AND name='"+(e.getUsernames().size()==0?"null":e.getUsernames().get(0))+"'");
+			}
+			else
+			{
+				MySQL.getInstance().command("UPDATE `BG_BAN` SET `level`='"+e.getEnd()+"',`reason`='"+e.getReson()+"',`aktiv`='"+e.isActive()+"' WHERE nameip='"+e.getIp()+"' AND name_uuid='"+(e.getUuids().size() >= 1?e.getUuids().get(0):"null")+"' AND name='"+(e.getUsernames().size()==0?"null":e.getUsernames().get(0))+"'");
+			}
+			e.saved();
+		}
 	}
 	
 	public void unbanPlayer(String name,UUID uuid,String ip){

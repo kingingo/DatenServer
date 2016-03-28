@@ -1,6 +1,5 @@
 package dev.wolveringer.serverbalancer;
 
-import java.lang.invoke.LambdaConversionException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -14,32 +13,36 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import dev.wolveringer.arrays.CachedArrayList;
+import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.connection.Client;
-import dev.wolveringer.dataserver.connection.ClientType;
 import dev.wolveringer.dataserver.connection.ServerStatus;
-import dev.wolveringer.dataserver.gamestats.Game;
+import dev.wolveringer.dataserver.gamestats.GameType;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus.GameState;
 
 public class AcardeManager {
 	private static final int MIN_FREE_SERVER = 3;
 
-	private static HashMap<Game, ArrayList<Client>> lastCalculated = new HashMap<>();
+	private static HashMap<GameType, ArrayList<Client>> lastCalculated = new HashMap<>();
+	
+	public static HashMap<GameType, ArrayList<Client>> getLastCalculated() {
+		return lastCalculated;
+	}
 	
 	@SuppressWarnings("serial")
-	private static HashMap<Game, CachedArrayList<UUID>> serverChanging = new HashMap<Game, CachedArrayList<UUID>>() {
+	private static HashMap<GameType, CachedArrayList<UUID>> serverChanging = new HashMap<GameType, CachedArrayList<UUID>>() {
 		public CachedArrayList<UUID> get(Object key) {
 			CachedArrayList<UUID> arraylist = super.get(key);
 			if (arraylist == null) {
 				arraylist = new CachedArrayList<>(1, TimeUnit.MINUTES);
-				super.put((Game) key, arraylist);
+				super.put((GameType) key, arraylist);
 			}
 			return arraylist;
 		};
 	};
 	private static CachedArrayList<String> notFree = new CachedArrayList<>(1, TimeUnit.MINUTES);
 	
-	public static void serverConnected(Game game){
+	public static void serverConnected(GameType game){
 		if(serverChanging.get(game).size() > 0)
 			serverChanging.get(game).remove(0);
 	}
@@ -47,8 +50,8 @@ public class AcardeManager {
 		notFree.remove(name);
 	}
 
-	public static HashMap<Game, ArrayList<Client>> balance() {
-		HashMap<Game, ArrayList<Client>> servers = buildGameServerLobbyIndex();
+	public static HashMap<GameType, ArrayList<Client>> balance() {
+		HashMap<GameType, ArrayList<Client>> servers = buildGameServerLobbyIndex();
 		if (servers.size() == 0) //Keine server registriert
 			return null;
 		sortLobbysByPlayers(servers);
@@ -61,53 +64,52 @@ public class AcardeManager {
 		int needed = oneeded;
 		if(needed == 0)
 			needed = servers.size(); //Adding left servers to games
-		for (Game game : Game.values()) {
-			if(!game.isArcade())
-				continue;
-			if(freeServersLeft <= 0)
-				continue;
-			if(!servers.containsKey(game))
-				servers.put(game, new CachedArrayList<>(1, TimeUnit.MINUTES));
-			if (servers.get(game).size() < MIN_FREE_SERVER) {
-				int fills = calculateMinServerPerGame(needed, freeServersLeft);
-				needed -= fills;
-				//System.out.println("Fills: "+fills+" Game: "+game);
-				for (int i = 0; i < fills; i++) {
+		
+		while (needed != 0 || freeServersLeft != 0) {
+			for (GameType game : GameType.values()) {
+				if(!game.isArcade())
+					continue;
+				if(freeServersLeft <= 0)
+					continue;
+				if(!servers.containsKey(game))
+					servers.put(game, new CachedArrayList<>(1, TimeUnit.MINUTES));
+				if (servers.get(game).size() < getMinServer(game)) {
+					needed -= 1;
+					freeServersLeft--;
+					//System.out.println("Fills: "+fills+" Game: "+game);
 					if(!freeServer.hasNext())
 						continue;
-					freeServersLeft--;
 					Client next = freeServer.next();
 					System.out.println("Setting "+next.getName()+" to "+game);
 					serverChanging.get(game).add(UUID.randomUUID());
 					notFree.add(next.getName());
 					next.setGame(game);
-					//Move freeServer.next() to gamemode game
 				}
 			}
 		}
-		lastCalculated = (HashMap<Game, ArrayList<Client>>) servers.clone();
+		lastCalculated = (HashMap<GameType, ArrayList<Client>>) servers.clone();
 		System.out.println("Free Server left: "+freeServersLeft+" Orginal needed Servers: "+oneeded);
 		return servers;
 	}
 
-	private static int calculateNeededServers(HashMap<Game, ArrayList<Client>> servers) {
+	private static int calculateNeededServers(HashMap<GameType, ArrayList<Client>> servers) {
 		int out = 0;
-		for (Game g : servers.keySet())
+		for (GameType g : servers.keySet())
 			out += calculateNeeded(servers, g);
 		return out;
 	}
 
-	private static HashMap<Game, ArrayList<Client>> shortByNeeded(HashMap<Game, ArrayList<Client>> servers) {
-		return (HashMap<Game, ArrayList<Client>>) sortByValue((Map)servers,servers);
+	private static HashMap<GameType, ArrayList<Client>> shortByNeeded(HashMap<GameType, ArrayList<Client>> servers) {
+		return (HashMap<GameType, ArrayList<Client>>) sortByValue((Map)servers,servers);
 	}
 
-	public static <K, V> Map<K, V> sortByValue(Map<K, V> map,HashMap<Game, ArrayList<Client>> servers) {
+	public static <K, V> Map<K, V> sortByValue(Map<K, V> map,HashMap<GameType, ArrayList<Client>> servers) {
 		List<Map.Entry<K, V>> list = new LinkedList<>(map.entrySet());
 		Collections.sort(list, new Comparator<Map.Entry<K, V>>() {
 			@Override
 			public int compare(Map.Entry<K, V> o1, Map.Entry<K, V> o2) {
-				Game game1 = (Game) o1.getKey();
-				Game game2 = (Game) o2.getKey();
+				GameType game1 = (GameType) o1.getKey();
+				GameType game2 = (GameType) o2.getKey();
 				return Integer.compare(calculateNeeded(servers, game1), calculateNeeded(servers, game2));
 			}
 			
@@ -120,16 +122,21 @@ public class AcardeManager {
 		return result;
 	}
 	
-	private static int calculateNeeded(HashMap<Game, ArrayList<Client>> server,Game game){
-		return Math.max(0, MIN_FREE_SERVER-(server.get(game).size())-serverChanging.get(game).size());
+	private static int calculateNeeded(HashMap<GameType, ArrayList<Client>> server,GameType game){
+		return Math.max(0, getMinServer(game)-(server.get(game).size())-serverChanging.get(game).size());
 	}
 
+	/*
 	private static int calculateMinServerPerGame(int needed, int freeservers) {
 		return (int) Math.min(MIN_FREE_SERVER, Math.ceil((double) freeservers / (double) needed)); //cell = upround
+	}*/
+	
+	private static int getMinServer(GameType game){
+		return MIN_FREE_SERVER;
 	}
 
-	private static void sortLobbysByPlayers(HashMap<Game, ArrayList<Client>> servers) {
-		for (Game g : servers.keySet())
+	private static void sortLobbysByPlayers(HashMap<GameType, ArrayList<Client>> servers) {
+		for (GameType g : servers.keySet())
 			Collections.sort(servers.get(g), new Comparator<Client>() {
 				@Override
 				public int compare(Client o1, Client o2) {
@@ -138,9 +145,9 @@ public class AcardeManager {
 			});
 	}
 
-	private static ArrayList<Client> buildFreeServerIndex(HashMap<Game, ArrayList<Client>> servers) {
+	private static ArrayList<Client> buildFreeServerIndex(HashMap<GameType, ArrayList<Client>> servers) {
 		ArrayList<Client> out = new ArrayList<>();
-		for (Game g : servers.keySet()) {
+		for (GameType g : servers.keySet()) {
 			ArrayList<Client> i = servers.get(g);
 			if (i.size() > 3) {
 				List<Client> ft = new ArrayList<>(i.subList(3, i.size())); //Serers > 3 (min-Server anzahl) werden nicht benötigt (Auf diesem Server dürften sowieso keine Spieler sein)
@@ -151,13 +158,13 @@ public class AcardeManager {
 		return out;
 	}
 
-	private static HashMap<Game, ArrayList<Client>> buildGameServerLobbyIndex() {
-		HashMap<Game, ArrayList<Client>> out = new HashMap<Game, ArrayList<Client>>() {
+	private static HashMap<GameType, ArrayList<Client>> buildGameServerLobbyIndex() {
+		HashMap<GameType, ArrayList<Client>> out = new HashMap<GameType, ArrayList<Client>>() {
 			public ArrayList<Client> get(Object key) {
 				ArrayList<Client> arraylist = super.get(key);
 				if (arraylist == null) {
 					arraylist = new CachedArrayList<>(1, TimeUnit.MINUTES);
-					super.put((Game) key, arraylist);
+					super.put((GameType) key, arraylist);
 				}
 				return arraylist;
 			};
@@ -174,7 +181,7 @@ public class AcardeManager {
 	public static void writeServers(){
 		if (lastCalculated.size() == 0) //Keine server registriert
 			System.out.println("No servers");
-		for(Game g : lastCalculated.keySet()){
+		for(GameType g : lastCalculated.keySet()){
 			System.out.println("game: "+g+" Server: "+lastCalculated.get(g));
 		}
 		
@@ -191,12 +198,12 @@ public class AcardeManager {
 				status.setMaxPlayers(100);
 				status.setMots("");
 				status.setPlayers(player);
-				status.setTyp(Game.BedWars);
+				status.setTyp(GameType.BedWars);
 				this.name = name;
 			}
 			
 			@Override
-			public void setGame(Game game) {
+			public void setGame(GameType game) {
 				//System.out.println("Setgame");
 				status.setTyp(game);
 			}

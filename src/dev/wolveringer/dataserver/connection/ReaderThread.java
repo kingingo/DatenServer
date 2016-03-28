@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import dev.wolveringer.dataserver.protocoll.DataBuffer;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
+import dev.wolveringer.dataserver.protocoll.packets.Packet.PacketDirection;
 
 public class ReaderThread {
 	private Client client;
@@ -54,7 +55,7 @@ public class ReaderThread {
 				if(!active) //Drop packet
 					return;
 				DataBuffer buffer = new DataBuffer(bbuffer);
-				Packet packet = Packet.createPacket(buffer.readInt(), buffer);
+				Packet packet = Packet.createPacket(buffer.readInt(), buffer,PacketDirection.TO_SERVER);
 				client.getHandlerBoss().handle(packet);
 			}
 		});

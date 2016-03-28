@@ -48,15 +48,15 @@ public enum Game {
 		this.arcade = arcadeGame;
 	}
 
-	public static Game get(String g) {
+	public static GameType get(String g) {
 		g = g.replaceAll("-", "");
 		g = g.replaceAll(" ", "");
-		for (Game t : Game.values()) {
+		for (GameType t : GameType.values()) {
 			if (t.getTyp().replaceAll(" ", "").replaceAll("-", "").equalsIgnoreCase(g))
 				return t;
 		}
 
-		for (Game t : Game.values()) {
+		for (GameType t : GameType.values()) {
 			if (t.getKuerzel().replaceAll(" ", "").replaceAll("-", "").equalsIgnoreCase(g))
 				return t;
 		}

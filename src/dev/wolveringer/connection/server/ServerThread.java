@@ -6,8 +6,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.dataserver.connection.Client;
-import dev.wolveringer.dataserver.connection.ClientType;
 
 //TODO Bungeecord Server management
 //TODO Event Setserver

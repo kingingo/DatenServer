@@ -3,11 +3,13 @@ package dev.wolveringer.dataserver.terminal;
 import java.util.Collection;
 import java.util.HashMap;
 
+import dev.wolveringer.dataserver.terminal.commands.CommandHelp;
+
 public class CommandRegistry {
 	static {
 		cmds = new HashMap<String, CommandExecutor>();
 		
-		//registerCommand(new CMD_HELP(), "help");
+		registerCommand(new CommandHelp(), "help");
 		//registerCommand(new CMD_STOP(), "stop");
 		//registerCommand(new CMD_TEST(), "test");
 		//registerCommand(new CMD_LISTSERVER(), "list");
