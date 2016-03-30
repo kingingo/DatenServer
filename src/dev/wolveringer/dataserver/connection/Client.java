@@ -124,8 +124,8 @@ public class Client {
 	public long getLastPingTime() {
 		return lastPingTime;
 	}
-	public void setGame(GameType game) {
-		writePacket(new PacketOutGammodeChange(game));
+	public void setGame(GameType game,String subType) {
+		writePacket(new PacketOutGammodeChange(game,subType));
 	}
 
 	@Override

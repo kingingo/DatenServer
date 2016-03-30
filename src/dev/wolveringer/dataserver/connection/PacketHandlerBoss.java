@@ -6,13 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import com.mysql.fabric.Server;
-
+import dev.wolveringer.configuration.ServerConfiguration;
 import dev.wolveringer.connection.server.ServerThread;
-import dev.wolveringer.dataserver.Main;
 import dev.wolveringer.dataserver.ban.BanEntity;
 import dev.wolveringer.dataserver.ban.BanManager;
-import dev.wolveringer.dataserver.gamestats.GameType;
+import dev.wolveringer.dataserver.gamestats.GameState;
 import dev.wolveringer.dataserver.gamestats.TopStatsManager;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.player.PlayerManager;
@@ -27,7 +25,6 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketChatMessage;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInConnectionStatus;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInPlayerSettingsRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus;
-import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus.GameState;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatusRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInConnectionStatus.Status;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInGetServer;
@@ -48,6 +45,7 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse.UUIDKe
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction.PlayerAction;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.serverbalancer.AcardeManager;
+import dev.wolveringer.serverbalancer.AcardeManager.ServerType;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerSwitch;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsEdit;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsRequest;
@@ -77,8 +75,8 @@ public class PacketHandlerBoss {
 	public void handle(Packet packet) {
 		if (!handschakeComplete) {
 			if (packet instanceof PacketHandschakeInStart) {
-				if (!Arrays.equals(((PacketHandschakeInStart) packet).getPassword(), Main.Password)) {
-					owner.disconnect("Password incorrect");
+				if (!Arrays.equals(((PacketHandschakeInStart) packet).getPassword(), ServerConfiguration.getServerPassword().getBytes())) {
+					owner.disconnect("Password incorrect ["+((PacketHandschakeInStart) packet).getHost()+"|"+((PacketHandschakeInStart) packet).getName()+"]");
 					return;
 				}
 				owner.host = ((PacketHandschakeInStart) packet).getHost();
@@ -343,13 +341,13 @@ public class PacketHandlerBoss {
 		}
 		else if(packet instanceof PacketInLobbyServerRequest){
 			GameServers[] response = new GameServers[((PacketInLobbyServerRequest) packet).getRequest().length];
-			HashMap<GameType, ArrayList<Client>> servers = AcardeManager.getLastCalculated();
+			HashMap<ServerType, ArrayList<Client>> servers = AcardeManager.getLastCalculated();
 			for (int i = 0; i < response.length; i++){
 				GameRequest request = ((PacketInLobbyServerRequest) packet).getRequest()[i];
-				ServerKey[] sresponse = new ServerKey[Math.min(request.getMaxServers(), servers.get(request.getGame()).size())];
+				ServerKey[] sresponse = new ServerKey[Math.min(request.getMaxServers() == -1 ? Integer.MAX_VALUE : request.getMaxServers(), servers.get(request.getGame()).size())];
 				for(int j = 0;j<sresponse.length;j++){
 					Client c = servers.get(request.getGame()).get(j);
-					sresponse[j] = new ServerKey(c.getStatus().getServerId(), c.getStatus().getPlayers(), c.getStatus().getMaxPlayers(), c.getStatus().getMots());
+					sresponse[j] = new ServerKey(c.getStatus().getServerId(),c.getStatus().getSubType(), c.getStatus().getPlayers(), c.getStatus().getMaxPlayers(), c.getStatus().getMots());
 				}
 				response[i] = new GameServers(request.getGame(), sresponse);
 			}

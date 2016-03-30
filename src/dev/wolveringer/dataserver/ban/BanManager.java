@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import dev.wolveringer.mysql.MySQL;
+import dev.wolveringer.mysql.MySQL.MySQLConfiguration;
 
 public class BanManager {
 	private static BanManager manager;
@@ -102,7 +103,7 @@ public class BanManager {
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
-		MySQL.setInstance(new MySQL("148.251.143.2", "3306", "games", "root", "55P_YHmK8MXlPiqEpGKuH_5WVlhsXT"));
+		MySQL.setInstance(new MySQL(new MySQLConfiguration("148.251.143.2", 3306, "games", "root", "55P_YHmK8MXlPiqEpGKuH_5WVlhsXT",true)));
 		BanManager m = new BanManager();
 		m.loadBans();
 		m.banPlayer("WolverinDEV", null, null, "System", UUID.randomUUID().toString(), "0.0.0.0", 5, System.currentTimeMillis()+60*1000, "Testing");

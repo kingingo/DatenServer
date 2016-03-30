@@ -18,7 +18,6 @@ public class TickSeduller {
 					System.out.println("Start balancing");
 					AcardeManager.balance();
 					System.out.println("Balancing done in "+(System.currentTimeMillis()-start)+"ms");
-					AcardeManager.writeServers();
 				}catch(Exception e){
 					e.printStackTrace();
 				}

@@ -1,6 +1,5 @@
 package dev.wolveringer.mysql;
 
-
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -10,6 +9,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 public class MySQL {
 	private static MySQL instance;
@@ -34,42 +37,55 @@ public class MySQL {
 		MySQL.instance = instance;
 	}
 	
-	private Connection conn = null;
-	private String dbHost = null;
-	private String dbPort = "3306";
-	private String database = null;
-	private String dbUser = null;
-	private String dbPassword = null;
-	private boolean connect = false;
+	@AllArgsConstructor
+	public static class MySQLConfiguration {
+		private String host;
+		private int port;
+		private String database;
+		private String user;
+		private String password;
+		private boolean autoReconnect;
+		
+		public boolean isValid(){
+			if ((host == null) || (host == "")) { return false; }
+			if ((port == 0)) { return false; }
+			if ((database == null) || (database == "")) { return false; }
+			if ((user == null) || (user == "")) { return false; }
+			if ((password == null) || (password == "")) { return false; }
+			return true;
+		}
+		
+		public String buildURL(){
+			return "jdbc:mysql://" + host + ":" + port + "/" + database + "?" + "user=" + user + "&" + "password=" + password + "&autoReconnect="+autoReconnect;
+		}
+	}
 	
-	public MySQL(String Host, String Port, String base, String user, String Password) {
-		if ((Host == null) || (Host == "")) { throw new NullPointerException("Host can`t be null"); }
-		if ((base == null) || (base == "")) { throw new NullPointerException("Data-Base can`t be null"); }
-		if ((user == null) || (user == "")) { throw new NullPointerException("User can`t be null"); }
-		if ((Password == null) || (Password == "")) { throw new NullPointerException("Password can`t be null"); }
-		dbHost = Host;
+	private Connection conn = null;
+	private MySQLConfiguration config;
+	private boolean connect = false;
+	@Getter
+	private boolean MySQLSupported;
+	
+	public MySQL(MySQLConfiguration config) {
+		if(!config.isValid())
+			throw new RuntimeException("MySQL Configuration is not valid");
 		try {
-			Integer.parseInt(Port);
+			Class.forName("com.mysql.jdbc.Driver"); //Load class
+			MySQLSupported = true;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			System.err.println("MySQL Treiber nicht gefunden.");
+			MySQLSupported = false;
 		}
-		catch (Exception e) {
-			dbPort = "3306";
-		}
-		database = base;
-		dbUser = user;
-		dbPassword = Password;
+		this.config = config;
 	}
 	
 	public Connection getConnectionInstance() {
 		try {
 			if (conn == null || conn.isClosed() || !conn.isValid(500)) {
 				try {
-					Class.forName("com.mysql.jdbc.Driver");
-					conn = DriverManager.getConnection("jdbc:mysql://" + dbHost + ":" + dbPort + "/" + database + "?" + "user=" + dbUser + "&" + "password=" + dbPassword + "&autoReconnect=true");
-					System.out.println("Connect true!");
+					conn = DriverManager.getConnection(config.buildURL());
 					connect = true;
-				}
-				catch (ClassNotFoundException e) {
-					System.out.println("Treiber nicht gefunden");
 				}
 				catch (SQLException e) {
 					System.out.println("Connect nicht moeglich");
@@ -207,6 +223,29 @@ public class MySQL {
 	public boolean isConnected() {
 		return connect;
 	}
+	
+	public boolean connect(){
+		if(!MySQLSupported)
+			return false;
+		try {
+			if (conn == null || conn.isClosed() || !conn.isValid(500)) {
+				try {
+					conn = DriverManager.getConnection(config.buildURL());
+					connect = true;
+					return true;
+				}
+				catch (SQLException e) {
+					System.out.println("Connect nicht moeglich");
+					connect = false;
+					return false;
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
 	public static interface Callback<T>{
 		public void done(T obj,Throwable ex);
 	}

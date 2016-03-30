@@ -1,10 +1,11 @@
 package dev.wolveringer.dataserver.connection;
 
 import dev.wolveringer.client.connection.ClientType;
+import dev.wolveringer.dataserver.gamestats.GameState;
 import dev.wolveringer.dataserver.gamestats.GameType;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus;
-import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus.GameState;
 import dev.wolveringer.serverbalancer.AcardeManager;
+import dev.wolveringer.serverbalancer.AcardeManager.ServerType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +17,7 @@ public class ServerStatus {
 	private String mots = "underknown"; //Message of the server :D equals <-> Message of the day (MOTD)
 	private GameType typ;
 	private GameState state;
+	private String subType;
 	private boolean visiable = false;
 	private Client owner;
 	private String serverId = "underknown";
@@ -34,8 +36,9 @@ public class ServerStatus {
 		this.visiable = packet.isListed();
 		this.state = packet.getState();
 		this.serverId = packet.getServerId();
+		this.subType = packet.getServerId();
 		if(!registered && typ != null && owner.getType() == ClientType.ACARDE){
-			AcardeManager.serverConnected(typ);
+			AcardeManager.serverConnected(new ServerType(typ, subType));
 			registered = true;
 		}
 	}

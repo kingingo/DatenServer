@@ -9,9 +9,6 @@ import java.util.ArrayList;
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.dataserver.connection.Client;
 
-//TODO Bungeecord Server management
-//TODO Event Setserver
-
 public class ServerThread {
 	private static ArrayList<Client> clients = new ArrayList<>();
 	
@@ -26,7 +23,7 @@ public class ServerThread {
 	public static ArrayList<Client> getServer(ClientType type){
 		ArrayList<Client> out = new ArrayList<>();
 		for(Client c : new ArrayList<>(clients))
-			if(c.getType() == type)
+			if(c.getType() == type || type == ClientType.ALL)
 				out.add(c);
 		return out;
 	}

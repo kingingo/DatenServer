@@ -4,13 +4,16 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import dev.wolveringer.dataserver.terminal.commands.CommandHelp;
+import dev.wolveringer.dataserver.terminal.commands.CommandPlayerManager;
+import dev.wolveringer.dataserver.terminal.commands.CommandServerManager;
 
 public class CommandRegistry {
 	static {
 		cmds = new HashMap<String, CommandExecutor>();
 		
 		registerCommand(new CommandHelp(), "help");
-		//registerCommand(new CMD_STOP(), "stop");
+		registerCommand(new CommandServerManager(), "smanager");
+		registerCommand(new CommandPlayerManager(), "pmanager");
 		//registerCommand(new CMD_TEST(), "test");
 		//registerCommand(new CMD_LISTSERVER(), "list");
 		//registerCommand(new CMD_ATTACH(), "attach");
