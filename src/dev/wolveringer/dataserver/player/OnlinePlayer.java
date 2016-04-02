@@ -8,8 +8,11 @@ import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.dataserver.connection.Client;
 import dev.wolveringer.dataserver.connection.LanguageType;
 import dev.wolveringer.dataserver.gamestats.StatsManager;
+import dev.wolveringer.dataserver.skin.OperationCallback;
+import dev.wolveringer.dataserver.skin.SkinCash;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.mysql.MySQL;
+import dev.wolveringer.skin.Skin;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,6 +34,11 @@ public class OnlinePlayer {
 	@Getter
 	@Setter
 	private boolean disableUnload;
+	@Getter
+	@Setter
+	private String curruntIp;
+	
+	private PlayerSkinManager skinManager;
 	
 	public OnlinePlayer(String name,Client owner) {
 		this.name = name.toLowerCase();
@@ -51,6 +59,7 @@ public class OnlinePlayer {
 		this.owner = owner;
 	}
 	
+	@SuppressWarnings("unchecked")
 	protected void load(){
 		ArrayList<String[]> response = MySQL.getInstance().querySync("SELECT `premium`,`password` FROM `users` WHERE uuid='"+uuid+"'", 1);
 		if(response.size() == 0){
@@ -72,6 +81,7 @@ public class OnlinePlayer {
 				MySQL.getInstance().command("INSERT INTO `language_user`(`uuid`, `language`) VALUES ('"+getUuid()+"','"+lang.getDef()+"')");
 			}
 		}
+		skinManager = new PlayerSkinManager(this);
 		statsManager = new StatsManager(this);
 	}
 	
@@ -106,7 +116,10 @@ public class OnlinePlayer {
 		return uuid;
 	}
 	public boolean isPlaying(){
-		return !server.equalsIgnoreCase("undefined") && owner.isConnected();
+		return !server.equalsIgnoreCase("undefined") && (owner != null && owner.isConnected());
+	}
+	public PlayerSkinManager getSkinManager() {
+		return skinManager;
 	}
 	
 	@Override

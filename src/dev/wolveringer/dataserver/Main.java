@@ -5,7 +5,10 @@ import java.io.IOException;
 import dev.wolveringer.configuration.ServerConfiguration;
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.ban.BanManager;
+import dev.wolveringer.dataserver.gamestats.MoneyConverter;
 import dev.wolveringer.dataserver.gamestats.StatsManager;
+import dev.wolveringer.dataserver.gamestats.TopStatsManager;
+import dev.wolveringer.dataserver.player.PlayerSkinManager;
 import dev.wolveringer.dataserver.save.SaveManager;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
 import dev.wolveringer.dataserver.terminal.Terminal;
@@ -18,6 +21,12 @@ public class Main {
 	private static boolean supportTerminal = true;
 	
 	public static void main(String[] args) throws InterruptedException, IOException {
+		if(args.length == 1){
+			if(args[0].equalsIgnoreCase("convertMoney")){
+				MoneyConverter.main(args);
+				return;
+			}
+		}
 		if(supportTerminal){
 			System.out.println("Setting up Terminal");
 			terminal = new Terminal();
@@ -39,8 +48,10 @@ public class Main {
 			return;
 		}
 		UUIDManager.init();
+		PlayerSkinManager.init();
 		BanManager.setManager(new BanManager());
 		StatsManager.initTables();
+		TopStatsManager.setManager(new TopStatsManager());
 		SaveManager.setSaveManager(new SaveManager().start());
 		TickSeduller s = new TickSeduller();
 		s.start();

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import dev.wolveringer.threads.EventLoop;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -25,10 +26,12 @@ public class MySQL {
 		public void createAsync(Runnable run);
 	}
 	
+	public static final EventLoop LOOP = new EventLoop(100);
+	
 	private static final ThreadFactory THREAD_FACTORY = new ThreadFactory() {
 		@Override
 		public void createAsync(Runnable run) {
-			new Thread(run).start();
+			LOOP.join(run);
 			//BungeeCord.getInstance().getScheduler().runAsync(Main.getMain(), run);
 		}
 	};

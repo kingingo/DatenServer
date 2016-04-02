@@ -70,10 +70,10 @@ public class ServerThread {
 				while (!socket.isClosed()) {
 					for(Client c : new ArrayList<>(clients)){
 						if(c.getLastPingTime() != -1)
-							if(System.currentTimeMillis()-c.getLastPingTime()>10000 && c.isConnected()){
-								System.out.println("Time out: "+c.getHost()+"["+c.getName()+"]");
+							if(System.currentTimeMillis()-c.getLastPingTime()>7500 && c.isConnected()){
+								System.out.println("Client timed out "+c.getName()+"] ("+(System.currentTimeMillis()-c.getLastPingTime())+")");
 								try{
-									c.disconnect("Timeout");
+									c.disconnect("Server -> Client | Timeout!");
 								}catch(Exception e){
 									e.printStackTrace();
 								}

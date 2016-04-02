@@ -16,21 +16,21 @@ public class PlayerManager {
 		return new ArrayList<>(players.values());
 	}
 	
-	public static void loadPlayer(String player,Client owner){
+	public static OnlinePlayer loadPlayer(String player,Client owner){
 		for(OnlinePlayer p : getPlayer())
 			if(p.getName().equalsIgnoreCase(player))
-				return;
+				return null;
 		for(OnlinePlayer p : cc)
 			if(p.getName().equalsIgnoreCase(player)){
 				p.load();
 				players.put(p.getUuid(), p);
-				return;
+				return null;
 			}
-		System.out.println("Insert player");
 		OnlinePlayer var0 = new OnlinePlayer(player,owner);
 		players.put(var0.getUuid(), var0);
 		if(var0 != null)
 			var0.load();
+		return var0;
 	}
 	
 	public static OnlinePlayer getPlayer(UUID player){

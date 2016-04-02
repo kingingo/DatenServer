@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import dev.wolveringer.dataserver.protocoll.DataBuffer;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
+import dev.wolveringer.dataserver.protocoll.packets.PacketOutPacketStatus;
 import dev.wolveringer.dataserver.protocoll.packets.Packet.PacketDirection;
 
 public class ReaderThread {
@@ -25,7 +26,7 @@ public class ReaderThread {
 			public void run() {
 				try {
 					while (active) {
-						if(in.available() > 0)
+						if (in.available() > 0)
 							readPacket();
 						else
 							Thread.sleep(10);
@@ -44,7 +45,7 @@ public class ReaderThread {
 	private void readPacket() throws IOException {
 		int length = (in.read() << 24) & 0xff000000 | (in.read() << 16) & 0x00ff0000 | (in.read() << 8) & 0x0000ff00 | (in.read() << 0) & 0x000000ff;
 		if (length <= 0) {
-			System.out.println("Reader index wrong (Wrong length ("+length+"))");
+			System.out.println("Reader index wrong (Wrong length (" + length + "))");
 			return;
 		}
 		byte[] bbuffer = new byte[length];
@@ -52,11 +53,18 @@ public class ReaderThread {
 		ThreadHandleManager.join(new Runnable() {
 			@Override
 			public void run() {
-				if(!active) //Drop packet
+				if (!active) //Drop packet
 					return;
 				DataBuffer buffer = new DataBuffer(bbuffer);
-				Packet packet = Packet.createPacket(buffer.readInt(), buffer,PacketDirection.TO_SERVER);
-				client.getHandlerBoss().handle(packet);
+				int id = 0;
+				Packet packet = Packet.createPacket(id = buffer.readInt(), buffer, PacketDirection.TO_SERVER);
+				try {
+					client.getHandlerBoss().handle(packet);
+				} catch (Exception e) {
+					client.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error[] { new PacketOutPacketStatus.Error(1, "Exception: " + e.getMessage()) }));
+					System.err.println("Error while handeling: "+id);
+					e.printStackTrace();
+				}
 			}
 		});
 	}
@@ -73,7 +81,6 @@ public class ReaderThread {
 			close0();
 	}
 
-	@SuppressWarnings("deprecation")
 	private void close0() {
 		active = false;
 		if (in != null)

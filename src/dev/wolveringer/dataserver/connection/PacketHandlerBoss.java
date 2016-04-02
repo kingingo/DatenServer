@@ -6,11 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.configuration.ServerConfiguration;
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.ban.BanEntity;
 import dev.wolveringer.dataserver.ban.BanManager;
 import dev.wolveringer.dataserver.gamestats.GameState;
+import dev.wolveringer.dataserver.gamestats.GameType;
 import dev.wolveringer.dataserver.gamestats.TopStatsManager;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.player.PlayerManager;
@@ -41,11 +43,17 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketPingPong;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerMessage;
 import dev.wolveringer.dataserver.protocoll.packets.PacketSettingUpdate;
+import dev.wolveringer.dataserver.protocoll.packets.PacketSkinData;
+import dev.wolveringer.dataserver.protocoll.packets.PacketSkinRequest;
+import dev.wolveringer.dataserver.protocoll.packets.PacketSkinSet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse.UUIDKey;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction.PlayerAction;
+import dev.wolveringer.dataserver.skin.SkinCash;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.serverbalancer.AcardeManager;
 import dev.wolveringer.serverbalancer.AcardeManager.ServerType;
+import dev.wolveringer.skin.Skin;
+import dev.wolveringer.skin.SteveSkin;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerSwitch;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsEdit;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsRequest;
@@ -134,6 +142,9 @@ public class PacketHandlerBoss {
 			case LANGUAGE:
 				player.setLanguage(LanguageType.get(((PacketInChangePlayerSettings) packet).getValue()));
 				break;
+			case CURRUNT_IP:
+				player.setCurruntIp(((PacketInChangePlayerSettings) packet).getValue());
+				break;
 			default:
 				break;
 			}
@@ -163,6 +174,9 @@ public class PacketHandlerBoss {
 					break;
 				case LANGUAGE:
 					values.add(new SettingValue(s, player.getLang().getDef()));
+					break;
+				case CURRUNT_IP:
+					values.add(new SettingValue(s, player.getCurruntIp()));
 					break;
 				default:
 					break;
@@ -256,7 +270,6 @@ public class PacketHandlerBoss {
 			owner.writePacket(new PacketOutPacketStatus(packet, errors.toArray(new Error[0])));
 		} else if (packet instanceof PacketInServerStatus) {
 			owner.getStatus().applayPacket((PacketInServerStatus) packet);
-			System.out.println("Change status");
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		} else if (packet instanceof PacketInServerStatusRequest) {
 			switch (((PacketInServerStatusRequest) packet).getAction()) {
@@ -341,10 +354,24 @@ public class PacketHandlerBoss {
 		}
 		else if(packet instanceof PacketInLobbyServerRequest){
 			GameServers[] response = new GameServers[((PacketInLobbyServerRequest) packet).getRequest().length];
-			HashMap<ServerType, ArrayList<Client>> servers = AcardeManager.getLastCalculated();
+			HashMap<ServerType, ArrayList<Client>> tempServers = new HashMap<ServerType, ArrayList<Client>>(AcardeManager.getLastCalculated());
+			HashMap<GameType, ArrayList<Client>> servers = new HashMap<GameType, ArrayList<Client>>(){
+				@Override
+				public ArrayList<Client> get(Object key) {
+					ArrayList<Client> out = super.get(key);
+					if(out == null){
+						super.put((GameType) key, out = new ArrayList<>());
+					}
+					return out;
+				}
+			};
+			
+			for(ServerType t : tempServers.keySet())
+				servers.get(t.getType()).addAll(tempServers.get(t));
+			
 			for (int i = 0; i < response.length; i++){
 				GameRequest request = ((PacketInLobbyServerRequest) packet).getRequest()[i];
-				ServerKey[] sresponse = new ServerKey[Math.min(request.getMaxServers() == -1 ? Integer.MAX_VALUE : request.getMaxServers(), servers.get(request.getGame()).size())];
+				ServerKey[] sresponse = new ServerKey[servers.containsKey(request.getGame()) ? Math.min(request.getMaxServers() == -1 ? Integer.MAX_VALUE : request.getMaxServers(), servers.get(request.getGame()).size()) : 0];
 				for(int j = 0;j<sresponse.length;j++){
 					Client c = servers.get(request.getGame()).get(j);
 					sresponse[j] = new ServerKey(c.getStatus().getServerId(),c.getStatus().getSubType(), c.getStatus().getPlayers(), c.getStatus().getMaxPlayers(), c.getStatus().getMots());
@@ -356,10 +383,52 @@ public class PacketHandlerBoss {
 		else if(packet instanceof PacketInTopTenRequest){
 			ArrayList<String[]> out = TopStatsManager.getManager().getTopTen(((PacketInTopTenRequest) packet).getGame(), ((PacketInTopTenRequest) packet).getCondition());
 			RankInformation[] infos = new RankInformation[out.size()];
+			
 			for (int i = 0; i < infos.length; i++) {
 				infos[i] = new RankInformation(out.get(i)[0], out.get(i)[1]);
 			}
 			owner.writePacket(new PacketOutTopTen(((PacketInTopTenRequest) packet).getGame(), ((PacketInTopTenRequest) packet).getCondition(), infos));
+		}
+		else if(packet instanceof PacketSkinRequest){
+			Skin out = new SteveSkin();
+			switch (((PacketSkinRequest) packet).getType()) {
+			case FROM_PLAYER:
+				OnlinePlayer player = PlayerManager.getPlayer(((PacketSkinRequest) packet).getUuid());
+				if(player == null)
+					player = PlayerManager.loadPlayer(UUIDManager.getName(((PacketSkinRequest) packet).getUuid()), null);
+				if(player == null)
+					break;
+				out = player.getSkinManager().getSkin();
+				break;
+			case NAME:
+				out = SkinCash.getSkin(((PacketSkinRequest) packet).getName());
+				break;
+			case UUID:
+				out = SkinCash.getSkin(((PacketSkinRequest) packet).getUuid());
+				break;
+			default:
+				break;
+			}
+			owner.writePacket(new PacketSkinData(out));
+		}
+		else if(packet instanceof PacketSkinSet){
+			OnlinePlayer player = PlayerManager.getPlayer(((PacketSkinRequest) packet).getUuid());
+			if(player == null)
+				player = PlayerManager.loadPlayer(UUIDManager.getName(((PacketSkinRequest) packet).getUuid()), null);
+			switch (((PacketSkinSet) packet).getType()) {
+			case NAME:
+				player.getSkinManager().setSkin(((PacketSkinSet) packet).getSkinName());
+				break;
+			case UUID:
+				player.getSkinManager().setSkin(((PacketSkinSet) packet).getSkinUUID());
+				break;
+			case PROPS:
+				player.getSkinManager().setSkin(((PacketSkinSet) packet).getRawValue(),((PacketSkinSet) packet).getSignature());
+				break;
+			default:
+				break;
+			}
+			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		}
 	}
 

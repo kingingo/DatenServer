@@ -36,7 +36,7 @@ public class ServerStatus {
 		this.visiable = packet.isListed();
 		this.state = packet.getState();
 		this.serverId = packet.getServerId();
-		this.subType = packet.getServerId();
+		this.subType = packet.getSubstate();
 		if(!registered && typ != null && owner.getType() == ClientType.ACARDE){
 			AcardeManager.serverConnected(new ServerType(typ, subType));
 			registered = true;

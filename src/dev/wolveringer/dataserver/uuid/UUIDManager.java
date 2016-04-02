@@ -410,7 +410,7 @@ public class UUIDManager {
 		}
 	}
 	
-	private UUID getOfflineUUID(String player) {
+	public UUID getOfflineUUID(String player) {
 		return UUID.nameUUIDFromBytes(new StringBuilder().append("OfflinePlayer:").append(player.toLowerCase()).toString().getBytes(Charsets.UTF_8));
 	}
 
@@ -446,82 +446,4 @@ public class UUIDManager {
 			//TODO UUID UPDATE?
 		}
 	}
-
-	/*
-	@EventHandler
-	public void rec(PacketReceiveEvent ev){
-		if(ev.getMessage().contains("PROXY_GET")){
-			PROXY_GET get = new PROXY_GET(ev.getMessage());
-			
-			Proxy proxy = getProxy();
-			get.setAdresse(((InetSocketAddress)proxy.address()).getHostString());
-			get.setPort(((InetSocketAddress)proxy.address()).getPort());
-			
-			if(this.proxies.containsKey(proxy)){
-				get.setUsername(this.proxies.get(proxy).getAuth().getUserName());
-				get.setPassword(this.proxies.get(proxy).getAuth().getPassword().toString());
-			}
-			
-			ev.getServerThread().sendMessage(get.toString(), false);
-		}else if(ev.getMessage().contains("UUID_GET_ALL")){
-			UUID_SEND_ARRAY packet = new UUID_SEND_ARRAY(catcher);
-			ev.getServerThread().sendMessage(packet.toString(), false);
-		}else if(ev.getMessage().contains("UUID_GET")){
-			UUID_GET packet = new UUID_GET(ev.getMessage());
-			UUID uuid;
-			
-			if(this.catcher.containsKey(packet.getPlayer().toLowerCase())){
-				uuid=this.catcher.get(packet.getPlayer().toLowerCase());
-			}else{
-				uuid=callNameMojangSingle(packet.getPlayer());
-				
-				if(uuid!=null){
-					this.catcher.put(packet.getPlayer().toLowerCase(), uuid);
-				}
-			}
-			
-			ev.getServerThread().sendMessage(new UUID_SEND(packet.getPlayer(), uuid,packet.getId()).toString(),false);
-		}else if(ev.getMessage().contains("UUID_SET_PREMIUM")){
-			UUID_SET_PREMIUM packet = new UUID_SET_PREMIUM(ev.getMessage());
-			
-			if(packet.isPremium()){
-				UUID new_uuid = callNameMojangSingle(packet.getPlayer());
-				
-				if(new_uuid!=null){
-					this.catcher.put(packet.getPlayer().toLowerCase(), new_uuid);
-					replaceUUID(packet.getUuid(), new_uuid);
-					kDaten.getMysql().Update("UPDATE users SET premium='true' WHERE uuid='"+new_uuid+"'");
-					packet.setPremium(true);
-					packet.setUuid(new_uuid);
-					
-					BG_KICKEN kick = new BG_KICKEN(packet.getPlayer(), ""); //PREMIUM_KICK LANGUAGE MESSAGE
-					UUID_CHANGE change = new UUID_CHANGE(packet.getPlayer(),packet.getUuid(), new_uuid);
-					for(ServerThread bg : kDaten.getLobbyBalancer().getBgs()){
-						bg.sendMessage(change.toString(), false);
-						bg.sendMessage(kick.toString(), false);
-					}
-					for(ServerThread s : kDaten.getListener().getList())s.sendMessage(change.toString(), false);
-					kDaten.getEventManager().callEvent(new PacketReceiveEvent(change.toString(), "DATA", ev.getServerThread()));
-				}else{
-					packet.setPremium(false);
-				}
-			}else{
-				this.catcher.remove(packet.getPlayer().toLowerCase());
-				UUID new_uuid = getOfflineUUID(packet.getPlayer());
-				replaceUUID(packet.getUuid(), new_uuid);
-				kDaten.getMysql().Update("UPDATE users SET premium='false' WHERE uuid='"+new_uuid+"'");
-				packet.setPremium(false);
-				packet.setUuid(new_uuid);
-				BG_KICKEN kick = new BG_KICKEN(packet.getPlayer(), ""); //PREMIUM_KICK LANGUAGE MESSAGE
-				UUID_CHANGE change = new UUID_CHANGE(packet.getPlayer(),packet.getUuid(), new_uuid);
-				for(ServerThread bg : kDaten.getLobbyBalancer().getBgs()){
-					bg.sendMessage(change.toString(), false);
-					bg.sendMessage(kick.toString(), false);
-				}
-				for(ServerThread s : kDaten.getListener().getList())s.sendMessage(change.toString(), false);
-				kDaten.getEventManager().callEvent(new PacketReceiveEvent(change.toString(), "DATA", ev.getServerThread()));
-			}
-		}
-	}
-	*/
 }
