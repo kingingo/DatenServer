@@ -48,6 +48,8 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketSkinRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketSkinSet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse.UUIDKey;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction.PlayerAction;
+import dev.wolveringer.dataserver.protocoll.packets.PacketSkinData.SkinResponse;
+import dev.wolveringer.dataserver.protocoll.packets.PacketSkinRequest.SkinRequest;
 import dev.wolveringer.dataserver.skin.SkinCash;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.serverbalancer.AcardeManager;
@@ -405,27 +407,31 @@ public class PacketHandlerBoss {
 			owner.writePacket(new PacketOutTopTen(((PacketInTopTenRequest) packet).getGame(), ((PacketInTopTenRequest) packet).getCondition(), infos));
 		}
 		else if(packet instanceof PacketSkinRequest){
-			Skin out = new SteveSkin();
-			switch (((PacketSkinRequest) packet).getType()) {
-			case FROM_PLAYER:
-				OnlinePlayer player = PlayerManager.getPlayer(((PacketSkinRequest) packet).getUuid());
-				if(player == null)
-					player = PlayerManager.loadPlayer(UUIDManager.getName(((PacketSkinRequest) packet).getUuid()), null);
-				if(player == null)
+			SkinResponse[] rout = new SkinResponse[((PacketSkinRequest) packet).getRequests().length];
+			for(int i = 0;i<rout.length;i++){
+				Skin out = new SteveSkin();
+				switch (((PacketSkinRequest) packet).getRequests()[i].getType()) {
+				case FROM_PLAYER:
+					OnlinePlayer player = PlayerManager.getPlayer(((PacketSkinRequest) packet).getRequests()[i].getUuid());
+					if(player == null)
+						player = PlayerManager.loadPlayer(UUIDManager.getName(((PacketSkinRequest) packet).getRequests()[i].getUuid()), null);
+					if(player == null)
+						break;
+					out = player.getSkinManager().getSkin();
 					break;
-				out = player.getSkinManager().getSkin();
-				break;
-			case NAME:
-				out = SkinCash.getSkin(((PacketSkinRequest) packet).getName());
-				break;
-			case UUID:
-				out = SkinCash.getSkin(((PacketSkinRequest) packet).getUuid());
-				break;
-			default:
-				break;
+				case NAME:
+					out = SkinCash.getSkin(((PacketSkinRequest) packet).getRequests()[i].getName());
+					break;
+				case UUID:
+					out = SkinCash.getSkin(((PacketSkinRequest) packet).getRequests()[i].getUuid());
+					break;
+				default:
+					break;
+				}
+				System.out.println("Skin request: "+((PacketSkinRequest) packet).getRequests()[i].getUuid()+":"+((PacketSkinRequest) packet).getRequests()[i].getName()+":"+((PacketSkinRequest) packet).getRequests()[i].getType()+":"+out);
+				rout[i] = new SkinResponse(out);
 			}
-			System.out.println("Skin request: "+((PacketSkinRequest) packet).getUuid()+":"+((PacketSkinRequest) packet).getName()+":"+((PacketSkinRequest) packet).getType()+":"+out);
-			owner.writePacket(new PacketSkinData(out,((PacketSkinRequest) packet).getRequestUUID()));
+			owner.writePacket(new PacketSkinData(((PacketSkinRequest) packet).getRequestUUID(), rout));
 		}
 		else if(packet instanceof PacketSkinSet){
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketSkinSet) packet).getPlayer());
