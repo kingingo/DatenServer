@@ -277,7 +277,7 @@ public class PacketHandlerBoss {
 				for (Client client : ServerThread.getBungeecords())
 					if (client.getName().equalsIgnoreCase(((PacketInServerStatusRequest) packet).getValue())) {
 						List<String> player = client.getPlayers();
-						owner.writePacket(new PacketOutServerStatus(Action.BUNGEECORD, ((PacketInServerStatusRequest) packet).getValue(),client.getStatus().getServerId(),client.getStatus().isVisiable(),client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), ((PacketInServerStatusRequest) packet).isPlayer() ? player : null));
+						owner.writePacket(new PacketOutServerStatus(Action.BUNGEECORD, null, ((PacketInServerStatusRequest) packet).getValue(),client.getStatus().getServerId(),client.getStatus().isVisiable(),client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), ((PacketInServerStatusRequest) packet).isPlayer() ? player : null));
 						return;
 					}
 				break;
@@ -289,16 +289,31 @@ public class PacketHandlerBoss {
 					return;
 				}
 				if (player != null) {
-					owner.writePacket(new PacketOutServerStatus(Action.SERVER, ((PacketInServerStatusRequest) packet).getValue(),client.getStatus().getServerId(),client.getStatus().isVisiable(),client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), ((PacketInServerStatusRequest) packet).isPlayer() ? player : null));
+					owner.writePacket(new PacketOutServerStatus(Action.SERVER, null, ((PacketInServerStatusRequest) packet).getValue(),client.getStatus().getServerId(),client.getStatus().isVisiable(),client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), ((PacketInServerStatusRequest) packet).isPlayer() ? player : null));
 					return;
 				}
 				break;
 			case GENERAL:
 				List<String> players = PlayerManager.getPlayers(null);
 				if (players != null) {
-					owner.writePacket(new PacketOutServerStatus(Action.GENERAL, ((PacketInServerStatusRequest) packet).getValue(),"network",true,GameState.NONE, players.size(), -1, ((PacketInServerStatusRequest) packet).isPlayer() ? players : null));
+					owner.writePacket(new PacketOutServerStatus(Action.GENERAL, null, ((PacketInServerStatusRequest) packet).getValue(),"network",true,GameState.NONE, players.size(), -1, ((PacketInServerStatusRequest) packet).isPlayer() ? players : null));
 					return;
 				}
+				break;
+			case GAMETYPE:
+				ArrayList<Client> allClients = new ArrayList<>();
+				for(GameType type : ((PacketInServerStatusRequest) packet).getGames())
+					allClients.addAll(ServerThread.getServer(type));
+				ArrayList<String> splayers = new ArrayList<>();
+				int playercount = 0;
+				int maxPlayerCount = 0;
+				for(Client c : allClients){
+					if(((PacketInServerStatusRequest) packet).isPlayer())
+						splayers.addAll(c.getPlayers());
+					playercount += c.getStatus().getPlayers();
+					maxPlayerCount += c.getStatus().getMaxPlayers();
+				}
+				owner.writePacket(new PacketOutServerStatus(Action.GAMETYPE, ((PacketInServerStatusRequest) packet).getGames(), ((PacketInServerStatusRequest) packet).getValue(),"GameType[]",true,GameState.NONE, playercount, maxPlayerCount, ((PacketInServerStatusRequest) packet).isPlayer() ? splayers : null));
 				break;
 			default:
 				break;
@@ -409,12 +424,13 @@ public class PacketHandlerBoss {
 			default:
 				break;
 			}
-			owner.writePacket(new PacketSkinData(out));
+			System.out.println("Skin request: "+((PacketSkinRequest) packet).getUuid()+":"+((PacketSkinRequest) packet).getName()+":"+((PacketSkinRequest) packet).getType()+":"+out);
+			owner.writePacket(new PacketSkinData(out,((PacketSkinRequest) packet).getRequestUUID()));
 		}
 		else if(packet instanceof PacketSkinSet){
-			OnlinePlayer player = PlayerManager.getPlayer(((PacketSkinRequest) packet).getUuid());
+			OnlinePlayer player = PlayerManager.getPlayer(((PacketSkinSet) packet).getPlayer());
 			if(player == null)
-				player = PlayerManager.loadPlayer(UUIDManager.getName(((PacketSkinRequest) packet).getUuid()), null);
+				player = PlayerManager.loadPlayer(UUIDManager.getName(((PacketSkinSet) packet).getPlayer()), null);
 			switch (((PacketSkinSet) packet).getType()) {
 			case NAME:
 				player.getSkinManager().setSkin(((PacketSkinSet) packet).getSkinName());
@@ -424,6 +440,9 @@ public class PacketHandlerBoss {
 				break;
 			case PROPS:
 				player.getSkinManager().setSkin(((PacketSkinSet) packet).getRawValue(),((PacketSkinSet) packet).getSignature());
+				break;
+			case NONE:
+				player.getSkinManager().disableSkin();
 				break;
 			default:
 				break;

@@ -82,6 +82,7 @@ public class OnlinePlayer {
 			}
 		}
 		skinManager = new PlayerSkinManager(this);
+		skinManager.load();
 		statsManager = new StatsManager(this);
 	}
 	

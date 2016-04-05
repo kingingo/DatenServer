@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.dataserver.connection.Client;
+import dev.wolveringer.dataserver.gamestats.GameType;
 
 public class ServerThread {
 	private static ArrayList<Client> clients = new ArrayList<>();
@@ -28,6 +29,15 @@ public class ServerThread {
 		return out;
 	}
 
+	public static ArrayList<Client> getServer(GameType type){
+		ArrayList<Client> out = new ArrayList<>();
+		for(Client c : new ArrayList<>(clients))
+			if(c.getStatus().getTyp() == type)
+				out.add(c);
+		return out;
+	}
+
+	
 	public static Client getServer(String name){
 		for(Client c : new ArrayList<>(clients))
 			if(c.getName() != null)
@@ -35,6 +45,7 @@ public class ServerThread {
 				return c;
 		return null;
 	}
+	
 	public static void removeServer(Client client) {
 		clients.remove(client);
 	}

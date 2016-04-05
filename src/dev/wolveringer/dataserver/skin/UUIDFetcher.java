@@ -60,7 +60,6 @@ public class UUIDFetcher implements Callable<Map<String, UUID>> {
             String body = obj.toString();
             writeBody(connection, body);
             JsonArray array = (JsonArray) jsonParser.parse(new InputStreamReader(connection.getInputStream()));
-            System.out.println("Out: "+array+":"+obj);
             for (Object profile : array) {
             	JsonObject jsonProfile = (JsonObject) profile;
                 String id = (String) jsonProfile.get("id").getAsString();

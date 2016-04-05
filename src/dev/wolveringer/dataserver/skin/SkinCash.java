@@ -12,6 +12,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 
 import dev.wolveringer.skin.Skin;
+import dev.wolveringer.skin.SteveSkin;
 
 public class SkinCash {
 	
@@ -19,7 +20,13 @@ public class SkinCash {
 
 	private static Cache<UUID, Skin> profileCache = CacheBuilder.newBuilder().maximumSize(500).expireAfterWrite(4, TimeUnit.HOURS).build(new CacheLoader<UUID, Skin>() {
 		public Skin load(UUID name) throws Exception {
-			return loadSkin(name);
+			Skin out = null;
+			try{
+				out = loadSkin(name);
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			return out;
 		};
 	});
 
@@ -31,7 +38,7 @@ public class SkinCash {
 			return profileCache.get(uuid);
 		}catch (Exception e){
 			System.out.println("Cant loading Skin for " + uuid + " (Reson: " + e.getMessage() + ")");
-			return Skin.createEmptySkin();
+			return new SteveSkin();
 		}
 	}
 
@@ -55,7 +62,7 @@ public class SkinCash {
 		}catch (Exception e){
 			e.printStackTrace();
 		}
-		return Skin.createEmptySkin();
+		return new SteveSkin();
 	}
 	
 	@SuppressWarnings("unchecked")

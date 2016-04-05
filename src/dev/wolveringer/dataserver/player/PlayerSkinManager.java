@@ -36,7 +36,7 @@ public class PlayerSkinManager {
 		UUID skinUUID = null;
 		if(!out.get(0)[1].equalsIgnoreCase("undefined"))
 			skinUUID = UUID.fromString(out.get(0)[1]);
-		boolean skinCached = !out.get(0)[2].equalsIgnoreCase("undefined") && Integer.parseInt(out.get(0)[4])-System.currentTimeMillis() >= SKIN_CASH_TIME;
+		boolean skinCached = !out.get(0)[2].equalsIgnoreCase("undefined") && Long.parseLong(out.get(0)[4])-System.currentTimeMillis() >= SKIN_CASH_TIME;
 		if(!skinCached && (!skinName.equalsIgnoreCase("nan") || skinUUID != null)){ //If nan than no skin set
 			if(skinUUID != null){
 				SkinCash.getSkin(skinUUID, new OperationCallback<Skin>() {
@@ -60,12 +60,14 @@ public class PlayerSkinManager {
 		{
 			skin = new Skin(out.get(0)[2],out.get(0)[3]);
 		}
+		if(skin == null)
+			skin = new SteveSkin();
 	}
 	
 	@SuppressWarnings("unchecked")
 	public void disableSkin(){
 		skin = new SteveSkin();
-		MySQL.getInstance().command("UPDATE `PlayerSkins` SET `skinName`='nan',`skinUUID`='undefined',`skinValue`='undefined', signature`='undefined',`timestamp`='-1' WHERE uuid='"+player.getUuid()+"'");
+		MySQL.getInstance().command("UPDATE `PlayerSkins` SET `skinName`='nan',`skinUUID`='undefined',`skinValue`='undefined', `signature`='undefined',`timestamp`='-1' WHERE uuid='"+player.getUuid()+"'");
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -95,7 +97,7 @@ public class PlayerSkinManager {
 	@SuppressWarnings("unchecked")
 	public void setSkin(Skin skin){
 		PlayerSkinManager.this.skin = skin;
-		MySQL.getInstance().command("UPDATE `PlayerSkins` SET `skinName`='"+(skin.hasProfileName() ? skin.getProfileName() : "nan")+"',`skinUUID`='"+(skin.hasUUID() ? skin.getUUID() : "undefined")+"',`skinValue`='"+(skin.getRawData() != null ? skin.getRawData() : "undefined")+"', signature`='"+(skin.getSignature())+"',`timestamp`='"+System.currentTimeMillis()+"' WHERE uuid='"+player.getUuid()+"'");
+		MySQL.getInstance().command("UPDATE `PlayerSkins` SET `skinName`='"+(skin.hasProfileName() ? skin.getProfileName() : "nan")+"',`skinUUID`='"+(skin.hasUUID() ? skin.getUUID() : "undefined")+"',`skinValue`='"+(skin.getRawData() != null ? skin.getRawData() : "undefined")+"', `signature`='"+(skin.getSignature())+"',`timestamp`='"+System.currentTimeMillis()+"' WHERE uuid='"+player.getUuid()+"'");
 	}
 	
 	public Skin getSkin() {
