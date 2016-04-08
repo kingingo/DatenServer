@@ -39,6 +39,8 @@ public class ServerThread {
 
 	
 	public static Client getServer(String name){
+		if(name == null)
+			return null;
 		for(Client c : new ArrayList<>(clients))
 			if(c.getName() != null)
 			if(c.getName().equalsIgnoreCase(name))

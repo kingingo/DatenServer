@@ -13,8 +13,8 @@ import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketDisconnect;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutGammodeChange;
+import dev.wolveringer.dataserver.protocoll.packets.PacketPong;
 import dev.wolveringer.event.EventHandlerBoss;
-import dev.wolveringer.event.EventTypeHandler;
 import dev.wolveringer.serverbalancer.AcardeManager;
 import lombok.Getter;
 
@@ -141,5 +141,19 @@ public class Client {
 
 	public boolean isConnected() {
 		return connected;
+	}
+
+	public boolean isReachable(int timeout) {
+		long sended = System.currentTimeMillis();
+		writePacket(new PacketPong(sended));
+		while (sended > lastPingTime) {
+			if(sended+timeout<System.currentTimeMillis())
+				return false;
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+			}
+		}
+		return true;
 	}
 }

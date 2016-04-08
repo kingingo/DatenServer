@@ -41,5 +41,11 @@ public class ServerStatus {
 			AcardeManager.serverConnected(new ServerType(typ, subType));
 			registered = true;
 		}
+		System.out.println("Stats changed: "+toString());
+	}
+
+	@Override
+	public String toString() {
+		return "ServerStatus [players=" + players + ", maxPlayers=" + maxPlayers + ", mots=" + mots + ", typ=" + typ + ", state=" + state + ", subType=" + subType + ", visiable=" + visiable + ", owner=" + owner + ", serverId=" + serverId + ", registered=" + registered + "]";
 	}
 }

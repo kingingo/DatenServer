@@ -38,7 +38,8 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketOutServerStatus.Action
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutTopTen;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutTopTen.RankInformation;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse;
-import dev.wolveringer.dataserver.protocoll.packets.PacketPingPong;
+import dev.wolveringer.dataserver.protocoll.packets.PacketPing;
+import dev.wolveringer.dataserver.protocoll.packets.PacketPong;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerMessage;
 import dev.wolveringer.dataserver.protocoll.packets.PacketSettingUpdate;
@@ -95,6 +96,17 @@ public class PacketHandlerBoss {
 					System.out.println("A client try to connect with version-number: "+((PacketHandschakeInStart) packet).getProtocollVersion()+" Server-version: "+Packet.PROTOCOLL_VERSION);
 					return;
 				}
+				if(ServerThread.getServer(((PacketHandschakeInStart) packet).getName()) != null){
+					if(!ServerThread.getServer(((PacketHandschakeInStart) packet).getName()).isReachable(1000)){
+						ServerThread.getServer(((PacketHandschakeInStart) packet).getName()).disconnect("Timeout (Logged in from other location)");
+					}
+					else
+					{
+						owner.disconnect("A server with this name is alredy connected!");
+						System.out.println("Server "+((PacketHandschakeInStart) packet).getName()+" try to connect twice!");
+						return;
+					}
+				}
 				owner.host = ((PacketHandschakeInStart) packet).getHost();
 				owner.type = ((PacketHandschakeInStart) packet).getType();
 				owner.name = ((PacketHandschakeInStart) packet).getName();
@@ -105,9 +117,9 @@ public class PacketHandlerBoss {
 			return;
 		}
 		if (packet instanceof PacketForward) {
-			System.out.println("Packet forward not implimented yet!");
 			if(((PacketForward) packet).getTarget() == null && ((PacketForward) packet).getCtarget() == null){
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Both targets are null")));
+				System.out.println("Forward failed packet to "+((PacketForward) packet).getTarget()+":"+((PacketForward) packet).getCtarget());
 				return;
 			}
 			if(((PacketForward) packet).getTarget() != null){
@@ -127,7 +139,8 @@ public class PacketHandlerBoss {
 				owner.writePacket(new PacketOutPacketStatus(packet, null));
 				return;
 			}
-			owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Packet forward not implimented yet!")));
+			System.out.println("Forward failed packet to "+((PacketForward) packet).getTarget()+":"+((PacketForward) packet).getCtarget());
+			owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Undefined error....")));
 			
 		} else if (packet instanceof PacketInServerSwitch) {
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketInServerSwitch) packet).getPlayer());
@@ -352,9 +365,13 @@ public class PacketHandlerBoss {
 			}
 			owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Server/Bungeecord not found")));
 		}
-		else if(packet instanceof PacketPingPong){
-			owner.writePacket(packet);
-			owner.lastPing = System.currentTimeMillis()-((PacketPingPong)packet).getTime();
+		else if(packet instanceof PacketPing){
+			owner.writePacket(new PacketPong(System.currentTimeMillis()));
+			owner.lastPing = System.currentTimeMillis()-((PacketPing)packet).getTime();
+			owner.lastPingTime = System.currentTimeMillis();
+		}
+		else if(packet instanceof PacketPong){
+			owner.lastPing = System.currentTimeMillis()-((PacketPong)packet).getTime();
 			owner.lastPingTime = System.currentTimeMillis();
 		}
 		else if(packet instanceof PacketServerMessage){

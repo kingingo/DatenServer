@@ -23,13 +23,13 @@ public class EventTypeHandler {
 	}
 	
 	public void callEvent(Event event,EventConditionKey... conditions){
-		HashMap<EventConditions, Object> cons = new HashMap<>();
+		HashMap<EventConditions, Object[]> cons = new HashMap<>();
 		for(EventConditionKey c : conditions)
 			cons.put(c.getType(), c.getValue());
 		for(EventCondition c : activeConditions){
 			if(!cons.containsKey(c.getCondition())) //Needed 
 				return;
-			if(!ConditionChckerBoss.check(c, cons.get(c.getCondition())))
+			if(!ConditionChckerBoss.checkOr(c, cons.get(c.getCondition())))
 				return;
 		}
 		handle.getHandle().writePacket(new PacketEventFire(event));
@@ -41,6 +41,7 @@ public class EventTypeHandler {
 				if(c.getCondition() == update.getType())
 					activeConditions.remove(c);
 			activeConditions.add(update.getCondition());
+			System.out.println("Update conditions: "+update.getType());
 		}else
 			for(EventCondition c : new ArrayList<>(activeConditions))
 				if(c.getCondition() == update.getType())
@@ -51,6 +52,7 @@ public class EventTypeHandler {
 		if(update.isActive()){
 			activeConditions.clear();
 			activeConditions.addAll(update.getConditions());
+			System.out.println("Active event handler: "+update.getType());
 		}
 		else{
 			activeConditions.clear();

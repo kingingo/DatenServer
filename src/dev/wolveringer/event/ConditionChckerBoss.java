@@ -52,9 +52,12 @@ public class ConditionChckerBoss {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static boolean check(EventCondition<?> con,Object value){
-		if(!checkers.get(con.getCondition()).isClassValid(con, value))
-			return false;
-		return checkers.get(con.getCondition()).isValid(con, value);
+	public static boolean checkOr(EventCondition<?> con,Object[] value){
+		for(Object o : value){
+			if(checkers.get(con.getCondition()).isClassValid(con, value))
+				if(checkers.get(con.getCondition()).isValid(con, value))
+					return true;
+		}
+		return false;
 	}
 }

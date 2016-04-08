@@ -1,0 +1,13 @@
+MySQL:
+  host: localhost
+  port: 3306
+  datenbank: test
+  user: root
+  password: undefined
+  autoReconnect: true
+server:
+  port: 1111
+  host: localhost
+  password: HelloWorld
+savemanager:
+  periode: 300000
