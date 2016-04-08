@@ -35,7 +35,7 @@ public class SkinFactory {
 			throw new IllegalArgumentException("UUID cant be null");
 		try{
 			Skin s = profileCache.get(uuid);
-			if(s == null){
+			if(s == null || s instanceof SteveSkin){
 				profileCache.refresh(uuid);
 				s = profileCache.get(uuid);
 			}

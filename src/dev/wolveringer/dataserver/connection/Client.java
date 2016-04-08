@@ -13,6 +13,8 @@ import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketDisconnect;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutGammodeChange;
+import dev.wolveringer.event.EventHandlerBoss;
+import dev.wolveringer.event.EventTypeHandler;
 import dev.wolveringer.serverbalancer.AcardeManager;
 import lombok.Getter;
 
@@ -32,6 +34,8 @@ public class Client {
 	protected long lastPing = -1;
 	protected long lastPingTime = -1;
 	private boolean connected;
+	@Getter
+	private EventHandlerBoss eventHander;
 	
 	public Client(Socket socket,ServerThread owner) {
 		this.socket = socket;
@@ -49,6 +53,7 @@ public class Client {
 		}
 		this.boss = new PacketHandlerBoss(this);
 		this.reader.start();
+		this.eventHander = new EventHandlerBoss(this);
 	}	
 	
 	public void disconnect(){

@@ -24,10 +24,10 @@
 					<finalName>${project.artifactId}</finalName>
 					<archive>
 						<manifest>
-							<!-- Jar file entry point -->
-							<addClasspath>true</addClasspath>
+							<addClasspath>false</addClasspath>
 							<mainClass>dev.wolveringer.dataserver.Main</mainClass>
-							<classpathPrefix>${project.build.directory}/dependency-jars/</classpathPrefix>
+							 <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                			<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 						</manifest>
 					</archive>
 				</configuration>
@@ -43,28 +43,6 @@
 					<downloadJavadocs>false</downloadJavadocs>
 				</configuration>
 			</plugin>
-
-			<!-- Copy project dependency -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.5.1</version>
-				<executions>
-					<execution>
-						<id>copy-dependencies</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<!-- exclude junit, we need runtime dependency only -->
-							<includeScope>runtime</includeScope>
-							<outputDirectory>${project.build.directory}/dependency-jars/</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -84,15 +62,8 @@
 							<artifact>dev.wolveringer.datenserver:**</artifact>
 							<includes>
 								<include>dev/wolveringer/**</include>
+								<include>**/META-INF/**</include>
 							</includes>
-						</filter>
-						<filter>
-							<artifact>*:*</artifact>
-							<excludes>
-								<exclude>META-INF/*.SF</exclude>
-								<exclude>META-INF/*.DSA</exclude>
-								<exclude>META-INF/*.RSA</exclude>
-							</excludes>
 						</filter>
 						<filter>
 							<artifact>mysql:**</artifact>

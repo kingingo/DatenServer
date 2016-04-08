@@ -9,6 +9,7 @@ import dev.wolveringer.dataserver.gamestats.MoneyConverter;
 import dev.wolveringer.dataserver.gamestats.StatsManager;
 import dev.wolveringer.dataserver.gamestats.TopStatsManager;
 import dev.wolveringer.dataserver.player.PlayerSkinManager;
+import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.save.SaveManager;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
 import dev.wolveringer.dataserver.terminal.Terminal;
@@ -27,11 +28,13 @@ public class Main {
 				return;
 			}
 		}
+		System.out.println("Datenserver protocoll version: "+Packet.PROTOCOLL_VERSION);
 		if(supportTerminal){
 			System.out.println("Setting up Terminal");
 			terminal = new Terminal();
 			terminal.init();
 		}
+		
 		
 		getConsoleWriter().write("§aSetting up DatenServer");
 		

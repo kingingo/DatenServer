@@ -25,6 +25,7 @@ public class SkinCash {
 				out = loadSkin(name);
 			}catch(Exception e){
 				e.printStackTrace();
+				out = new SteveSkin();
 			}
 			return out;
 		};

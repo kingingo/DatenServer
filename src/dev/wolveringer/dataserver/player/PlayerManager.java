@@ -19,12 +19,12 @@ public class PlayerManager {
 	public static OnlinePlayer loadPlayer(String player,Client owner){
 		for(OnlinePlayer p : getPlayer())
 			if(p.getName().equalsIgnoreCase(player))
-				return null;
+				return p;
 		for(OnlinePlayer p : cc)
 			if(p.getName().equalsIgnoreCase(player)){
 				p.load();
 				players.put(p.getUuid(), p);
-				return null;
+				return p;
 			}
 		OnlinePlayer var0 = new OnlinePlayer(player,owner);
 		players.put(var0.getUuid(), var0);

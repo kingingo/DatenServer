@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.configuration.ServerConfiguration;
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.ban.BanEntity;
@@ -49,9 +48,9 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketSkinSet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutUUIDResponse.UUIDKey;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction.PlayerAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketSkinData.SkinResponse;
-import dev.wolveringer.dataserver.protocoll.packets.PacketSkinRequest.SkinRequest;
 import dev.wolveringer.dataserver.skin.SkinCash;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
+import dev.wolveringer.event.EventHelper;
 import dev.wolveringer.serverbalancer.AcardeManager;
 import dev.wolveringer.serverbalancer.AcardeManager.ServerType;
 import dev.wolveringer.skin.Skin;
@@ -73,6 +72,8 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketOutPlayerServer;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPlayerSettings;
 import dev.wolveringer.dataserver.protocoll.packets.PacketChatMessage.Target;
 import dev.wolveringer.dataserver.protocoll.packets.PacketDisconnect;
+import dev.wolveringer.dataserver.protocoll.packets.PacketEventCondition;
+import dev.wolveringer.dataserver.protocoll.packets.PacketEventTypeSettings;
 
 public class PacketHandlerBoss {
 	private Client owner;
@@ -89,6 +90,11 @@ public class PacketHandlerBoss {
 					owner.disconnect("Password incorrect ["+((PacketHandschakeInStart) packet).getHost()+"|"+((PacketHandschakeInStart) packet).getName()+"]");
 					return;
 				}
+				if(!((PacketHandschakeInStart) packet).getProtocollVersion().equalsIgnoreCase(Packet.PROTOCOLL_VERSION)){
+					owner.disconnect("Protocollversion is not up to date!");
+					System.out.println("A client try to connect with version-number: "+((PacketHandschakeInStart) packet).getProtocollVersion()+" Server-version: "+Packet.PROTOCOLL_VERSION);
+					return;
+				}
 				owner.host = ((PacketHandschakeInStart) packet).getHost();
 				owner.type = ((PacketHandschakeInStart) packet).getType();
 				owner.name = ((PacketHandschakeInStart) packet).getName();
@@ -100,7 +106,29 @@ public class PacketHandlerBoss {
 		}
 		if (packet instanceof PacketForward) {
 			System.out.println("Packet forward not implimented yet!");
+			if(((PacketForward) packet).getTarget() == null && ((PacketForward) packet).getCtarget() == null){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Both targets are null")));
+				return;
+			}
+			if(((PacketForward) packet).getTarget() != null){
+				Client c = ServerThread.getServer(((PacketForward) packet).getTarget());
+				if(c == null){
+					owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Target "+((PacketForward) packet).getTarget()+" not found!")));
+					return;
+				}
+				c.writePacket(packet);
+				owner.writePacket(new PacketOutPacketStatus(packet, null));
+				return;
+			}
+			if(((PacketForward) packet).getCtarget() != null){
+				ArrayList<Client> ca = ServerThread.getServer(((PacketForward) packet).getCtarget());
+				for(Client c : ca)
+					c.writePacket(packet);
+				owner.writePacket(new PacketOutPacketStatus(packet, null));
+				return;
+			}
 			owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Packet forward not implimented yet!")));
+			
 		} else if (packet instanceof PacketInServerSwitch) {
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketInServerSwitch) packet).getPlayer());
 			if (player == null) {
@@ -108,7 +136,9 @@ public class PacketHandlerBoss {
 				return;
 			}
 			player.setOwner(owner);
+			String old = player.getServer();
 			player.setServer(((PacketInServerSwitch) packet).getServer());
+			EventHelper.callServerSwitchEvent(player.getUuid(), owner, old, player.getServer());
 			System.out.println("Player switched (" + ((PacketInServerSwitch) packet).getPlayer() + ") -> " + ((PacketInServerSwitch) packet).getServer());
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		} else if (packet instanceof PacketInStatsEdit) {
@@ -186,7 +216,7 @@ public class PacketHandlerBoss {
 			owner.writePacket(new PacketOutPlayerSettings(player.getUuid(), values.toArray(new SettingValue[0])));
 		} else if (packet instanceof PacketInConnectionStatus) {
 			if (((PacketInConnectionStatus) packet).getStatus() == Status.CONNECTED) {
-				System.out.println("Player connected (" + ((PacketInConnectionStatus) packet).getPlayer() + ")");
+				System.out.println("Player loaded (" + ((PacketInConnectionStatus) packet).getPlayer() + ")");
 				PlayerManager.loadPlayer(((PacketInConnectionStatus) packet).getPlayer(), owner);
 			} else {
 				System.out.println("Player disconnected (" + ((PacketInConnectionStatus) packet).getPlayer() + ")");
@@ -437,6 +467,7 @@ public class PacketHandlerBoss {
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketSkinSet) packet).getPlayer());
 			if(player == null)
 				player = PlayerManager.loadPlayer(UUIDManager.getName(((PacketSkinSet) packet).getPlayer()), null);
+			System.out.println("Setting skin: "+player.getName()+":"+((PacketSkinSet) packet).getType());
 			switch (((PacketSkinSet) packet).getType()) {
 			case NAME:
 				player.getSkinManager().setSkin(((PacketSkinSet) packet).getSkinName());
@@ -454,6 +485,12 @@ public class PacketHandlerBoss {
 				break;
 			}
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
+		}
+		else if(packet instanceof PacketEventCondition){
+			owner.getEventHander().handUpdate((PacketEventCondition)packet);
+		}
+		else if(packet instanceof PacketEventTypeSettings){
+			owner.getEventHander().handUpdate((PacketEventTypeSettings) packet);
 		}
 	}
 
