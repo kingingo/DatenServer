@@ -53,6 +53,8 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketSkinData.SkinResponse;
 import dev.wolveringer.dataserver.skin.SkinCash;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.event.EventHelper;
+import dev.wolveringer.language.LanguageFile;
+import dev.wolveringer.language.LanguageManager;
 import dev.wolveringer.serverbalancer.AcardeManager;
 import dev.wolveringer.serverbalancer.AcardeManager.ServerType;
 import dev.wolveringer.skin.Skin;
@@ -62,6 +64,8 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsEdit;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInTopTenRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInUUIDRequest;
+import dev.wolveringer.dataserver.protocoll.packets.PacketLanguageRequest;
+import dev.wolveringer.dataserver.protocoll.packets.PacketLanguageResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutBanStats;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutHandschakeAccept;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutLobbyServer;
@@ -99,7 +103,8 @@ public class PacketHandlerBoss {
 				}
 				if(ServerThread.getServer(((PacketHandschakeInStart) packet).getName()) != null){
 					if(!ServerThread.getServer(((PacketHandschakeInStart) packet).getName()).isReachable(1000)){
-						ServerThread.getServer(((PacketHandschakeInStart) packet).getName()).disconnect("Timeout (Logged in from other location)");
+						if(ServerThread.getServer(((PacketHandschakeInStart) packet).getName()) != null)
+							ServerThread.getServer(((PacketHandschakeInStart) packet).getName()).disconnect("Timeout (Logged in from other location)");
 					}
 					else
 					{
@@ -508,6 +513,17 @@ public class PacketHandlerBoss {
 		}
 		else if(packet instanceof PacketEventTypeSettings){
 			owner.getEventHander().handUpdate((PacketEventTypeSettings) packet);
+		}
+		else if(packet instanceof PacketLanguageRequest){
+			PacketLanguageRequest r = (PacketLanguageRequest) packet;
+			LanguageFile file = LanguageManager.getLanguage(r.getType());
+			if(file.getVersion() > r.getVersion()){
+				owner.writePacket(new PacketLanguageResponse(r.getType(), file.getVersion(), null));
+			}
+			else
+			{
+				owner.writePacket(new PacketLanguageResponse(r.getType(), file.getVersion(), file.getFileAsString()));
+			}
 		}
 	}
 

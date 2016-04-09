@@ -14,6 +14,7 @@ import dev.wolveringer.dataserver.save.SaveManager;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
 import dev.wolveringer.dataserver.terminal.Terminal;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
+import dev.wolveringer.language.LanguageManager;
 import dev.wolveringer.mysql.MySQL;
 
 public class Main {
@@ -51,6 +52,7 @@ public class Main {
 			return;
 		}
 		UUIDManager.init();
+		LanguageManager.init();
 		PlayerSkinManager.init();
 		BanManager.setManager(new BanManager());
 		StatsManager.initTables();
