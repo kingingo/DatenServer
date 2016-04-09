@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.dataserver.connection.Client;
-import dev.wolveringer.dataserver.connection.LanguageType;
 import dev.wolveringer.dataserver.gamestats.StatsManager;
 import dev.wolveringer.dataserver.skin.OperationCallback;
 import dev.wolveringer.dataserver.skin.SkinCash;
@@ -74,11 +73,11 @@ public class OnlinePlayer {
 				System.out.println(Arrays.asList(response.get(0)));
 			ArrayList<String[]> r = MySQL.getInstance().querySync("SELECT `language` FROM `language_user` WHERE uuid='"+uuid+"'", 1);
 			if(r.size() == 0){
-				lang = LanguageType.get(r.get(0)[0]);
+				lang = LanguageType.getLanguageFromName(r.get(0)[0]);
 			}
 			else{
 				lang = LanguageType.ENGLISH;
-				MySQL.getInstance().command("INSERT INTO `language_user`(`uuid`, `language`) VALUES ('"+getUuid()+"','"+lang.getDef()+"')");
+				MySQL.getInstance().command("INSERT INTO `language_user`(`uuid`, `language`) VALUES ('"+getUuid()+"','"+lang.getShortName()+"')");
 			}
 		}
 		skinManager = new PlayerSkinManager(this);
@@ -92,7 +91,7 @@ public class OnlinePlayer {
 
 	public void setLanguage(LanguageType lang){
 		this.lang = lang;
-		MySQL.getInstance().command("UPDATE `language_user` SET `language`='"+lang.getDef()+"' WHERE `uuid`='"+uuid+"'");
+		MySQL.getInstance().command("UPDATE `language_user` SET `language`='"+lang.getShortName()+"' WHERE `uuid`='"+uuid+"'");
 	}
 	
 	public void setPassword(String value) {

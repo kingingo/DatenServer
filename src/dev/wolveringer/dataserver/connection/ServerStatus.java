@@ -41,7 +41,6 @@ public class ServerStatus {
 			AcardeManager.serverConnected(new ServerType(typ, subType));
 			registered = true;
 		}
-		System.out.println("Stats changed: "+toString());
 	}
 
 	@Override

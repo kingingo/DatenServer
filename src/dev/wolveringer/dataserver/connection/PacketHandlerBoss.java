@@ -13,6 +13,7 @@ import dev.wolveringer.dataserver.ban.BanManager;
 import dev.wolveringer.dataserver.gamestats.GameState;
 import dev.wolveringer.dataserver.gamestats.GameType;
 import dev.wolveringer.dataserver.gamestats.TopStatsManager;
+import dev.wolveringer.dataserver.player.LanguageType;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.dataserver.player.Setting;
@@ -161,7 +162,6 @@ public class PacketHandlerBoss {
 				return;
 			}
 			player.getStatsManager().applayChanges((PacketInStatsEdit) packet);
-			System.out.println("Player stats change (" + ((PacketInStatsEdit) packet).getPlayer() + ")");
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		} else if (packet instanceof PacketInStatsRequest) {
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketInStatsRequest) packet).getPlayer());
@@ -185,7 +185,7 @@ public class PacketHandlerBoss {
 				player.setPremium(Boolean.valueOf(((PacketInChangePlayerSettings) packet).getValue()));
 				break;
 			case LANGUAGE:
-				player.setLanguage(LanguageType.get(((PacketInChangePlayerSettings) packet).getValue()));
+				player.setLanguage(LanguageType.getLanguageFromName(((PacketInChangePlayerSettings) packet).getValue()));
 				break;
 			case CURRUNT_IP:
 				player.setCurruntIp(((PacketInChangePlayerSettings) packet).getValue());
@@ -218,7 +218,7 @@ public class PacketHandlerBoss {
 					values.add(new SettingValue(s, player.getUuid().toString()));
 					break;
 				case LANGUAGE:
-					values.add(new SettingValue(s, player.getLang().getDef()));
+					values.add(new SettingValue(s, player.getLang().getShortName()));
 					break;
 				case CURRUNT_IP:
 					values.add(new SettingValue(s, player.getCurruntIp()));
