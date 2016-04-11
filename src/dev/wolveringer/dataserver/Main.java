@@ -13,14 +13,18 @@ import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.save.SaveManager;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
 import dev.wolveringer.dataserver.terminal.Terminal;
-import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.language.LanguageManager;
 import dev.wolveringer.mysql.MySQL;
+import lombok.Getter;
 
 public class Main {
+	@Getter
 	private static Terminal terminal;
 	
 	private static boolean supportTerminal = true;
+	
+	@Getter
+	private static ServerThread server;
 	
 	public static void main(String[] args) throws InterruptedException, IOException {
 		if(args.length == 1){
@@ -51,7 +55,7 @@ public class Main {
 			getConsoleWriter().sendMessage("§cCantconnect to MySQL");
 			return;
 		}
-		UUIDManager.init();
+
 		LanguageManager.init();
 		PlayerSkinManager.init();
 		BanManager.setManager(new BanManager());
@@ -60,7 +64,7 @@ public class Main {
 		SaveManager.setSaveManager(new SaveManager().start());
 		TickSeduller s = new TickSeduller();
 		s.start();
-		ServerThread server = new ServerThread(ServerConfiguration.getServerHost());
+		server = new ServerThread(ServerConfiguration.getServerHost());
 		server.start();
 		getConsoleWriter().write("§aSetting up done! Main-Thread -> Sleeping...");
 		while (true) {

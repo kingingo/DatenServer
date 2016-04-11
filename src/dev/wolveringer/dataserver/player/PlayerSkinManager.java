@@ -15,7 +15,7 @@ public class PlayerSkinManager {
 	private static final int SKIN_GET_TIMEOUT = 1500; //12H
 	
 	public static void init(){
-		MySQL.getInstance().commandSync("CREATE TABLE IF NOT EXISTS `PlayerSkins`(`uuid` VARCHAR (1000), `skinName` VARCHAR (1000), `skinUUID` VARCHAR (1000), `skinValue` VARCHAR (1000), `signature` VARCHAR (1000),`timestamp` INT);");
+		MySQL.getInstance().commandSync("CREATE TABLE IF NOT EXISTS `PlayerSkins`(`playerId` INT, `skinName` VARCHAR (1000), `skinUUID` VARCHAR (1000), `skinValue` VARCHAR (1000), `signature` VARCHAR (1000),`timestamp` INT);");
 	}
 	
 	private OnlinePlayer player;
@@ -27,9 +27,9 @@ public class PlayerSkinManager {
 
 	@SuppressWarnings("unchecked")
 	public void load() {
-		ArrayList<String[]> out = MySQL.getInstance().querySync("SELECT `skinName`,`skinUUID`,`skinValue`,`signature`,`timestamp` FROM `PlayerSkins` WHERE `uuid`='"+player.getUuid()+"'",1);
+		ArrayList<String[]> out = MySQL.getInstance().querySync("SELECT `skinName`,`skinUUID`,`skinValue`,`signature`,`timestamp` FROM `PlayerSkins` WHERE `playerId`='"+player.getPlayerId()+"'",1);
 		if(out.size() == 0){
-			MySQL.getInstance().commandSync("INSERT INTO `PlayerSkins`(`uuid`, `skinName`, `skinUUID`, `skinValue`, `signature`, `timestamp`) VALUES ('"+player.getUuid()+"','nan','undefined','undefined','undefined','-1')");
+			MySQL.getInstance().commandSync("INSERT INTO `PlayerSkins`(`playerId`, `skinName`, `skinUUID`, `skinValue`, `signature`, `timestamp`) VALUES ('"+player.getPlayerId()+"','nan','undefined','undefined','undefined','-1')");
 			out.add(new String[]{"nan","undefined","undefined","undefined","-1"});
 		}
 		String skinName = out.get(0)[0];
@@ -67,7 +67,7 @@ public class PlayerSkinManager {
 	@SuppressWarnings("unchecked")
 	public void disableSkin(){
 		skin = new SteveSkin();
-		MySQL.getInstance().command("UPDATE `PlayerSkins` SET `skinName`='nan',`skinUUID`='undefined',`skinValue`='undefined', `signature`='undefined',`timestamp`='-1' WHERE uuid='"+player.getUuid()+"'");
+		MySQL.getInstance().command("UPDATE `PlayerSkins` SET `skinName`='nan',`skinUUID`='undefined',`skinValue`='undefined', `signature`='undefined',`timestamp`='-1' WHERE playerId='"+player.getPlayerId()+"'");
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -97,7 +97,7 @@ public class PlayerSkinManager {
 	@SuppressWarnings("unchecked")
 	public void setSkin(Skin skin){
 		PlayerSkinManager.this.skin = skin;
-		MySQL.getInstance().command("UPDATE `PlayerSkins` SET `skinName`='"+(skin.hasProfileName() ? skin.getProfileName() : "nan")+"',`skinUUID`='"+(skin.hasUUID() ? skin.getUUID() : "undefined")+"',`skinValue`='"+(skin.getRawData() != null ? skin.getRawData() : "undefined")+"', `signature`='"+(skin.getSignature())+"',`timestamp`='"+System.currentTimeMillis()+"' WHERE uuid='"+player.getUuid()+"'");
+		MySQL.getInstance().command("UPDATE `PlayerSkins` SET `skinName`='"+(skin.hasProfileName() ? skin.getProfileName() : "nan")+"',`skinUUID`='"+(skin.hasUUID() ? skin.getUUID() : "undefined")+"',`skinValue`='"+(skin.getRawData() != null ? skin.getRawData() : "undefined")+"', `signature`='"+(skin.getSignature())+"',`timestamp`='"+System.currentTimeMillis()+"' WHERE playerId='"+player.getPlayerId()+"'");
 	}
 	
 	public Skin getSkin() {

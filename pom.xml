@@ -4,11 +4,11 @@
 	<groupId>dev.wolveringer</groupId>
 	<artifactId>DatenServer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	
+
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
@@ -31,8 +31,8 @@
 						<manifest>
 							<addClasspath>false</addClasspath>
 							<mainClass>dev.wolveringer.dataserver.Main</mainClass>
-							 <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                			<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 						</manifest>
 					</archive>
 				</configuration>

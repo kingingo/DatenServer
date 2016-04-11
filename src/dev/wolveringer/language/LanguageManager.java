@@ -13,11 +13,7 @@ public class LanguageManager {
 	private static HashMap<LanguageType, LanguageFile> languages = new HashMap<>();
 	
 	public static void init(){
-		try {
-			Files.createParentDirs(languageDir);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		languageDir.mkdirs();
 		languages.clear();
 		for(LanguageType t : LanguageType.values())
 			languages.put(t, new LanguageFile(t));

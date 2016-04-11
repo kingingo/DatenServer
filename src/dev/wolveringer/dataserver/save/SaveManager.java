@@ -47,7 +47,7 @@ public class SaveManager {
 	}
 
 	protected void runSaveTick() {
-		for (OnlinePlayer player : PlayerManager.getPlayer()) {
+		for (OnlinePlayer player : PlayerManager.getPlayers()) {
 			try{
 				player.save();
 			}catch(Exception e){

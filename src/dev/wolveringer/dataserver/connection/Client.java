@@ -116,7 +116,7 @@ public class Client {
 
 	public List<String> getPlayers(){
 		ArrayList<String> out = new ArrayList<>();
-		for(OnlinePlayer c : PlayerManager.getPlayer()){
+		for(OnlinePlayer c : PlayerManager.getPlayers()){
 			if(c.getPlayerBungeecord() == this && c.isPlaying())
 				out.add(c.getName());
 		}

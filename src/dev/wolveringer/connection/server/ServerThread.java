@@ -103,11 +103,15 @@ public class ServerThread {
 		acceptThread.start();
 		timeoutThread.start();
 	}
-	
-	
-	public static void main(String[] args) throws IOException {
-		System.out.println("Stating test server");
-		ServerThread server = new ServerThread(new InetSocketAddress("localhost", 1111));
-		server.start();
+	public void stop() {
+		for(Client c : new ArrayList<>(clients))
+			c.disconnect("Datenserver is shutting down!");
+		try {
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		acceptThread.interrupt();
+		timeoutThread.interrupt();
 	}
 }

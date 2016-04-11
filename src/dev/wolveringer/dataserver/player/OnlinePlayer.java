@@ -7,123 +7,175 @@ import java.util.UUID;
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.dataserver.connection.Client;
 import dev.wolveringer.dataserver.gamestats.StatsManager;
-import dev.wolveringer.dataserver.skin.OperationCallback;
-import dev.wolveringer.dataserver.skin.SkinCash;
+import dev.wolveringer.dataserver.skin.UUIDFetcher;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.mysql.MySQL;
-import dev.wolveringer.skin.Skin;
 import lombok.Getter;
 import lombok.Setter;
 
 public class OnlinePlayer {
 	@Getter
-	private String name;
-	private UUID uuid;
+	private int playerId = -1;
+
+	@Getter
+	private String name = null;
+	private UUID uuid = null;
+
+	private boolean newPlayer = false;
+
 	private boolean isPremium = false;
 	@Getter
 	private String loginPassword = null;
 	@Getter
-	private LanguageType lang;
+	private LanguageType language;
 	@Getter
 	private StatsManager statsManager;
 	private Client owner;
+	
 	@Getter
-	@Setter
-	private String server = "undefined";
+	private String server = null;
 	@Getter
 	@Setter
 	private boolean disableUnload;
 	@Getter
 	@Setter
 	private String curruntIp;
-	
+
 	private PlayerSkinManager skinManager;
-	
-	public OnlinePlayer(String name,Client owner) {
-		this.name = name.toLowerCase();
-		this.uuid = UUIDManager.getUUID(name.toLowerCase());
-		this.owner = owner;
+
+	public OnlinePlayer(String name) {
+		this.name = name;
 	}
-	public boolean isPremium() {
-		return isPremium;
+
+	public OnlinePlayer(UUID uuid) {
+		this.uuid = uuid;
 	}
-	
-	public Client getPlayerBungeecord() {
-		if(owner != null && owner.getType() != ClientType.BUNGEECORD)
-			return null;
-		return owner;
+
+	public OnlinePlayer(int id) {
+		this.playerId = id;
 	}
-	
-	public void setOwner(Client owner) {
-		this.owner = owner;
-	}
-	
-	@SuppressWarnings("unchecked")
-	protected void load(){
-		ArrayList<String[]> response = MySQL.getInstance().querySync("SELECT `premium`,`password` FROM `users` WHERE uuid='"+uuid+"'", 1);
-		if(response.size() == 0){
-			MySQL.getInstance().commandSync("INSERT INTO `users`(`player`, `uuid`, `premium`, `password`, `last_login`) VALUES ('"+name+"','"+uuid.toString()+"','"+isPremium+"','null','-1')");
+
+	protected void load() {
+		ArrayList<String[]> response;
+		if (playerId != -1) { //Load from playerId
+			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `playerId`='" + playerId + "'", 1);
+		} else if (name != null) {
+			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + name + "'", 1);
+		} else if (uuid != null) {
+			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `uuid`='" + uuid + "'", 1);
+		} else
+			throw new RuntimeException("Cant load an player without informations!");
+
+		if (response.size() == 0) { //Insert player
+			if (name == null)
+				throw new RuntimeException("Cant create a new player without a name! ("+playerId+":"+name+":"+uuid+")");
+			this.newPlayer = true;
+			MySQL.getInstance().commandSync("INSERT INTO `users`(`name`, `uuid`) VALUES ('" + name + "','" + UUIDManager.getOfflineUUID(name) + "')"); //user_properties INSERT INTO `user_properties`(`playerId`, `password`, `premium`) VALUES ([value-1],[value-2],[value-3])
+			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + name + "'", 1);
 		}
-		else
-		{
-			this.isPremium = Boolean.parseBoolean(response.get(0)[0]);
-			if(response.get(0).length >= 2)
-				this.loginPassword = response.get(0)[1].equalsIgnoreCase("null") ? null : response.get(0)[1];
-			else
-				System.out.println(Arrays.asList(response.get(0)));
-			ArrayList<String[]> r = MySQL.getInstance().querySync("SELECT `language` FROM `language_user` WHERE uuid='"+uuid+"'", 1);
-			if(r.size() == 0){
-				lang = LanguageType.getLanguageFromName(r.get(0)[0]);
-			}
-			else{
-				lang = LanguageType.ENGLISH;
-				MySQL.getInstance().command("INSERT INTO `language_user`(`uuid`, `language`) VALUES ('"+getUuid()+"','"+lang.getShortName()+"')");
-			}
+
+		this.playerId = Integer.parseInt(response.get(0)[0]);
+		this.name = response.get(0)[1];
+		this.uuid = UUID.fromString(response.get(0)[2]);
+
+		//TODO Checking for name update!
+		if (newPlayer) {
+			MySQL.getInstance().commandSync("INSERT INTO `user_properties`(`playerId`, `password`, `premium`,`language`) VALUES ('" + playerId + "','',0,'"+LanguageType.ENGLISH.getShortName()+"')");
 		}
+		response = MySQL.getInstance().querySync("SELECT `password`,`premium`,`language` FROM `user_properties` WHERE `playerId`='" + playerId + "'", 1);
+		if (response.size() == 0) {
+			System.err.println("Cant find user properties for: " + playerId + " (" + name + ")");
+			MySQL.getInstance().commandSync("INSERT INTO `user_properties`(`playerId`, `password`, `premium`,`language`) VALUES ('" + playerId + "','',0,'"+LanguageType.ENGLISH.getShortName()+"')");
+			response = MySQL.getInstance().querySync("SELECT `password`,`premium`,`language` FROM `user_properties` WHERE `playerId`='" + playerId + "'", 1);
+		}
+		if (!response.get(0)[0].equalsIgnoreCase(""))
+			this.loginPassword = response.get(0)[0];
+		isPremium = response.get(0)[1].equalsIgnoreCase("1") || response.get(0)[1].equalsIgnoreCase("true");
+		language = LanguageType.getLanguageFromName(response.get(0)[2]);
+		
 		skinManager = new PlayerSkinManager(this);
 		skinManager.load();
 		statsManager = new StatsManager(this);
 	}
+
+	public boolean isPremiumPlayer() {
+		return isPremium;
+	}
+
+	public Client getPlayerBungeecord() {
+		if (owner != null && owner.getType() != ClientType.BUNGEECORD)
+			return null;
+		return owner;
+	}
 	
-	public void save(){
+	public void save() {
 		statsManager.save();
 	}
 
-	public void setLanguage(LanguageType lang){
-		this.lang = lang;
-		MySQL.getInstance().command("UPDATE `language_user` SET `language`='"+lang.getShortName()+"' WHERE `uuid`='"+uuid+"'");
-	}
-	
-	public void setPassword(String value) {
-		this.loginPassword = value;
-		MySQL.getInstance().command("UPDATE `users` SET `password`='"+value+"' WHERE uuid='"+uuid.toString()+"'"); //Cript?
+	public void setLanguage(LanguageType lang) {
+		this.language = lang;
+		MySQL.getInstance().command("UPDATE `user_properties` SET `language`='"+lang.getShortName()+"' WHERE `playerId`='"+playerId+"'");
 	}
 
-	public void setPremium(Boolean valueOf) {
-		System.out.println("Setpremium from "+isPremium+" to "+valueOf);
-		if(valueOf == isPremium)
+	public void setPassword(String value) {
+		this.loginPassword = value;
+		MySQL.getInstance().command("UPDATE `user_properties` SET `password`='"+value+"' WHERE `playerId`='"+playerId+"'");
+	}
+
+	public void setPremium(Boolean valueOf) { //TODO
+		System.out.println("Setpremium from " + isPremium + " to " + valueOf);
+		if (valueOf == isPremium)
 			return;
-		isPremium = valueOf;
-		UUIDManager.setPremiumUUID(name, valueOf);
-		UUID newUUID = UUIDManager.getUUID(name);
-		MySQL.getInstance().commandSync("UPDATE `users` SET `premium`='"+valueOf.toString()+"',`uuid`='"+newUUID+"' WHERE uuid='"+uuid.toString()+"'");
-		PlayerManager.changeUUID(uuid, newUUID);
+		UUID newUUID;
+		if(valueOf == true)
+			try {
+				newUUID = UUIDManager.getOnlineUUID(name);
+			} catch (Exception e) {
+				e.printStackTrace();
+				newUUID = null;
+			}
+		else
+			newUUID = UUIDManager.getOfflineUUID(name);
+		if(newUUID == null)
+			throw new NullPointerException("cant featch online UUID!");
+		MySQL.getInstance().command("UPDATE `user_properties` SET `premium`='"+(valueOf?1:0)+"' WHERE `playerId`='"+playerId+"'");
+		this.isPremium = valueOf;
+		setUUID(newUUID);
+	}
+
+	public void setUUID(UUID newUUID) { //TODO
+		MySQL.getInstance().command("UPDATE `users` SET `uuid`='"+newUUID+"' WHERE `playerId`='"+playerId+"'");
 		this.uuid = newUUID;
 	}
-	public UUID getUuid() {
-		if(uuid == null)
-			System.out.println("UUID = null"); //TODO load
+
+	public UUID getUuid() { //TODO
 		return uuid;
 	}
-	public boolean isPlaying(){
-		return !server.equalsIgnoreCase("undefined") && (owner != null && owner.isConnected());
+
+	public boolean isPlaying() {
+		return server != null && !server.equalsIgnoreCase("undefined") && (owner != null && owner.isConnected());
 	}
-	public PlayerSkinManager getSkinManager() {
+
+	public PlayerSkinManager getSkinManager() { //TODO
 		return skinManager;
+	}
+
+	public void setServer(String server,Client owner){
+		this.server = server;
+		this.owner = owner;
+	}
+	
+	public boolean isLoaded(){
+		return playerId != -1 && name != null && uuid != null;
 	}
 	
 	@Override
 	public String toString() {
 		return "OnlinePlayer [name=" + name + ", uuid=" + uuid + ", isPremium=" + isPremium + ", loginPassword=" + loginPassword + ", statsManager=" + statsManager + ", owner=" + owner + ", server=" + server + "]";
+	}
+
+	public void setName(String value) {
+		this.name = value;
+		MySQL.getInstance().command("UPDATE `users` SET `name`='"+name+"' WHERE `playerId`='"+playerId+"'");
 	}
 }

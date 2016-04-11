@@ -59,13 +59,19 @@ public class Terminal {
 		reader.start();
 	}
 
+	public void uninstall(){
+		console.shutdown();
+		reader.interrupt();
+		AnsiConsole.systemUninstall();
+	}
+	
 	public void lock() {
 		lock(null);
 	}
 
 	private String getPromt() {
 		String prefix = "";
-		prefix += "System> ";
+		prefix += "§a> §o";
 		return prefix;
 	}
 
@@ -92,7 +98,7 @@ public class Terminal {
 				message = message + " ";
 			}
 			AnsiConsole.out.println(ChatColor.toAnsiFormat(message));
-			console.resetPromptLine(active ? "" : promt, input_message, input_message.length());
+			console.resetPromptLine(active ? ChatColor.toAnsiFormat(getPromt()) : ChatColor.toAnsiFormat(promt), input_message, input_message.length());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

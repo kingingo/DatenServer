@@ -6,6 +6,7 @@ import java.util.HashMap;
 import dev.wolveringer.dataserver.terminal.commands.CommandHelp;
 import dev.wolveringer.dataserver.terminal.commands.CommandPlayerManager;
 import dev.wolveringer.dataserver.terminal.commands.CommandServerManager;
+import dev.wolveringer.dataserver.terminal.commands.CommandStop;
 
 public class CommandRegistry {
 	static {
@@ -14,6 +15,7 @@ public class CommandRegistry {
 		registerCommand(new CommandHelp(), "help");
 		registerCommand(new CommandServerManager(), "smanager");
 		registerCommand(new CommandPlayerManager(), "pmanager");
+		registerCommand(new CommandStop(), "stop");
 		//registerCommand(new CMD_TEST(), "test");
 		//registerCommand(new CMD_LISTSERVER(), "list");
 		//registerCommand(new CMD_ATTACH(), "attach");

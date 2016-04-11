@@ -23,10 +23,15 @@ public class EventTypeHandler {
 	}
 	
 	public void callEvent(Event event,EventConditionKey... conditions){
+		System.out.println("Active: "+active+":"+type);
+		if(!active)
+			return;
 		HashMap<EventConditions, Object[]> cons = new HashMap<>();
 		for(EventConditionKey c : conditions)
 			cons.put(c.getType(), c.getValue());
+		System.out.println("Checking conditions");
 		for(EventCondition c : activeConditions){
+			System.out.println("Check: "+c.getCondition()+" Contains: "+cons.containsKey(c.getCondition())+" CCheck: "+ConditionChckerBoss.checkOr(c, cons.get(c.getCondition())));
 			if(!cons.containsKey(c.getCondition())) //Needed 
 				return;
 			if(!ConditionChckerBoss.checkOr(c, cons.get(c.getCondition())))
@@ -42,6 +47,9 @@ public class EventTypeHandler {
 					activeConditions.remove(c);
 			activeConditions.add(update.getCondition());
 			System.out.println("Update conditions: "+update.getType());
+			if(update.getType() == EventConditions.PLAYERS_WHITELIST){
+				System.out.println("Players 2 whitelist: "+update.getCondition().getValues());
+			}
 		}else
 			for(EventCondition c : new ArrayList<>(activeConditions))
 				if(c.getCondition() == update.getType())
@@ -49,9 +57,15 @@ public class EventTypeHandler {
 	}
 	public void handUpdate(PacketEventTypeSettings update){
 		active = update.isActive();
+		System.out.println("Set active: "+active+":"+type);
 		if(update.isActive()){
 			activeConditions.clear();
 			activeConditions.addAll(update.getConditions());
+			for(EventCondition c : update.getConditions()){
+				if(c.getCondition() == EventConditions.PLAYERS_WHITELIST){
+					System.out.println("Players whitelist: "+c.getValues());
+				}
+			}
 			System.out.println("Active event handler: "+update.getType());
 		}
 		else{

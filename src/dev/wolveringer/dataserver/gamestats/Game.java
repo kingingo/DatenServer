@@ -57,7 +57,7 @@ public enum Game {
 		}
 
 		for (GameType t : GameType.values()) {
-			if (t.getKuerzel().replaceAll(" ", "").replaceAll("-", "").equalsIgnoreCase(g))
+			if (t.getShortName().replaceAll(" ", "").replaceAll("-", "").equalsIgnoreCase(g))
 				return t;
 		}
 		return null;

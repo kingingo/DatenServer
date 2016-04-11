@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import dev.wolveringer.threads.EventLoop;
 import lombok.AllArgsConstructor;
@@ -217,7 +216,7 @@ public class MySQL {
 					ex = e;
 				}
 				for (Callback<Boolean> c : call)
-					c.done(ex == null, ex.getCause());
+					c.done(ex == null, ex == null ? null : ex.getCause());
 				if (call.length == 0 && ex != null) ex.getCause().printStackTrace();
 			}
 		});

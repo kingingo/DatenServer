@@ -26,7 +26,7 @@ public class TopStatsManager {
 	}
 	
 	public ArrayList<String[]> getTopTen(GameType game,StatsKey key){
-		ArrayList<String[]> query = MySQL.getInstance().querySync("SELECT `player`,`"+key.getMySQLName()+"` FROM `users_"+game.getKuerzel()+"` ORDER BY `"+key.getMySQLName()+"` DESC LIMIT 10", -1);
+		ArrayList<String[]> query = MySQL.getInstance().querySync("SELECT `player`,`"+key.getMySQLName()+"` FROM `" + StatsManager.TABLE_PREFIX +game.getShortName()+"` ORDER BY `"+key.getMySQLName()+"` DESC LIMIT 10", -1);
 		return query;
 	}
 	
