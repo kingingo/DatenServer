@@ -4,7 +4,6 @@ import dev.wolveringer.events.EventCondition;
 
 public interface ConditionChecker<T> {
 	default boolean isClassValid(EventCondition condition,Object value){
-		System.out.println("Checking class "+condition.getCondition().getConditionType()+":"+value.getClass());
 		return condition.getCondition().getConditionType().isAssignableFrom(value.getClass()) || condition.getCondition().getConditionType().equals(value.getClass());
 	}
 	default boolean isOrValid(EventCondition<T> condition,T... value){

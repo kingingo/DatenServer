@@ -10,9 +10,12 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
+
 import dev.wolveringer.threads.EventLoop;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 public class MySQL {
 	private static MySQL instance;
@@ -23,14 +26,19 @@ public class MySQL {
 	
 	public static interface ThreadFactory {
 		public void createAsync(Runnable run);
+		public void createAsync(Runnable run,EventLoop loop);
 	}
 	
-	public static final EventLoop LOOP = new EventLoop(100);
+	public static final EventLoop DEFAULT_LOOP = new EventLoop(100);
 	
 	private static final ThreadFactory THREAD_FACTORY = new ThreadFactory() {
 		@Override
 		public void createAsync(Runnable run) {
-			LOOP.join(run);
+			createAsync(run, DEFAULT_LOOP);
+		}
+		@Override
+		public void createAsync(Runnable run,EventLoop loop) {
+			loop.join(run);
 			//BungeeCord.getInstance().getScheduler().runAsync(Main.getMain(), run);
 		}
 	};
@@ -65,6 +73,9 @@ public class MySQL {
 	private Connection conn = null;
 	private MySQLConfiguration config;
 	private boolean connect = false;
+	@Getter
+	@Setter
+	private EventLoop eventLoop = DEFAULT_LOOP;
 	@Getter
 	private boolean MySQLSupported;
 	
@@ -129,7 +140,7 @@ public class MySQL {
 				for (Callback<ArrayList<String[]>> c : call)
 					c.done(out, null);
 			}
-		});
+		},eventLoop);
 	}
 	
 	private void spalteninhalt(int zeilenAnzahl,int spalten, ResultSet result, ArrayList<String[]> x) {
@@ -196,10 +207,9 @@ public class MySQL {
 				String sql = command;
 				PreparedStatement preparedStatement = conn.prepareStatement(sql);
 				preparedStatement.executeUpdate();
-				
 			}
-			catch (SQLException e) {
-				throw new RuntimeException(e);
+			catch (Exception e) {
+				throw new RuntimeException("Command error while executing \""+command+"\":",e);
 			}
 		}
 	}
@@ -217,9 +227,12 @@ public class MySQL {
 				}
 				for (Callback<Boolean> c : call)
 					c.done(ex == null, ex == null ? null : ex.getCause());
-				if (call.length == 0 && ex != null) ex.getCause().printStackTrace();
+				if (call.length == 0 && ex != null){
+					System.out.println(ex.getMessage());
+					ex.getCause().printStackTrace();
+				}
 			}
-		});
+		},eventLoop);
 	}
 	
 	public boolean isConnected() {

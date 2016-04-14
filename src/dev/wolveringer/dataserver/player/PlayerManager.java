@@ -13,11 +13,12 @@ public class PlayerManager {
 	
 	public static OnlinePlayer getPlayer(String player){
 		for(OnlinePlayer p : getPlayers())
-			if(p.getName().equalsIgnoreCase(player)){
-				if(!p.isLoaded())
-					p.load();
-				return p;
-			}
+			if(p.getName() != null)
+				if(p.getName().equalsIgnoreCase(player)){
+					if(!p.isLoaded())
+						p.load();
+					return p;
+				}
 		OnlinePlayer var0 = new OnlinePlayer(player);
 		players.add(var0);
 		var0.load();
@@ -39,11 +40,12 @@ public class PlayerManager {
 	
 	public static OnlinePlayer getPlayer(UUID player){
 		for(OnlinePlayer p : getPlayers())
-			if(p.getUuid() == player){
-				if(!p.isLoaded())
-					p.load();
-				return p;
-			}
+			if(p.getUuid() != null)
+				if(p.getUuid().equals(player)){
+					if(!p.isLoaded())
+						p.load();
+					return p;
+				}
 		OnlinePlayer var0 = new OnlinePlayer(player);
 		players.add(var0);
 		var0.load();
@@ -53,7 +55,7 @@ public class PlayerManager {
 	public static List<String> getPlayersFromServer(String value) {
 		ArrayList<String> players = new ArrayList<>();
 		for(OnlinePlayer p : getPlayers())
-			if((p.getServer() != null && p.getServer().equalsIgnoreCase(value)) || value == null)
+			if((p.getServer() != null && p.getServer().equalsIgnoreCase(value) && p.isPlaying()) || (value == null && p.isPlaying()))
 				players.add(p.getName());
 		return players;
 	}

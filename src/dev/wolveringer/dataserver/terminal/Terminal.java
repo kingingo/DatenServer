@@ -50,7 +50,8 @@ public class Terminal {
 							if (in.split(" ").length > 1)
 								args = Arrays.copyOfRange(in.split(" "), 1, in.split(" ").length);
 							CommandRegistry.runCommand(command, args, writer);
-						} catch (IOException e) {
+						} catch (Exception e) {
+							writer.write("§cAn error happend:");
 							e.printStackTrace();
 						}
 					}
@@ -87,18 +88,21 @@ public class Terminal {
 		try {
 			String promt = "";
 			String input_message = "";
+			int cursor = 0;
 			if (!active) {
 				promt = ChatColor.toAnsiFormat(this.message);
+				cursor = promt.length();
 			} else {
 				input_message = console.getCursorBuffer().toString();
 				promt = "\r" + getPromt();
+				cursor = console.getCursorBuffer().cursor;
 			}
-			console.resetPromptLine("", "", 0);
+			//console.resetPromptLine("", "", 0);
 			while (Ansi.stripAnsi(ChatColor.stripColor(message)).length() < input_message.length()) {
 				message = message + " ";
 			}
-			AnsiConsole.out.println(ChatColor.toAnsiFormat(message));
-			console.resetPromptLine(active ? ChatColor.toAnsiFormat(getPromt()) : ChatColor.toAnsiFormat(promt), input_message, input_message.length());
+			AnsiConsole.out.println("\r"+ChatColor.toAnsiFormat(message));
+			console.resetPromptLine(ChatColor.toAnsiFormat(promt), input_message, cursor);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

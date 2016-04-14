@@ -28,7 +28,9 @@ public class SaveManager {
 						Thread.sleep(ServerConfiguration.getSaveManagerPeriode());
 					} catch (InterruptedException e) {
 					}
+					System.out.println("§aSaving all players...");
 					runSaveTick();
+					System.out.println("All players saved!");
 				}
 			}
 		});

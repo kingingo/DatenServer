@@ -4,10 +4,11 @@ import java.io.IOException;
 
 import dev.wolveringer.configuration.ServerConfiguration;
 import dev.wolveringer.connection.server.ServerThread;
+import dev.wolveringer.converter.Converter;
 import dev.wolveringer.dataserver.ban.BanManager;
-import dev.wolveringer.dataserver.gamestats.MoneyConverter;
 import dev.wolveringer.dataserver.gamestats.StatsManager;
 import dev.wolveringer.dataserver.gamestats.TopStatsManager;
+import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.dataserver.player.PlayerSkinManager;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.save.SaveManager;
@@ -28,9 +29,13 @@ public class Main {
 	
 	public static void main(String[] args) throws InterruptedException, IOException {
 		if(args.length == 1){
-			if(args[0].equalsIgnoreCase("convertMoney")){
-				MoneyConverter.main(args);
+			if(args[0].equalsIgnoreCase("convertAll")){
+				System.out.println("Switching to convert mode!");
+				Converter.convert();
 				return;
+			}
+			else if(args[0].equalsIgnoreCase("wait")){
+				Thread.sleep(5*1000);
 			}
 		}
 		System.out.println("Datenserver protocoll version: "+Packet.PROTOCOLL_VERSION);
@@ -81,5 +86,15 @@ public class Main {
 				}
 			};
 		return terminal.getConsolenWriter();
+	}
+	
+	public static void stop(boolean restart){
+		Main.getConsoleWriter().sendMessage("§cStopping server!");
+		Main.getTerminal().lock("§cShutting down...");
+		Main.getServer().stop();
+		PlayerManager.unloadAll();
+		Main.getTerminal().unlock();
+		Main.getTerminal().uninstall();
+		System.exit(-1);
 	}
 }

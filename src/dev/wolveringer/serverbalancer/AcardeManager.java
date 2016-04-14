@@ -220,7 +220,7 @@ public class AcardeManager {
 		};
 
 		for (Client c : ServerThread.getServer(ClientType.ACARDE)) {
-			if (c.getStatus() != null && c.getStatus().getTyp() != null && c.getStatus().isVisiable() && c.getStatus().getState() == GameState.LobbyPhase && !notFree.contains(c.getName())){
+			if (c.isConnected() && c.getStatus() != null && c.getStatus().getTyp() != null && c.getStatus().isVisiable() && c.getStatus().getState() == GameState.LobbyPhase && !notFree.contains(c.getName())){
 				out.get(getType(c.getStatus().getTyp(), c.getStatus().getSubType())).add(c);
 			}
 		}

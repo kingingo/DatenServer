@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import dev.wolveringer.dataserver.player.OnlinePlayer;
+import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.mysql.MySQL;
 
 public class TopStatsManager {
@@ -16,6 +17,10 @@ public class TopStatsManager {
 	}
 	private HashMap<GameType, HashMap<StatsKey, ArrayList<OnlinePlayer>>> topList = new HashMap<>();
 	
+	public TopStatsManager() {
+	
+	}
+	
 	@Deprecated
 	public ArrayList<OnlinePlayer> getTopTenCached(GameType game,StatsKey key){
 		if(!topList.containsKey(game))
@@ -26,8 +31,11 @@ public class TopStatsManager {
 	}
 	
 	public ArrayList<String[]> getTopTen(GameType game,StatsKey key){
-		ArrayList<String[]> query = MySQL.getInstance().querySync("SELECT `player`,`"+key.getMySQLName()+"` FROM `" + StatsManager.TABLE_PREFIX +game.getShortName()+"` ORDER BY `"+key.getMySQLName()+"` DESC LIMIT 10", -1);
-		return query;
+		ArrayList<String[]> query = MySQL.getInstance().querySync("SELECT `playerId`,`"+key.getMySQLName()+"` FROM `" + StatsManager.TABLE_PREFIX +game.getShortName()+"` ORDER BY `"+key.getMySQLName()+"` DESC LIMIT 10", -1);
+		ArrayList<String[]> out = new ArrayList<>();
+		for(String[] in : query)
+			out.add(new String[]{PlayerManager.getPlayer(Integer.parseInt(in[0])).getName(),in[1]});
+		return out;
 	}
 	
 	private void loadGame(GameType game){

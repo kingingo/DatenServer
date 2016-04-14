@@ -153,7 +153,7 @@ public class OnlinePlayer {
 	}
 
 	public boolean isPlaying() {
-		return server != null && !server.equalsIgnoreCase("undefined") && (owner != null && owner.isConnected());
+		return server != null && !server.equalsIgnoreCase("undefined") && owner != null && owner.isConnected();
 	}
 
 	public PlayerSkinManager getSkinManager() { //TODO

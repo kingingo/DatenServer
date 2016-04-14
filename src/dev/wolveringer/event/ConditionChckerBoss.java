@@ -34,7 +34,6 @@ public class ConditionChckerBoss {
 		checkers.put(EventConditions.PLAYERS_WHITELIST, new ConditionChecker<UUID>() {
 			@Override
 			public boolean isValid(EventCondition<UUID> condition, UUID value) {
-				System.out.println("Checking whitelist: "+condition.getValues()+":"+value);
 				return condition.hasValue(value);
 			}
 		});
@@ -60,11 +59,7 @@ public class ConditionChckerBoss {
 				if(checkers.get(con.getCondition()).isValid(con, o)){
 					return true;
 				}
-				else
-					System.out.println("Permission not valid");
 			}
-			else
-				System.out.println("Class invalid");
 		}
 		return false;
 	}

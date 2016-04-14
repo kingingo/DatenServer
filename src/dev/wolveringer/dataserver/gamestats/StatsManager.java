@@ -1,6 +1,7 @@
 package dev.wolveringer.dataserver.gamestats;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 import dev.wolveringer.dataserver.player.OnlinePlayer;
@@ -18,7 +19,7 @@ public class StatsManager {
 			if (!game.isMySQL())
 				continue;
 			StatsKey[] stats = game.getStats();
-			String tt = "playerId INT,";
+			String tt = "playerId INT UNIQUE,";
 			for (StatsKey s : stats) {
 				tt = tt + s.getMySQLSyntax() + ",";
 			}
@@ -37,6 +38,7 @@ public class StatsManager {
 	private void applayChange(Statistic statistic,EditStats change) {
 		if (Statistic.types.get(change.getValue().getClass()) != Statistic.types.get(statistic.getValue().getClass()))
 			throw new RuntimeException("A " + change.getValue().getClass() + "[" + change.getValue() + "] cant be cast to a " + statistic.getValue().getClass() + "[" + statistic.getValue() + "] statistic");
+		System.out.println("Changing statistic "+statistic+" to "+change.getValue()+" action: "+change.getAction());
 		switch (change.getAction()) {
 		case ADD:
 			switch (Statistic.types.get(change.getValue().getClass())) {
@@ -121,7 +123,7 @@ public class StatsManager {
 		for (Statistic s : statistics) {
 			values += "`" + s.getStatsKey().getMySQLName() + "`='" + s.getValue() + "',";
 		}
-		String mySQLSyntax = "UPDATE `" + TABLE_PREFIX + game.getShortName() + "` SET " + values.substring(0, values.length() - 1) + " WHERE UUID='" + owner.getUuid() + "'";
+		String mySQLSyntax = "UPDATE `" + TABLE_PREFIX + game.getShortName() + "` SET " + values.substring(0, values.length() - 1) + " WHERE `playerId` ='" + owner.getPlayerId() + "'";
 		MySQL.getInstance().command(mySQLSyntax);
 	}
 
@@ -133,7 +135,7 @@ public class StatsManager {
 			mySQLSyntax += ",`" + k.getMySQLName() + "`";
 		mySQLSyntax = mySQLSyntax.replaceFirst(",", "");
 		mySQLSyntax += " FROM " + TABLE_PREFIX + game.getShortName() + " ";
-		mySQLSyntax += "WHERE playerId='" + owner.getPlayerId() + "' LIMIT 1";
+		mySQLSyntax += "WHERE `playerId`='" + owner.getPlayerId() + "' LIMIT 1";
 
 		ArrayList<String[]> data = MySQL.getInstance().querySync(mySQLSyntax, 1);
 		if (data.size() == 0) {
@@ -169,6 +171,7 @@ public class StatsManager {
 	}
 
 	public static void main(String[] args) {
+		System.out.println(new Date(1460481484000L));
 		/*
 		GameType game = GameType.Money;
 		StatsKey[] keys = game.getStats();
