@@ -39,6 +39,8 @@ public class PlayerIdConverter {
 	}
 	
 	public void loadPlayerIds(){
+		if(uuidToPlayerId.size() != 0)
+			return;
 		System.out.println("Loading player ids");
 		ArrayList<String[]> querry = _new.querySync("SELECT `playerId`, `uuid` FROM `users`", -1);
 		for(String[] player : querry){
@@ -86,15 +88,21 @@ public class PlayerIdConverter {
 		System.out.println("Database base converted");
 		
 		System.out.println("Transfare props");
+		if(uuidToPlayerId.size() == 0){
+			System.out.println("Loading ids");
+			loadPlayerIds();
+		}
 		ArrayList<UUID> toInsert = new ArrayList<>(uuidToPlayerId.keySet());
+		System.out.println("Size a: "+toInsert.size());
 		querry = _new.querySync("SELECT `playerId` FROM `user_properties` WHERE 1",-1);
 		for(String[] q : querry)
 			try{
-				toInsert.remove(UUID.fromString(q[0]));
+				toInsert.remove(getUUID(Integer.parseInt(q[0].replaceAll(" ", ""))));
 			}catch (Exception e) {
+				e.printStackTrace();
 				System.out.println("Cant paradise user "+StringUtils.join(q," "));
 			}
-		
+		System.out.println("Size b: "+toInsert.size());
 		HashMap<String, String> password = new HashMap<>();
 		querry = _old.querySync("SELECT `name`,`password` FROM `list_users` WHERE 1", -1);
 		

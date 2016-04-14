@@ -1,6 +1,7 @@
 package dev.wolveringer.converter;
 
 import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
 
 import dev.wolveringer.threads.EventLoop;
 
@@ -22,7 +23,7 @@ public class EventLoopWaiter {
 			long curruntQueueSize = loop.getQueue().size()+loop.getCurruntThreads();
 			diffs.addLast(lastQueueSize-curruntQueueSize);
 			lastQueueSize = curruntQueueSize;
-			System.out.println("Waiting for task completion: "+curruntQueueSize+" | Time: "+(curruntQueueSize/calculateNormalDiff(diffs))+"seconds | Speed: "+calculateNormalDiff(diffs)+" elements/second");
+			System.out.println("Waiting for task completion: "+curruntQueueSize+" | Time: "+getDurationBreakdown(curruntQueueSize/calculateNormalDiff(diffs)*1000)+" seconds | Speed: "+calculateNormalDiff(diffs)+" elements/second");
 			
 			if(diffs.size()>30){
 				diffs.pollFirst();
@@ -41,5 +42,39 @@ public class EventLoopWaiter {
 			return 1;
 		long out = all/diffs.size();
 		return out == 0L ? 1 : out;
+	}
+	
+	public static String getDurationBreakdown(long millis) {
+		if (millis < 0) {
+			return "millis<0";
+		}
+		if(millis == 0)
+			return "now";
+		long days = TimeUnit.MILLISECONDS.toDays(millis);
+		millis -= TimeUnit.DAYS.toMillis(days);
+		long hours = TimeUnit.MILLISECONDS.toHours(millis);
+		millis -= TimeUnit.HOURS.toMillis(hours);
+		long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
+		millis -= TimeUnit.MINUTES.toMillis(minutes);
+		long seconds = TimeUnit.MILLISECONDS.toSeconds(millis);
+
+		StringBuilder sb = new StringBuilder(64);
+		if (days > 0) {
+			sb.append(days);
+			sb.append(" day" + (days == 1 ? "" : "s") + " ");
+		}
+		if (hours > 0) {
+			sb.append(hours);
+			sb.append(" hour" + (hours == 1 ? "" : "s") + " ");
+		}
+		if (minutes > 0) {
+			sb.append(minutes);
+			sb.append(" minute" + (minutes == 1 ? "" : "s") + " ");
+		}
+		if (seconds > 0) {
+			sb.append(seconds);
+			sb.append(" second" + (seconds == 1 ? "" : "s") + "");
+		}
+		return (sb.toString());
 	}
 }
