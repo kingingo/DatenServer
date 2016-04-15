@@ -1,13 +1,13 @@
 package dev.wolveringer.dataserver.player;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
 
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.dataserver.connection.Client;
 import dev.wolveringer.dataserver.gamestats.StatsManager;
-import dev.wolveringer.dataserver.skin.UUIDFetcher;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.mysql.MySQL;
 import lombok.Getter;
@@ -60,6 +60,7 @@ public class OnlinePlayer {
 		if (playerId != -1) { //Load from playerId
 			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `playerId`='" + playerId + "'", 1);
 		} else if (name != null) {
+			System.out.println("Try name request");
 			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + name + "'", 1);
 		} else if (uuid != null) {
 			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `uuid`='" + uuid + "'", 1);
@@ -73,7 +74,7 @@ public class OnlinePlayer {
 			MySQL.getInstance().commandSync("INSERT INTO `users`(`name`, `uuid`) VALUES ('" + name + "','" + UUIDManager.getOfflineUUID(name) + "')"); //user_properties INSERT INTO `user_properties`(`playerId`, `password`, `premium`) VALUES ([value-1],[value-2],[value-3])
 			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + name + "'", 1);
 		}
-
+		System.out.println("User credicals for "+playerId+":"+name+":"+uuid+" -> "+StringUtils.join(response.get(0),":"));
 		this.playerId = Integer.parseInt(response.get(0)[0]);
 		this.name = response.get(0)[1];
 		this.uuid = UUID.fromString(response.get(0)[2]);

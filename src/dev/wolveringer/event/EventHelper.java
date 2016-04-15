@@ -3,18 +3,17 @@ package dev.wolveringer.event;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.UUID;
 
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.connection.Client;
-import dev.wolveringer.dataserver.gamestats.GameType;
+import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.events.EventConditions;
 import dev.wolveringer.events.player.PlayerServerSwitchEvent;
 
 public class EventHelper {
-	public static void callServerSwitchEvent(UUID player,Client client,String serverOld,String serverNew){
-		PlayerServerSwitchEvent event = new PlayerServerSwitchEvent(player, serverOld, serverNew);
+	public static void callServerSwitchEvent(OnlinePlayer player,Client client,String serverOld,String serverNew){
+		PlayerServerSwitchEvent event = new PlayerServerSwitchEvent(player.getPlayerId(), serverOld, serverNew);
 		EventConditionKeyBuilder builder = new EventConditionKeyBuilder();
 		Client temp;
 		
@@ -27,7 +26,7 @@ public class EventHelper {
 			builder.put(EventConditions.GAME_TYPE_ARRAY, temp.getStatus().getTyp());
 		
 		builder.put(EventConditions.CLIENT_TYPE_ARRAY, client.getType()).put(EventConditions.SERVER_NAME_ARRAY, serverOld,serverNew);
-		builder.put(EventConditions.PLAYERS_BACKLIST, player).put(EventConditions.PLAYERS_WHITELIST, player);
+		builder.put(EventConditions.PLAYERS_BACKLIST, player.getUuid()).put(EventConditions.PLAYERS_WHITELIST, player.getUuid());
 
 		EventConditionKey[] keys = builder.build();
 		for(Client c : ServerThread.getServer(ClientType.ALL))

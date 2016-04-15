@@ -53,7 +53,6 @@ public class ConditionChckerBoss {
 	
 	@SuppressWarnings("unchecked")
 	public static boolean checkOr(EventCondition<?> con,Object[] value){
-		System.out.println("Checking OR");
 		for(Object o : value){
 			if(checkers.get(con.getCondition()).isClassValid(con, o)){
 				if(checkers.get(con.getCondition()).isValid(con, o)){

@@ -151,7 +151,7 @@ public class PacketHandlerBoss {
 			String old = player.getServer();
 			player.setServer(((PacketInServerSwitch) packet).getServer(), owner);
 
-			EventHelper.callServerSwitchEvent(player.getUuid(), owner, old, player.getServer());
+			EventHelper.callServerSwitchEvent(player, owner, old, player.getServer());
 			System.out.println("Player switched (" + ((PacketInServerSwitch) packet).getPlayer() + ") -> " + ((PacketInServerSwitch) packet).getServer());
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		} else if (packet instanceof PacketInStatsEdit) {
@@ -234,6 +234,7 @@ public class PacketHandlerBoss {
 				default:
 					break;
 				}
+			System.out.println("Send setting response. ("+player.getPlayerId()+")");
 			owner.writePacket(new PacketOutPlayerSettings(player.getPlayerId(), values.toArray(new SettingValue[0])));
 		} else if (packet instanceof PacketChatMessage) {
 			ArrayList<PacketOutPacketStatus.Error> errors = new ArrayList<>();

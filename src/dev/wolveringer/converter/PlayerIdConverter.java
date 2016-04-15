@@ -16,7 +16,7 @@ public class PlayerIdConverter {
 	private HashMap<UUID, String> uuidToName = new HashMap<>();
 	private ArrayList<UUID> premium = new ArrayList<>();
 	private HashMap<UUID, Integer> uuidToPlayerId = new HashMap<>();
-	private HashMap<Integer, UUID> playerIdToName = new HashMap<>();
+	private HashMap<String, UUID> playerIdToName = new HashMap<>();
 	
 	public PlayerIdConverter(MySQL _old,MySQL _new) {
 		this._old =_old;
@@ -46,7 +46,7 @@ public class PlayerIdConverter {
 		for(String[] player : querry){
 			try{
 				uuidToPlayerId.put(UUID.fromString(player[1]),Integer.parseInt(player[0]));
-				playerIdToName.put(Integer.parseInt(player[0]), UUID.fromString(player[1]));
+				playerIdToName.put(player[0], UUID.fromString(player[1]));
 			}catch(Exception e){
 				System.out.println("Cant load player (2) : "+e.getMessage()+":"+StringUtils.join(player,":"));
 			}
@@ -94,30 +94,35 @@ public class PlayerIdConverter {
 		}
 		ArrayList<UUID> toInsert = new ArrayList<>(uuidToPlayerId.keySet());
 		System.out.println("Size a: "+toInsert.size());
-		querry = _new.querySync("SELECT `playerId` FROM `user_properties` WHERE 1",-1);
-		for(String[] q : querry)
+		querry = _new.querySync("SELECT `playerId` FROM `user_properties`",-1);
+		System.out.println("Indexing");
+		ArrayList<String> alredyIn = new ArrayList<>();
+		for(String[] q : querry){
 			try{
-				toInsert.remove(getUUID(Integer.parseInt(q[0].replaceAll(" ", ""))));
+				alredyIn.add(q[0]);
 			}catch (Exception e) {
 				e.printStackTrace();
 				System.out.println("Cant paradise user "+StringUtils.join(q," "));
 			}
-		System.out.println("Size b: "+toInsert.size());
+		}
+		System.out.println("Size b: "+alredyIn.size());
 		HashMap<String, String> password = new HashMap<>();
 		querry = _old.querySync("SELECT `name`,`password` FROM `list_users` WHERE 1", -1);
 		
 		for(String[] user : querry)
 			password.put(user[0], user[1]);
-		
 		for(UUID uuid : toInsert){
-			if(getPlayerId(uuid) == -1){
+			int playerId;
+			if((playerId = getPlayerId(uuid)) == -1){
 				System.out.println("Missing player uuid: "+uuid);
 				continue;
 			}
+			if(alredyIn.contains(playerId+""))
+				continue;
 			String up = password.get(getName(uuid));
 			if(up == null)
 				up = "";
-			_new.command("INSERT INTO `user_properties`(`playerId`, `password`, `premium`, `language`) VALUES ('"+getPlayerId(uuid)+"','"+up+"','"+(premium.contains(uuid)?"1":"0")+"','en')");
+			_new.command("INSERT INTO `user_properties`(`playerId`, `password`, `premium`, `language`) VALUES ('"+playerId+"','"+up+"','"+(premium.contains(uuid)?"1":"0")+"','en')");
 		}
 		
 		EventLoopWaiter.wait(_new.getEventLoop());
@@ -153,6 +158,6 @@ public class PlayerIdConverter {
 	}
 
 	public UUID getUUID(int parseInt) {
-		return playerIdToName.get((Integer)parseInt);
+		return playerIdToName.get(parseInt);
 	}
 }

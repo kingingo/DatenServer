@@ -4,9 +4,6 @@ import dev.wolveringer.mysql.MySQL;
 import dev.wolveringer.threads.EventLoop;
 
 public class Converter {
-	private MySQL _old;
-	private MySQL _new;
-
 	public static void convert(){
 		MySQL _old = new MySQL(new MySQL.MySQLConfiguration("148.251.143.2", 3306, "games", "root", "55P_YHmK8MXlPiqEpGKuH_5WVlhsXT", true));
 		MySQL _new = new MySQL(new MySQL.MySQLConfiguration("148.251.143.2", 3306, "test", "root", "55P_YHmK8MXlPiqEpGKuH_5WVlhsXT", true));
@@ -18,6 +15,8 @@ public class Converter {
 		players.loadPlayerIds();
 		MoneyConverter money = new MoneyConverter(_old, _new, players);
 		//money.transfare();
+		PermissionConverter perms = new PermissionConverter(_old, _new, players);
+		perms.transfare();
 		GameStatsConverter stats = new GameStatsConverter(_old, _new, players);
 		stats.transfare();
 	}

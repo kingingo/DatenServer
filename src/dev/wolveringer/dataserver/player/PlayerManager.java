@@ -11,7 +11,7 @@ public class PlayerManager {
 		return new ArrayList<>(players);
 	}
 	
-	public static OnlinePlayer getPlayer(String player){
+	public static synchronized OnlinePlayer getPlayer(String player){
 		for(OnlinePlayer p : getPlayers())
 			if(p.getName() != null)
 				if(p.getName().equalsIgnoreCase(player)){
@@ -20,12 +20,12 @@ public class PlayerManager {
 					return p;
 				}
 		OnlinePlayer var0 = new OnlinePlayer(player);
-		players.add(var0);
 		var0.load();
+		players.add(var0);
 		return var0;
 	}
 	
-	public static OnlinePlayer getPlayer(int player){
+	public static synchronized OnlinePlayer getPlayer(int player){
 		for(OnlinePlayer p : getPlayers())
 			if(p.getPlayerId() == player){
 				if(!p.isLoaded())
@@ -33,12 +33,12 @@ public class PlayerManager {
 				return p;
 			}
 		OnlinePlayer var0 = new OnlinePlayer(player);
-		players.add(var0);
 		var0.load();
+		players.add(var0);
 		return var0;
 	}
 	
-	public static OnlinePlayer getPlayer(UUID player){
+	public static synchronized OnlinePlayer getPlayer(UUID player){
 		for(OnlinePlayer p : getPlayers())
 			if(p.getUuid() != null)
 				if(p.getUuid().equals(player)){
@@ -47,8 +47,8 @@ public class PlayerManager {
 					return p;
 				}
 		OnlinePlayer var0 = new OnlinePlayer(player);
-		players.add(var0);
 		var0.load();
+		players.add(var0);
 		return var0;
 	}
 
