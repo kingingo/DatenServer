@@ -36,36 +36,44 @@ public class MoneyConverter {
 		
 		ArrayList<String> inserted = new ArrayList<>();
 		ArrayList<String> toInsert = new ArrayList<>();
-		toInsert.addAll(gems.keySet());
 		toInsert.addAll(coins.keySet());
 		System.out.println("Removing aöredy insert");
 		query = _new.querySync("SELECT `playerId` FROM `statistics_MONEY`", -1);
 		for(String[] s : query){
 			toInsert.remove(ids.getUUID(Integer.parseInt(s[0]))+"");
-			inserted.add(ids.getUUID(Integer.parseInt(s[0]))+"");
+			//inserted.add(ids.getUUID(Integer.parseInt(s[0]))+"");
 		}
 		
 		int i = 0;
 		int max = toInsert.size();
-		
+		System.out.println("Insert");
 		for(String s : toInsert){
+			/*
 			if(inserted.contains(s)){
 				i++;
 				continue;
 			}
+			*/
+			/*
 			if(!coins.containsKey(s)){
 				coins.put(s, "0");
-				System.out.println("No coin information abaut: "+s);
+				//System.out.println("No coin information abaut: "+s);
 			}
 			if(!gems.containsKey(s)){
 				gems.put(s, "0");
-				System.out.println("No Gems information abaut: "+s);
+				//System.out.println("No Gems information abaut: "+s);
 			}
-			System.out.println("Insert: "+(i++)+"/"+max);
+			*/
+			String c = coins.get(s);
+			if(c == null)
+				c = "0";
+			String g = gems.get(s);
+			if(g == null)
+				g = "0";
 			try{
 				inserted.add(s);
 				if(ids.getPlayerId(UUID.fromString(s)) != -1)
-					_new.command("INSERT INTO `statistics_MONEY`(`playerId`, `coins`, `gems`) VALUES ('"+ids.getPlayerId(UUID.fromString(s))+"','"+coins.get(s)+"','"+gems.get(s)+"')");
+					_new.command("INSERT INTO `statistics_MONEY`(`playerId`, `coins`, `gems`) VALUES ('"+ids.getPlayerId(UUID.fromString(s))+"','"+c+"','"+g+"')");
 			}catch(Exception e){
 				e.printStackTrace();
 				System.out.println("Cant load player for: "+s);

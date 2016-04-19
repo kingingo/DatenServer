@@ -25,12 +25,29 @@ public class PlayerIdConverter {
 	
 	public void loadOldDatabase(){
 		System.out.println("Loading old datebase");
-		ArrayList<String[]> querry = _old.querySync("SELECT `player`,`uuid`,`premium` FROM `list_premium`", -1);
+		ArrayList<String[]> querry = _old.querySync("SELECT `name` FROM `coins_list` WHERE `name`!='none'", -1);
+		for(String[] q : querry){
+			try{
+				put(q[0].toLowerCase(), UUID.nameUUIDFromBytes(("OfflinePlayer:"+q[0].toLowerCase()).getBytes()));
+			}catch(Exception e){
+				System.out.println("Cant load player : "+e.getMessage()+":"+StringUtils.join(q,":"));
+			}
+		}
+		System.out.println("Loading old datebase 2!");
+		//SELECT * FROM `coins_list` WHERE `name`!='none'
+		querry = _old.querySync("SELECT `player`,`uuid`,`premium` FROM `list_premium`", -1);
+		//UUID.nameUUIDFromBytes(("OfflinePlayer:"+player[0].toLowerCase()).getBytes()
 		for(String[] player : querry){
 			try{
-				put(player[0], UUID.fromString(player[1]));
-				if(player[2].equalsIgnoreCase("true"))
-					premium.add(UUID.fromString(player[1]));
+				if(player[2].equalsIgnoreCase("true")){
+					put(player[0].toLowerCase(), UUID.fromString(player[1]));
+					if(player[2].equalsIgnoreCase("true"))
+						premium.add(UUID.fromString(player[1]));
+				}
+				else
+				{
+					put(player[0].toLowerCase(), UUID.nameUUIDFromBytes(("OfflinePlayer:"+player[0].toLowerCase()).getBytes()));
+				}
 			}catch(Exception e){
 				System.out.println("Cant load player : "+e.getMessage()+":"+StringUtils.join(player,":"));
 			}
@@ -87,6 +104,12 @@ public class PlayerIdConverter {
 		EventLoopWaiter.wait(_new.getEventLoop());
 		System.out.println("Database base converted");
 		
+	
+		//list_premium
+	}
+	
+	public void transfareProperties(){
+		ArrayList<String[]> querry;
 		System.out.println("Transfare props");
 		if(uuidToPlayerId.size() == 0){
 			System.out.println("Loading ids");
@@ -108,7 +131,7 @@ public class PlayerIdConverter {
 		System.out.println("Size b: "+alredyIn.size());
 		HashMap<String, String> password = new HashMap<>();
 		querry = _old.querySync("SELECT `name`,`password` FROM `list_users` WHERE 1", -1);
-		
+		System.out.println("Putting passwords");
 		for(String[] user : querry)
 			password.put(user[0], user[1]);
 		for(UUID uuid : toInsert){
@@ -127,11 +150,13 @@ public class PlayerIdConverter {
 		
 		EventLoopWaiter.wait(_new.getEventLoop());
 		System.out.println("Props converted");
-		//list_premium
 	}
 	
 	public UUID getUUID(String player){
-		return nameToUUID.get(player);
+		UUID uuid = nameToUUID.get(player);
+		if(uuid == null)
+			return nameToUUID.get(player.toLowerCase());
+		return uuid;
 	}
 	public String getName(UUID uuid){
 		return uuidToName.get(uuid);
@@ -159,5 +184,12 @@ public class PlayerIdConverter {
 
 	public UUID getUUID(int parseInt) {
 		return playerIdToName.get(parseInt);
+	}
+	
+	public static void main(String[] args) {
+		HashMap<String, UUID> u = new HashMap<>();
+		u.put("x1", UUID.randomUUID());
+		u.put("x1", UUID.randomUUID());
+		System.out.println(u);
 	}
 }

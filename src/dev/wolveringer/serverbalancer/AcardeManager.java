@@ -60,7 +60,14 @@ public class AcardeManager {
 
 	private static HashMap<ServerType, ArrayList<Client>> lastCalculated = new HashMap<>();
 	private static ArrayList<ServerType> types = new ArrayList<>();
-	
+	private static HashMap<GameType, ArrayList<String>> blacklist = new HashMap<GameType, ArrayList<String>>(){
+		public java.util.ArrayList<String> get(Object key) {
+			ArrayList<String> out = super.get(key);
+			if(out == null)
+				super.put((GameType) key, out = new ArrayList<>());
+			return out;
+		};
+	};
 	static {
 		//types.add(new ServerType(GameType.BedWars, "2x1"));
 		//types.add(new ServerType(GameType.BedWars, "2x2"));
@@ -113,6 +120,10 @@ public class AcardeManager {
 			for (ServerType game : types) {
 				if(!game.getType().isArcade())
 					continue;
+				if(blacklist.get(game.getType()).contains(game.getModifier())){
+					System.out.println("Skipping: "+game.getType()+"-"+game.getModifier());
+					continue;
+				}
 				if(freeServersLeft <= 0)
 					continue;
 				if(!servers.containsKey(game))
@@ -174,11 +185,6 @@ public class AcardeManager {
 	private static int calculateNeeded(HashMap<ServerType, ArrayList<Client>> server,ServerType game){
 		return Math.max(0, getMinServer(game)-(server.get(game).size())-serverChanging.get(game).size());
 	}
-
-	/*
-	private static int calculateMinServerPerGame(int needed, int freeservers) {
-		return (int) Math.min(MIN_FREE_SERVER, Math.ceil((double) freeservers / (double) needed)); //cell = upround
-	}*/
 	
 	private static int getMinServer(ServerType game){
 		return MIN_FREE_SERVER;
@@ -232,7 +238,10 @@ public class AcardeManager {
 		if (lastCalculated.size() == 0) //Keine server registriert
 			System.out.println("No servers");
 		for(ServerType g : lastCalculated.keySet()){
-			System.out.println("game: "+g.getType()+"["+g.getModifier()+"] Server: "+lastCalculated.get(g));
+			if(blacklist.get(g.getType()).contains(g.getModifier()))
+				System.out.println("§cGame: "+g.getType()+"["+g.getModifier()+"] Server: "+lastCalculated.get(g));
+			else
+				System.out.println("§aGame: "+g.getType()+"["+g.getModifier()+"] Server: "+lastCalculated.get(g));
 		}
 		System.out.println("Connected:: "+ServerThread.getServer(ClientType.ACARDE));
 	}
@@ -338,5 +347,8 @@ public class AcardeManager {
 			writeServers();
 			Thread.sleep(1000);
 		}
+	}
+	public static HashMap<GameType, ArrayList<String>> getBlackList() {
+		return blacklist;
 	}
 }

@@ -66,11 +66,12 @@ public class BanManager {
 			} else
 				bans.remove(old);
 		}
-		bans.add(new BanEntity(ip, name, uuid + "", banner, bannerUUID + "", bannerIP, new Date().toString(), reson, level, end));
+		BanEntity e;
+		bans.add(e = new BanEntity(ip, name, uuid + "", banner, bannerUUID + "", bannerIP, new Date().toString(), reson, level, end));
 		if (end != -1) {
-			MySQL.getInstance().command("INSERT INTO `BG_ZEITBAN`(`name`, `nameip`, `name_uuid`, `banner`, `bannerip`, `banner_uuid`, `date`, `time`, `reason`, `aktiv`) VALUES ('" + name + "','" + ip + "','" + uuid + "','" + banner + "','" + bannerIP + "','" + bannerUUID + "','" + new Date() + "','" + end + "','" + reson + "','true')");
+			MySQL.getInstance().command("INSERT INTO `BG_ZEITBAN`(`name`, `nameip`, `name_uuid`, `banner`, `bannerip`, `banner_uuid`, `date`, `time`, `reason`, `aktiv`) VALUES ('" + name + "','" + ip + "','" + uuid + "','" + banner + "','" + bannerIP + "','" + bannerUUID + "','" + new Date().getTime() + "','" + end + "','" + reson + "','true')");
 		} else {
-			MySQL.getInstance().command("INSERT INTO `BG_BAN`(`name`, `nameip`, `name_uuid`, `banner`, `bannerip`, `banner_uuid`, `time`, `reason`, `level`, `aktiv`) VALUES ('" + name + "','" + ip + "','" + uuid + "','" + banner + "','" + bannerIP + "','" + bannerUUID + "','" + new Date() + "','" + reson + "','" + level + "','true')");
+			MySQL.getInstance().command("INSERT INTO `BG_BAN`(`name`, `nameip`, `name_uuid`, `banner`, `bannerip`, `banner_uuid`, `time`, `reason`, `level`, `aktiv`) VALUES ('" + name + "','" + ip + "','" + uuid + "','" + banner + "','" + bannerIP + "','" + bannerUUID + "','" + new Date().getTime() + "','" + reson + "','" + level + "','true')");
 		}
 	}
 
@@ -93,11 +94,12 @@ public class BanManager {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		MySQL.setInstance(new MySQL(new MySQLConfiguration("148.251.143.2", 3306, "games", "root", "55P_YHmK8MXlPiqEpGKuH_5WVlhsXT", true)));
+		MySQL.setInstance(new MySQL(new MySQLConfiguration("148.251.143.2", 3306, "games", "root", "55P_YHmK8MXlPiqEpGKuH_5WVlhsXT", true,10)));
+		MySQL.getInstance().connect();
 		BanManager m = new BanManager();
 		m.loadBans();
-		m.banPlayer("WolverinDEV", null, null, "System", UUID.randomUUID().toString(), "0.0.0.0", 5, System.currentTimeMillis() + 60 * 1000, "Testing");
-		System.out.println(m.getEntity("WolverinDEV", null, UUID.fromString("57091d6f-839f-48b7-a4b1-4474222d4ad1"))); //UUID.fromString("57091d6f-839f-48b7-a4b1-4474222d4ad1")
+		//larsd1999:system:6155c27b-61b3-49af-9c67-9b526afc9c15
+		System.out.println(m.getEntity("larsd1999", "system", UUID.fromString("6155c27b-61b3-49af-9c67-9b526afc9c15")).isActive()); //UUID.fromString("57091d6f-839f-48b7-a4b1-4474222d4ad1")
 		System.out.println(System.currentTimeMillis());
 		Thread.sleep(10000);
 	}

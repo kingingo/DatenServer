@@ -23,7 +23,7 @@ public class EventLoopWaiter {
 			long curruntQueueSize = loop.getQueue().size()+loop.getCurruntThreads();
 			diffs.addLast(lastQueueSize-curruntQueueSize);
 			lastQueueSize = curruntQueueSize;
-			System.out.println("Waiting for task completion: "+curruntQueueSize+" | Time: "+getDurationBreakdown(curruntQueueSize/calculateNormalDiff(diffs)*1000)+" seconds | Speed: "+calculateNormalDiff(diffs)+" elements/second");
+			System.out.println("Waiting for task completion: "+curruntQueueSize+" | Time: "+getDurationBreakdown(curruntQueueSize/calculateNormalDiff(diffs)*1000)+" | Speed: "+calculateNormalDiff(diffs)+" elements/second");
 			
 			if(diffs.size()>30){
 				diffs.pollFirst();

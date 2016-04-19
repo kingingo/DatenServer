@@ -2,6 +2,7 @@ package dev.wolveringer.dataserver;
 
 import java.io.IOException;
 
+import dev.wolveringer.autorestart.RestartTimer;
 import dev.wolveringer.configuration.ServerConfiguration;
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.converter.Converter;
@@ -26,6 +27,7 @@ public class Main {
 	
 	@Getter
 	private static ServerThread server;
+	private static RestartTimer restarter;
 	
 	public static void main(String[] args) throws InterruptedException, IOException {
 		if(args.length == 1){
@@ -64,11 +66,14 @@ public class Main {
 		LanguageManager.init();
 		PlayerSkinManager.init();
 		BanManager.setManager(new BanManager());
+		BanManager.getManager().loadBans();
 		StatsManager.initTables();
 		TopStatsManager.setManager(new TopStatsManager());
 		SaveManager.setSaveManager(new SaveManager().start());
 		TickSeduller s = new TickSeduller();
 		s.start();
+		restarter = new RestartTimer(3, 0, 0);
+		restarter.startListening();
 		server = new ServerThread(ServerConfiguration.getServerHost());
 		server.start();
 		getConsoleWriter().write("§aSetting up done! Main-Thread -> Sleeping...");

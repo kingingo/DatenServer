@@ -1,6 +1,7 @@
 package dev.wolveringer.converter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +24,7 @@ public class GameStatsConverter {
 	public void transfare(){
 		System.out.println("Transfaring game stats");
 		for(GameType type : GameType.values()){
-			if(type != GameType.ALL && type != GameType.Money &&  type != GameType.NONE){
+			if(type != GameType.ALL && type != GameType.Money &&  type != GameType.NONE && type != GameType.SkyWars){
 				System.out.println("Loading game old: "+type);
 				ArrayList<String[]> old = _old.querySync(buildSelect(type,"users_","UUID"), -1);
 				int oldSize = old.size();
@@ -95,5 +96,9 @@ public class GameStatsConverter {
 		//INSERT INTO `gems_list`(`name`, `gems`, `uuid`) VALUES ([value-1],[value-2],[value-3])
 		String mySQLSyntax = "INSERT INTO `" + "statistics_" + game.getShortName() + "` (`playerId`," + rowNames.substring(0, rowNames.length() - 1) + ") VALUES ('" + args[0] + "'," + values.substring(0, values.length() - 1) + ")";
 		return mySQLSyntax;
+	}
+	
+	public static void main(String[] args) {
+		System.out.println("X: "+Arrays.asList(StatsKey.values()));
 	}
 }

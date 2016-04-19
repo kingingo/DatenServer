@@ -24,8 +24,7 @@ public class CommandBroadcast implements CommandExecutor{
 
 	@Override
 	public String[] getArguments() {
-		// TODO Auto-generated method stub
-		return null;
+		return new String[]{"§a/broad <message> §7| §aBroadcast a message"};
 	}
 
 }

@@ -1,8 +1,9 @@
 package dev.wolveringer.converter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
 
 import dev.wolveringer.mysql.MySQL;
 
@@ -31,6 +32,21 @@ public class SkyPvPConverter {
 		
 		System.out.println("Reading old island list");
 		query = _old.querySync("SELECT `UUID`,`worldName`,`X`,`Z` FROM `list_skyblock_worlds`", -1);
+		
+		for(String[] q : query){
+			try{
+				if(q[0].startsWith("!"))
+					q[0] = "-"+ids.getPlayerId(UUID.fromString(q[0].substring(1)));
+				else
+					q[0] = ids.getPlayerId(UUID.fromString(q[0]))+"";
+				if(q[0].equalsIgnoreCase("--1"))
+					throw new RuntimeException("Player id not found");
+				_new.command("INSERT INTO `list_skyblock_worlds`(`playerId`, `worldName`, `X`, `Z`) VALUES ('"+q[0]+"','"+q[1]+"','"+q[2]+"','"+q[3]+"')");
+			}catch(Exception e){
+				System.out.println("Cant transfare uuid: "+StringUtils.join(q,":"));
+				e.printStackTrace();
+			}
+		}
 		
 		System.out.println("Reading allredy inserted list");
 		System.out.println("Waiting for event loop");

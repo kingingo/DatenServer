@@ -38,7 +38,6 @@ public class StatsManager {
 	private void applayChange(Statistic statistic,EditStats change) {
 		if (Statistic.types.get(change.getValue().getClass()) != Statistic.types.get(statistic.getValue().getClass()))
 			throw new RuntimeException("A " + change.getValue().getClass() + "[" + change.getValue() + "] cant be cast to a " + statistic.getValue().getClass() + "[" + statistic.getValue() + "] statistic");
-		System.out.println("Changing statistic "+statistic+" to "+change.getValue()+" action: "+change.getAction());
 		switch (change.getAction()) {
 		case ADD:
 			switch (Statistic.types.get(change.getValue().getClass())) {

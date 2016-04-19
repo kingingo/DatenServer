@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.dataserver.connection.Client;
 import dev.wolveringer.dataserver.gamestats.StatsManager;
+import dev.wolveringer.dataserver.skin.UUIDFetcher;
 import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.mysql.MySQL;
 import lombok.Getter;
@@ -43,6 +44,8 @@ public class OnlinePlayer {
 
 	private PlayerSkinManager skinManager;
 
+	private boolean isLoading = false;
+	
 	public OnlinePlayer(String name) {
 		this.name = name;
 	}
@@ -56,47 +59,81 @@ public class OnlinePlayer {
 	}
 
 	protected void load() {
-		ArrayList<String[]> response;
-		if (playerId != -1) { //Load from playerId
-			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `playerId`='" + playerId + "'", 1);
-		} else if (name != null) {
-			System.out.println("Try name request");
-			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + name + "'", 1);
-		} else if (uuid != null) {
-			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `uuid`='" + uuid + "'", 1);
-		} else
-			throw new RuntimeException("Cant load an player without informations!");
+		isLoading = true;
+		try{
+			ArrayList<String[]> response;
+			if (playerId != -1) { //Load from playerId
+				response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `playerId`='" + playerId + "'", 1);
+			} else if (name != null) {
+				System.out.println("Try name request");
+				response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + name + "'", 1);
+				if(response.size() == 0){
+					response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + name.toLowerCase() + "'", 1);
+					if(response.size() != 0){
+						System.out.println("Updating username: "+name+":"+response.get(0)[1]);
+						MySQL.getInstance().commandSync("UPDATE `users` SET `name`='"+response.get(0)[1]+"' WHERE `name`='"+name+"'");
+						name = response.get(0)[1];
+					}
+					else
+					{
+						try{
+							this.uuid = UUIDFetcher.getUUIDOf(name);
+							response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `uuid`='" + uuid + "'", 1);
+							if(response.size() != 0){
+								ArrayList<String[]> querryUUID = MySQL.getInstance().querySync("SELECT `premium` FROM `user_properties` WHERE `playerId`='" + Integer.parseInt(response.get(0)[0]) + "'", 1);
+								if(querryUUID.size() > 0){
+									if(querryUUID.get(0)[0].equalsIgnoreCase("1")){
+										this.playerId = Integer.parseInt(response.get(0)[0]);
+										System.out.println("Player "+response.get(0)[1]+" change his name to "+name);
+										this.setName(name);
+									}
+								}
+							}
+						}catch(Exception e){
+							e.printStackTrace();
+						}
+					}
+				}
+			} 
+			else if (uuid != null) {
+				response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `uuid`='" + uuid + "'", 1);
+			} else
+				throw new RuntimeException("Cant load an player without informations!");
 
-		if (response.size() == 0) { //Insert player
-			if (name == null)
-				throw new RuntimeException("Cant create a new player without a name! ("+playerId+":"+name+":"+uuid+")");
-			this.newPlayer = true;
-			MySQL.getInstance().commandSync("INSERT INTO `users`(`name`, `uuid`) VALUES ('" + name + "','" + UUIDManager.getOfflineUUID(name) + "')"); //user_properties INSERT INTO `user_properties`(`playerId`, `password`, `premium`) VALUES ([value-1],[value-2],[value-3])
-			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + name + "'", 1);
-		}
-		System.out.println("User credicals for "+playerId+":"+name+":"+uuid+" -> "+StringUtils.join(response.get(0),":"));
-		this.playerId = Integer.parseInt(response.get(0)[0]);
-		this.name = response.get(0)[1];
-		this.uuid = UUID.fromString(response.get(0)[2]);
+			if (response.size() == 0) { //Insert player
+				if (name == null)
+					throw new RuntimeException("Cant create a new player without a name! ("+playerId+":"+name+":"+uuid+")");
+				this.newPlayer = true;
+				MySQL.getInstance().commandSync("INSERT INTO `users`(`name`, `uuid`) VALUES ('" + name + "','" + UUIDManager.getOfflineUUID(name) + "')"); //user_properties INSERT INTO `user_properties`(`playerId`, `password`, `premium`) VALUES ([value-1],[value-2],[value-3])
+				response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + name + "'", 1);
+			}
+			System.out.println("User credicals for "+playerId+":"+name+":"+uuid+" -> "+StringUtils.join(response.get(0),":"));
+			this.playerId = Integer.parseInt(response.get(0)[0]);
+			this.name = response.get(0)[1];
+			this.uuid = UUID.fromString(response.get(0)[2]);
 
-		//TODO Checking for name update!
-		if (newPlayer) {
-			MySQL.getInstance().commandSync("INSERT INTO `user_properties`(`playerId`, `password`, `premium`,`language`) VALUES ('" + playerId + "','',0,'"+LanguageType.ENGLISH.getShortName()+"')");
-		}
-		response = MySQL.getInstance().querySync("SELECT `password`,`premium`,`language` FROM `user_properties` WHERE `playerId`='" + playerId + "'", 1);
-		if (response.size() == 0) {
-			System.err.println("Cant find user properties for: " + playerId + " (" + name + ")");
-			MySQL.getInstance().commandSync("INSERT INTO `user_properties`(`playerId`, `password`, `premium`,`language`) VALUES ('" + playerId + "','',0,'"+LanguageType.ENGLISH.getShortName()+"')");
+			//TODO Checking for name update!
+			if (newPlayer) { //CREATE TABLE user_properties (playerId INT, password VARCHAR(1000));
+				MySQL.getInstance().commandSync("INSERT INTO `user_properties`(`playerId`, `password`, `premium`,`language`) VALUES ('" + playerId + "','',0,'"+LanguageType.ENGLISH.getShortName()+"')");
+			}
 			response = MySQL.getInstance().querySync("SELECT `password`,`premium`,`language` FROM `user_properties` WHERE `playerId`='" + playerId + "'", 1);
+			if (response.size() == 0) {
+				System.err.println("Cant find user properties for: " + playerId + " (" + name + ")");
+				MySQL.getInstance().commandSync("INSERT INTO `user_properties`(`playerId`, `password`, `premium`,`language`) VALUES ('" + playerId + "','',0,'"+LanguageType.ENGLISH.getShortName()+"')");
+				response = MySQL.getInstance().querySync("SELECT `password`,`premium`,`language` FROM `user_properties` WHERE `playerId`='" + playerId + "'", 1);
+			}
+			if (!response.get(0)[0].equalsIgnoreCase(""))
+				this.loginPassword = response.get(0)[0];
+			isPremium = response.get(0)[1].equalsIgnoreCase("1") || response.get(0)[1].equalsIgnoreCase("true");
+			language = LanguageType.getLanguageFromName(response.get(0)[2]);
+			
+			skinManager = new PlayerSkinManager(this);
+			skinManager.load();
+			statsManager = new StatsManager(this);
+		}catch(Exception e){
+			e.printStackTrace();
 		}
-		if (!response.get(0)[0].equalsIgnoreCase(""))
-			this.loginPassword = response.get(0)[0];
-		isPremium = response.get(0)[1].equalsIgnoreCase("1") || response.get(0)[1].equalsIgnoreCase("true");
-		language = LanguageType.getLanguageFromName(response.get(0)[2]);
-		
-		skinManager = new PlayerSkinManager(this);
-		skinManager.load();
-		statsManager = new StatsManager(this);
+		isLoading = false;
 	}
 
 	public boolean isPremiumPlayer() {
@@ -177,6 +214,16 @@ public class OnlinePlayer {
 
 	public void setName(String value) {
 		this.name = value;
-		MySQL.getInstance().command("UPDATE `users` SET `name`='"+name+"' WHERE `playerId`='"+playerId+"'");
+		MySQL.getInstance().commandSync("UPDATE `users` SET `name`='"+name+"' WHERE `playerId`='"+playerId+"'");
+	}
+	
+	public void waitWhileLoading(){
+		while (isLoading) {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

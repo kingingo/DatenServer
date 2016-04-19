@@ -8,9 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 
 import dev.wolveringer.threads.EventLoop;
 import lombok.AllArgsConstructor;
@@ -55,6 +54,7 @@ public class MySQL {
 		private String user;
 		private String password;
 		private boolean autoReconnect;
+		private int maxConnections;
 		
 		public boolean isValid(){
 			if ((host == null) || (host == "")) { return false; }
@@ -70,7 +70,6 @@ public class MySQL {
 		}
 	}
 	
-	private Connection conn = null;
 	private MySQLConfiguration config;
 	private boolean connect = false;
 	@Getter
@@ -78,6 +77,7 @@ public class MySQL {
 	private EventLoop eventLoop = DEFAULT_LOOP;
 	@Getter
 	private boolean MySQLSupported;
+	private LoopedIterator<Connection> connections;
 	
 	public MySQL(MySQLConfiguration config) {
 		if(!config.isValid())
@@ -93,8 +93,30 @@ public class MySQL {
 		this.config = config;
 	}
 	
-	public Connection getConnectionInstance() {
+	private void loadConnections(){
+		Connection[] cons = new Connection[config.maxConnections];
+		for(int i = 0;i<config.maxConnections;i++)
+			cons[i] = createNewConnection();
+		this.connections = new LoopedIterator(cons);
+	}
+	
+	private Connection createNewConnection(){
+		Connection conn = null;
 		try {
+			conn = DriverManager.getConnection(config.buildURL());
+			connect = true;
+		}
+		catch (SQLException e) {
+			System.out.println("Connect nicht moeglich");
+			connect = false;
+		}
+		return conn;
+	}
+	
+	public Connection getNextConnectionInstance() {
+		Connection conn = null;
+		try {
+			conn = connections.next();
 			if (conn == null || conn.isClosed() || !conn.isValid(500)) {
 				try {
 					conn = DriverManager.getConnection(config.buildURL());
@@ -113,7 +135,7 @@ public class MySQL {
 	
 	public ArrayList<String[]> querySync(String select, int limit) {
 		ArrayList<String[]> x = new ArrayList<String[]>();
-		conn = getConnectionInstance();
+		Connection conn = getNextConnectionInstance();
 		
 		if (conn != null) {
 			Statement query;
@@ -201,7 +223,7 @@ public class MySQL {
 	}
 	
 	public void commandSync(String command) {
-		conn = getConnectionInstance();
+		Connection conn = getNextConnectionInstance();
 		if (conn != null) {
 			try {
 				String sql = command;
@@ -228,8 +250,7 @@ public class MySQL {
 				for (Callback<Boolean> c : call)
 					c.done(ex == null, ex == null ? null : ex.getCause());
 				if (call.length == 0 && ex != null){
-					System.out.println(ex.getMessage());
-					ex.getCause().printStackTrace();
+					System.out.println(ex.getMessage()+"-"+ex.getCause().getMessage());
 				}
 			}
 		},eventLoop);
@@ -242,23 +263,8 @@ public class MySQL {
 	public boolean connect(){
 		if(!MySQLSupported)
 			return false;
-		try {
-			if (conn == null || conn.isClosed() || !conn.isValid(500)) {
-				try {
-					conn = DriverManager.getConnection(config.buildURL());
-					connect = true;
-					return true;
-				}
-				catch (SQLException e) {
-					System.out.println("Connect nicht moeglich");
-					connect = false;
-					return false;
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return true;
+		loadConnections();
+		return connect;
 	}
 	
 	public static interface Callback<T>{
@@ -267,7 +273,7 @@ public class MySQL {
 	public List<String> getTables() {
 		ArrayList<String> tables = new ArrayList<>();
 		try{
-			DatabaseMetaData md = getConnectionInstance().getMetaData();
+			DatabaseMetaData md = getNextConnectionInstance().getMetaData();
 			ResultSet rs = md.getTables(null, null, "%", null);
 			while (rs.next()) {
 				tables.add(rs.getString(3));
@@ -277,5 +283,24 @@ public class MySQL {
 		}
 		System.out.println("Tables: "+tables);
 		return tables;
+	}
+}
+class LoopedIterator<T> implements Iterator<T> {
+	private T[] obj;
+	private int index = 0;
+	public LoopedIterator(T[] obj) {
+		this.obj = obj;
+	}
+	
+	@Override
+	public boolean hasNext() {
+		return obj.length != 0;
+	}
+
+	@Override
+	public T next() {
+		if(obj.length == 0)
+			return null;
+		return obj[index++%obj.length];
 	}
 }

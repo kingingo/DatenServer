@@ -104,7 +104,6 @@ public class Terminal {
 			AnsiConsole.out.println("\r"+ChatColor.toAnsiFormat(message));
 			console.resetPromptLine(ChatColor.toAnsiFormat(promt), input_message, cursor);
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 

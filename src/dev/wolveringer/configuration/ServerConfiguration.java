@@ -38,7 +38,7 @@ public class ServerConfiguration {
 
 	public static MySQLConfiguration getMySQLConfiguration() {
 		if(MySQLConfig == null){
-			MySQLConfig = new MySQLConfiguration(config.getString("MySQL.host"), config.getInt("MySQL.port"), config.getString("MySQL.datenbank"), config.getString("MySQL.user"), config.getString("MySQL.password"), config.getBoolean("MySQL.autoReconnect"));
+			MySQLConfig = new MySQLConfiguration(config.getString("MySQL.host"), config.getInt("MySQL.port"), config.getString("MySQL.datenbank"), config.getString("MySQL.user"), config.getString("MySQL.password"), config.getBoolean("MySQL.autoReconnect"),10);
 		}
 		return MySQLConfig;
 	}
@@ -52,7 +52,6 @@ public class ServerConfiguration {
 	}
 	
 	public static InetSocketAddress getServerHost() {
-		//config.getString("server.host")
-		return new InetSocketAddress("localhost", config.getInt("server.port"));
+		return new InetSocketAddress(config.getString("server.host"), config.getInt("server.port"));
 	}
 }

@@ -97,7 +97,7 @@ public class Client {
 		try {
 			writer.write(packet);
 		} catch (IOException e) {
-			if(e.getMessage().equalsIgnoreCase("Broken pipe"))
+			if(e.getMessage().equalsIgnoreCase("Broken pipe") || e.getMessage().equalsIgnoreCase("Connection reset"))
 				return;
 			if(e.getMessage().equalsIgnoreCase("Socket closed")){
 				connected = false;

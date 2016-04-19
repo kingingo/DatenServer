@@ -234,7 +234,6 @@ public class PacketHandlerBoss {
 				default:
 					break;
 				}
-			System.out.println("Send setting response. ("+player.getPlayerId()+")");
 			owner.writePacket(new PacketOutPlayerSettings(player.getPlayerId(), values.toArray(new SettingValue[0])));
 		} else if (packet instanceof PacketChatMessage) {
 			ArrayList<PacketOutPacketStatus.Error> errors = new ArrayList<>();
@@ -353,11 +352,21 @@ public class PacketHandlerBoss {
 			owner.lastPingTime = System.currentTimeMillis();
 		} else if (packet instanceof PacketServerMessage) {
 			for (dev.wolveringer.dataserver.protocoll.packets.PacketServerMessage.Target t : ((PacketServerMessage) packet).getTargets()) {
+				int limit = -1;
+				int count = 0;
+				if(t.getTarget() != null && t.getTarget().startsWith("targetlimit;"))
+					limit = Integer.parseInt(t.getTarget().substring("targetlimit;".length()));
 				if (t.getTargetType() != null) {
+					System.out.println("Boardcast backet to "+t.getTargetType()+" with limit: "+t.getTarget()+"("+limit+")");
 					ArrayList<Client> targets = ServerThread.getServer(t.getTargetType());
-					for (Client tc : targets)
-						if (tc != owner)
+					for (Client tc : targets){
+						if(count >= limit && limit != -1)
+							continue;
+						if (tc != owner){
+							count++;
 							tc.writePacket(packet);
+						}
+					}
 				} else {
 					Client client = ServerThread.getServer(t.getTarget());
 					if (client == null) {
@@ -439,13 +448,11 @@ public class PacketHandlerBoss {
 				default:
 					break;
 				}
-				System.out.println("Skin request: " + ((PacketSkinRequest) packet).getRequests()[i].getUuid() + ":" + ((PacketSkinRequest) packet).getRequests()[i].getName() + ":" + ((PacketSkinRequest) packet).getRequests()[i].getType() + ":" + ((PacketSkinRequest) packet).getRequests()[i].getPlayerId() + ":" + out);
 				rout[i] = new SkinResponse(out);
 			}
 			owner.writePacket(new PacketSkinData(((PacketSkinRequest) packet).getRequestUUID(), rout));
 		} else if (packet instanceof PacketSkinSet) {
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketSkinSet) packet).getPlayerId());
-			System.out.println("Setting skin: " + player.getName() + ":" + ((PacketSkinSet) packet).getType());
 			switch (((PacketSkinSet) packet).getType()) {
 			case NAME:
 				player.getSkinManager().setSkin(((PacketSkinSet) packet).getSkinName());
@@ -477,7 +484,6 @@ public class PacketHandlerBoss {
 			} else {
 				owner.writePacket(new PacketLanguageResponse(r.getType(), file.getVersion(), file.getFileAsString()));
 			}
-			System.out.println("Lang request: "+r.getType());
 		} else if (packet instanceof PacketPlayerIdRequest) {
 			int[] ids = null;
 			if (((PacketPlayerIdRequest) packet).getNames() != null) {
@@ -502,7 +508,6 @@ public class PacketHandlerBoss {
 			}
 			if(ids == null)
 				ids = new int[0];
-			System.out.println("Requesting names for: "+Arrays.toString(((PacketPlayerIdRequest) packet).getNames())+":"+Arrays.toString(((PacketPlayerIdRequest) packet).getUuids())+" Output: "+Arrays.toString(ids));
 			owner.writePacket(new PacketPlayerIdResponse(packet.getPacketUUID(), ids));
 		}
 	}
