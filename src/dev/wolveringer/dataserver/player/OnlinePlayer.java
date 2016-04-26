@@ -65,14 +65,12 @@ public class OnlinePlayer {
 			if (playerId != -1) { //Load from playerId
 				response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `playerId`='" + playerId + "'", 1);
 			} else if (name != null) {
-				System.out.println("Try name request");
 				response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + name + "'", 1);
 				if(response.size() == 0){
 					response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + name.toLowerCase() + "'", 1);
 					if(response.size() != 0){
 						System.out.println("Updating username: "+name+":"+response.get(0)[1]);
 						MySQL.getInstance().commandSync("UPDATE `users` SET `name`='"+response.get(0)[1]+"' WHERE `name`='"+name+"'");
-						name = response.get(0)[1];
 					}
 					else
 					{
@@ -109,7 +107,8 @@ public class OnlinePlayer {
 			}
 			System.out.println("User credicals for "+playerId+":"+name+":"+uuid+" -> "+StringUtils.join(response.get(0),":"));
 			this.playerId = Integer.parseInt(response.get(0)[0]);
-			this.name = response.get(0)[1];
+			if(name == null)
+				this.name = response.get(0)[1];
 			this.uuid = UUID.fromString(response.get(0)[2]);
 
 			//TODO Checking for name update!
@@ -147,7 +146,8 @@ public class OnlinePlayer {
 	}
 	
 	public void save() {
-		statsManager.save();
+		if(isLoaded())
+			statsManager.save();
 	}
 
 	public void setLanguage(LanguageType lang) {

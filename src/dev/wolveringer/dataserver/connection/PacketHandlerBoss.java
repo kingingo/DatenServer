@@ -423,7 +423,6 @@ public class PacketHandlerBoss {
 		} else if (packet instanceof PacketInTopTenRequest) {
 			ArrayList<String[]> out = TopStatsManager.getManager().getTopTen(((PacketInTopTenRequest) packet).getGame(), ((PacketInTopTenRequest) packet).getCondition());
 			RankInformation[] infos = new RankInformation[out.size()];
-
 			for (int i = 0; i < infos.length; i++) {
 				infos[i] = new RankInformation(out.get(i)[0], out.get(i)[1]);
 			}

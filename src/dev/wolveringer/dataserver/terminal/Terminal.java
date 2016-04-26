@@ -2,10 +2,12 @@ package dev.wolveringer.dataserver.terminal;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Stack;
 
 import org.fusesource.jansi.AnsiConsole;
 
 import jline.console.ConsoleReader;
+import jline.console.CursorBuffer;
 import jline.internal.Ansi;
 
 public class Terminal {
@@ -42,6 +44,28 @@ public class Terminal {
 							continue;
 						}
 						try {
+							try{
+								if(console.getCursorBuffer() == null){
+									throw new Exception();
+								}
+								StringBuilder b = new StringBuilder();
+								b.append(console.getCursorBuffer());
+								b = null;
+							}catch(Exception e){
+								try{
+									console.getCursorBuffer().buffer.delete(0, console.getCursorBuffer().buffer.length());
+								}catch(Exception ex){
+									try{
+										CursorBuffer buffer = console.getCursorBuffer();
+										buffer.getClass().getField("buffer").setAccessible(true);
+										buffer.getClass().getField("buffer").set(buffer, new StringBuffer());
+										buffer.cursor = 0;
+									}catch(Exception exx){
+										exx.printStackTrace();
+									}
+									System.out.println("Hard buffer reset!");
+								}
+							}
 							String in = console.readLine(getPromt());
 							if ("".equalsIgnoreCase(in))
 								continue;

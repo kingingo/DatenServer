@@ -6,11 +6,14 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import dev.wolveringer.arrays.CachedArrayList;
+import dev.wolveringer.arrays.CachedArrayList.UnloadListener;
 
-public class PlayerManager {
+public class PlayerManager implements UnloadListener<OnlinePlayer>{
 	private static CachedArrayList<OnlinePlayer> players = new CachedArrayList<>(20, TimeUnit.MINUTES);
 	public static ArrayList<OnlinePlayer> getPlayers(){
-		return new ArrayList<>(players);
+		synchronized (players) {
+			return new ArrayList<>(players);
+		}
 	}
 	
 	public static OnlinePlayer getPlayer(String player){
@@ -20,12 +23,16 @@ public class PlayerManager {
 					p.waitWhileLoading();
 					if(!p.isLoaded())
 						p.load();
-					players.resetTime(p);
+					synchronized (players) {
+						players.resetTime(p);
+					}
 					return p;
 				}
 		OnlinePlayer var0 = new OnlinePlayer(player);
 		var0.load();
-		players.add(var0);
+		synchronized (players) {
+			players.add(var0);
+		}
 		return var0;
 	}
 	
@@ -35,12 +42,16 @@ public class PlayerManager {
 				p.waitWhileLoading();
 				if(!p.isLoaded())
 					p.load();
-				players.resetTime(p);
+				synchronized (players) {
+					players.resetTime(p);
+				}
 				return p;
 			}
 		OnlinePlayer var0 = new OnlinePlayer(player);
 		var0.load();
-		players.add(var0);
+		synchronized (players) {
+			players.add(var0);
+		}
 		return var0;
 	}
 	
@@ -56,7 +67,9 @@ public class PlayerManager {
 				}
 		OnlinePlayer var0 = new OnlinePlayer(player);
 		var0.load();
-		players.add(var0);
+		synchronized (players) {
+			players.add(var0);
+		}
 		return var0;
 	}
 
@@ -70,7 +83,18 @@ public class PlayerManager {
 
 	public static void unloadAll(){
 		for(OnlinePlayer p : getPlayers())
-			p.save();
-		players.clear();
+			try{
+				p.save();
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		synchronized (players) {
+			players.clear();
+		}
+	}
+
+	@Override
+	public boolean canUnload(OnlinePlayer player) {
+		return player.getServer() == null;
 	}
 }
