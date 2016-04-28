@@ -48,7 +48,6 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketSkinSet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction.PlayerAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketSkinData.SkinResponse;
 import dev.wolveringer.dataserver.skin.SkinCash;
-import dev.wolveringer.dataserver.uuid.UUIDManager;
 import dev.wolveringer.event.EventHelper;
 import dev.wolveringer.language.LanguageFile;
 import dev.wolveringer.language.LanguageManager;
