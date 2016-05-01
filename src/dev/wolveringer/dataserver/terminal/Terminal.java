@@ -58,7 +58,7 @@ public class Terminal {
 									try{
 										CursorBuffer buffer = console.getCursorBuffer();
 										buffer.getClass().getField("buffer").setAccessible(true);
-										buffer.getClass().getField("buffer").set(buffer, new StringBuffer());
+										buffer.getClass().getField("buffer").set(buffer, new StringBuilder());
 										buffer.cursor = 0;
 									}catch(Exception exx){
 										exx.printStackTrace();

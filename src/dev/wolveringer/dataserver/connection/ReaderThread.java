@@ -61,8 +61,13 @@ public class ReaderThread {
 				try {
 					client.getHandlerBoss().handle(packet);
 				} catch (Exception e) {
-					client.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error[] { new PacketOutPacketStatus.Error(1, "Exception: " + e.getMessage()) }));
-					System.err.println("Error while handeling: "+id);
+					int length = Math.min(e.getStackTrace().length, 10);
+					PacketOutPacketStatus.Error[] stack = new PacketOutPacketStatus.Error[length];
+					stack[0] = new PacketOutPacketStatus.Error(1, "Exception: " + e.getMessage());
+					for (int i = 1; i < length; i++)
+						stack[i] = new PacketOutPacketStatus.Error(2, e.getStackTrace()[i].toString());
+					client.writePacket(new PacketOutPacketStatus(packet, stack));
+					System.err.println("Error while handeling: " + id);
 					e.printStackTrace();
 				}
 			}

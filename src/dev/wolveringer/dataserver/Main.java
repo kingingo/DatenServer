@@ -17,6 +17,7 @@ import dev.wolveringer.dataserver.terminal.ConsoleWriter;
 import dev.wolveringer.dataserver.terminal.Terminal;
 import dev.wolveringer.language.LanguageManager;
 import dev.wolveringer.mysql.MySQL;
+import dev.wolveringer.report.ReportManager;
 import lombok.Getter;
 
 public class Main {
@@ -70,6 +71,8 @@ public class Main {
 		StatsManager.initTables();
 		TopStatsManager.setManager(new TopStatsManager());
 		SaveManager.setSaveManager(new SaveManager().start());
+		ReportManager.setInstance(new ReportManager());
+		ReportManager.getInstance().load();
 		TickSeduller s = new TickSeduller();
 		s.start();
 		restarter = new RestartTimer(3, 0, 0);

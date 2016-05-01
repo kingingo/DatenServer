@@ -39,6 +39,9 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketPing;
 import dev.wolveringer.dataserver.protocoll.packets.PacketPlayerIdRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketPlayerIdResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketPong;
+import dev.wolveringer.dataserver.protocoll.packets.PacketReportEdit;
+import dev.wolveringer.dataserver.protocoll.packets.PacketReportRequest;
+import dev.wolveringer.dataserver.protocoll.packets.PacketReportResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerMessage;
 import dev.wolveringer.dataserver.protocoll.packets.PacketSettingUpdate;
@@ -51,6 +54,9 @@ import dev.wolveringer.dataserver.skin.SkinCash;
 import dev.wolveringer.event.EventHelper;
 import dev.wolveringer.language.LanguageFile;
 import dev.wolveringer.language.LanguageManager;
+import dev.wolveringer.report.ReportEntity;
+import dev.wolveringer.report.ReportManager;
+import dev.wolveringer.report.ReportWorker;
 import dev.wolveringer.serverbalancer.AcardeManager;
 import dev.wolveringer.serverbalancer.AcardeManager.ServerType;
 import dev.wolveringer.skin.Skin;
@@ -244,7 +250,7 @@ public class PacketHandlerBoss {
 							clients.writePacket(new PacketChatMessage(((PacketChatMessage) packet).getMessage(), new Target[] { target }));
 					break loop;
 				case PLAYER:
-					OnlinePlayer player = PlayerManager.getPlayer(UUID.fromString(target.getTarget()));
+					OnlinePlayer player = PlayerManager.getPlayer(Integer.parseInt(target.getTarget()));
 					if (player == null || !player.isPlaying())
 						errors.add(new PacketOutPacketStatus.Error(0, "Player \"" + target.getTarget() + "\" isnt online!"));
 					else {
@@ -267,7 +273,7 @@ public class PacketHandlerBoss {
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(0, "Player not found")));
 				return;
 			}
-			owner.writePacket(new PacketOutPlayerServer(player.getUuid(), player.getServer()));
+			owner.writePacket(new PacketOutPlayerServer(player.getPlayerId(), player.getServer()));
 		} else if (packet instanceof PacketInBanStatsRequest) {//TODO down
 			BanEntity e = BanManager.getManager().getEntity(((PacketInBanStatsRequest) packet).getName(), ((PacketInBanStatsRequest) packet).getIp(), ((PacketInBanStatsRequest) packet).getPlayer());
 			owner.writePacket(new PacketOutBanStats(packet.getPacketUUID(), e));
@@ -507,6 +513,56 @@ public class PacketHandlerBoss {
 			if(ids == null)
 				ids = new int[0];
 			owner.writePacket(new PacketPlayerIdResponse(packet.getPacketUUID(), ids));
+		} else if(packet instanceof PacketReportRequest){
+			PacketReportRequest p = (PacketReportRequest) packet;
+			List<ReportEntity> response;
+			switch (p.getType()) {
+			case OPEN_REPORTS:
+				response = ReportManager.getInstance().getOpenReports();
+				break;
+			case PLAYER_OPEN_REPORTS:
+				response = ReportManager.getInstance().getReportsFor(p.getValue(), true);
+				break;
+			default:
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Type not found")));
+				return;
+			}
+			owner.writePacket(new PacketReportResponse(p.getPacketUUID(), response.toArray(new ReportEntity[0])));
+		} else if(packet instanceof PacketReportEdit){
+			PacketReportEdit p = (PacketReportEdit) packet;
+			ReportEntity e;
+			switch (p.getEdit()) {
+			case CREATE:
+				int id = ReportManager.getInstance().createReport(p.getValue(), p.getValue2(), p.getReson(), p.getInfo());
+				owner.writePacket(new PacketReportResponse(p.getPacketUUID(), new ReportEntity[]{ReportManager.getInstance().getReportEntity(id)}));
+				return;
+			case ADD_WORKER:
+				e = ReportManager.getInstance().getReportEntity(p.getValue());
+				if(e == null){
+					owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Type report not found")));
+					return;
+				}
+				ReportManager.getInstance().addWorker(e, p.getValue2());
+				owner.writePacket(new PacketOutPacketStatus(packet, null));
+			case DONE_WORKER:
+				e = ReportManager.getInstance().getReportEntity(p.getValue());
+				if(e == null){
+					owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Type report not found")));
+					return;
+				}
+				ReportManager.getInstance().doneWorker(e, p.getValue2());
+				owner.writePacket(new PacketOutPacketStatus(packet, null));
+			case CLOSE:
+				e = ReportManager.getInstance().getReportEntity(p.getValue());
+				if(e == null){
+					owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Type report not found")));
+					return;
+				}
+				ReportManager.getInstance().closeReport(e);
+			default:
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Type not found")));
+				return;
+			}
 		}
 	}
 
