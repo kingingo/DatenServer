@@ -61,7 +61,10 @@ public class PlayerSkinManager {
 			skin = new Skin(out.get(0)[2],out.get(0)[3]);
 		}
 		if(skin == null)
-			skin = new SteveSkin();
+			if(player.isPremiumPlayer())
+				skin = SkinCash.getSkin(player.getName());
+			else
+				skin = new SteveSkin();
 	}
 	
 	@SuppressWarnings("unchecked")

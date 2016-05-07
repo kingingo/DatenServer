@@ -45,9 +45,7 @@ public class Terminal {
 						}
 						try {
 							try{
-								if(console.getCursorBuffer() == null){
-									throw new Exception();
-								}
+								if(console.getCursorBuffer() == null){}
 								StringBuilder b = new StringBuilder();
 								b.append(console.getCursorBuffer());
 								b = null;
@@ -66,7 +64,7 @@ public class Terminal {
 									System.out.println("Hard buffer reset!");
 								}
 							}
-							String in = console.readLine(getPromt());
+							String in = console.readLine(ChatColor.toAnsiFormat(getPromt()));
 							if ("".equalsIgnoreCase(in))
 								continue;
 							String command = in.split(" ")[0];
@@ -108,7 +106,7 @@ public class Terminal {
 		return console;
 	}
 	
-	protected void write(String message) {
+	protected synchronized void write(String message) {
 		try {
 			String promt = "";
 			String input_message = "";
@@ -122,11 +120,11 @@ public class Terminal {
 				cursor = console.getCursorBuffer().cursor;
 			}
 			//console.resetPromptLine("", "", 0);
-			while (Ansi.stripAnsi(ChatColor.stripColor(message)).length() < input_message.length()) {
+			while (Ansi.stripAnsi(ChatColor.stripColor(message)).length() < input_message.length()+Ansi.stripAnsi(ChatColor.stripColor(promt)).length()) {
 				message = message + " ";
 			}
 			AnsiConsole.out.println("\r"+ChatColor.toAnsiFormat(message));
-			console.resetPromptLine(ChatColor.toAnsiFormat(promt), input_message, cursor);
+			console.resetPromptLine(ChatColor.toAnsiFormat(promt), Ansi.stripAnsi(input_message), cursor);
 		} catch (Exception e) {
 		}
 	}

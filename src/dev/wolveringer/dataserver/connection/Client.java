@@ -22,6 +22,7 @@ public class Client {
 	private Socket socket;
 	private ReaderThread reader;
 	private SocketWriter writer;
+	@Getter
 	private PacketHandlerBoss boss;
 	@Getter
 	protected ClientType type;
@@ -42,44 +43,47 @@ public class Client {
 		this.server = owner;
 		this.connected = true;
 		this.status = new ServerStatus(this);
-		if(owner == null && server == null)
-			return; //TESTING MODE
+		this.boss = new PacketHandlerBoss(this);
 		try{
 			this.writer = new SocketWriter(this, socket.getOutputStream());
 			this.reader = new ReaderThread(this, socket.getInputStream());
 		}catch(Exception e){
+			closePipeline();
 			e.printStackTrace();
 			return;
 		}
-		this.boss = new PacketHandlerBoss(this);
 		this.reader.start();
 		this.eventHander = new EventHandlerBoss(this);
+		lastPingTime = System.currentTimeMillis();
 	}	
 	
-	public void disconnect(){
-		if(server == null && server == null)
-			return; //TESTING MODE
+	public synchronized void disconnect(){
 		disconnect(null);
 	}
 	
-	public void disconnect(String message){
-		if(server == null && server == null)
-			return; //TESTING MODE
+	public synchronized void disconnect(String message){
 		writePacket(new PacketDisconnect(message));
 		closePipeline();
 	}
 	
-	protected void closePipeline(){
-		if(server == null && server == null)
-			return; //TESTING MODE
+	protected synchronized void closePipeline(){
 		if(!connected){
 			reader.close();
 			writer.close();
+			System.out.println("invoked closePipeline() -> alredy closed!");
 			return;
 		}
 		connected = false;
-		reader.close();
-		writer.close();
+		try{
+			reader.close();
+		}catch(Exception e){
+			e.getMessage();
+		}
+		try{
+			writer.close();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 		try {
 			socket.close();
 		} catch (IOException e) {
@@ -97,10 +101,12 @@ public class Client {
 		try {
 			writer.write(packet);
 		} catch (IOException e) {
-			if(e.getMessage().equalsIgnoreCase("Broken pipe") || e.getMessage().equalsIgnoreCase("Connection reset"))
+			if(e.getMessage().equalsIgnoreCase("Broken pipe") || e.getMessage().equalsIgnoreCase("Connection reset")){
+				closePipeline();
 				return;
+			}
 			if(e.getMessage().equalsIgnoreCase("Socket closed")){
-				connected = false;
+				closePipeline();
 				return;
 			}
 			e.printStackTrace();

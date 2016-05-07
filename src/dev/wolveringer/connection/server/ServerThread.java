@@ -14,7 +14,9 @@ public class ServerThread {
 	private static ArrayList<Client> clients = new ArrayList<>();
 	
 	public static void registerTestServer(Client client){
-		clients.add(client);
+		synchronized (clients) {
+			clients.add(client);
+		}
 	}
 	
 	public static ArrayList<Client> getBungeecords(){
@@ -23,9 +25,14 @@ public class ServerThread {
 	
 	public static ArrayList<Client> getServer(ClientType type){
 		ArrayList<Client> out = new ArrayList<>();
-		for(Client c : new ArrayList<>(clients))
+		for(Client c : new ArrayList<>(clients)){
+			if(!c.isConnected() || c.getEventHander() == null){
+				clients.remove(c);
+				continue;
+			}
 			if(c.getType() == type || type == ClientType.ALL)
 				out.add(c);
+		}
 		return out;
 	}
 
@@ -49,7 +56,9 @@ public class ServerThread {
 	}
 	
 	public static void removeServer(Client client) {
-		clients.remove(client);
+		synchronized (clients) {
+			clients.remove(client);
+		}
 	}
 	
 	private ServerSocket socket;

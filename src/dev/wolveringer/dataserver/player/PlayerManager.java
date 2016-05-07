@@ -8,8 +8,18 @@ import java.util.concurrent.TimeUnit;
 import dev.wolveringer.arrays.CachedArrayList;
 import dev.wolveringer.arrays.CachedArrayList.UnloadListener;
 
-public class PlayerManager implements UnloadListener<OnlinePlayer>{
+public class PlayerManager{
 	private static CachedArrayList<OnlinePlayer> players = new CachedArrayList<>(20, TimeUnit.MINUTES);
+	
+	static {
+		players.addUnloadListener(new UnloadListener<OnlinePlayer>() {
+			@Override
+			public boolean canUnload(OnlinePlayer player) {
+				return player.getServer() == null;
+			}
+		});
+	}
+	
 	public static ArrayList<OnlinePlayer> getPlayers(){
 		synchronized (players) {
 			return new ArrayList<>(players);
@@ -91,10 +101,5 @@ public class PlayerManager implements UnloadListener<OnlinePlayer>{
 		synchronized (players) {
 			players.clear();
 		}
-	}
-
-	@Override
-	public boolean canUnload(OnlinePlayer player) {
-		return player.getServer() == null;
 	}
 }

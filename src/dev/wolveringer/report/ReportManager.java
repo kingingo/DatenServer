@@ -76,10 +76,10 @@ public class ReportManager {
 	}
 
 	public List<ReportEntity> getReportsFor(int playerId) {
-		return getReportsFor(playerId, false);
+		return getReportsFromReporter(playerId, false);
 	}
 
-	public List<ReportEntity> getReportsFor(int playerId, boolean open) {
+	public List<ReportEntity> getReportsFromReporter(int playerId, boolean open) {
 		List<ReportEntity> reports = new ArrayList<>();
 		for (ReportEntity e : new ArrayList<>(entities))
 			if (e.getReporter() == playerId)
@@ -89,7 +89,7 @@ public class ReportManager {
 	}
 
 	public List<ReportEntity> getReportsFrom(int playerId) {
-		return getReportsFrom(playerId, true);
+		return getReportsFrom(playerId, false);
 	}
 
 	public List<ReportEntity> getReportsFrom(int playerId, boolean open) {
@@ -121,11 +121,10 @@ public class ReportManager {
 		MySQL.getInstance().command("INSERT INTO `report_workers`(`reportId`, `playerId`, `start`, `end`) VALUES ('"+e.getReportId()+"','"+playerId+"','"+System.currentTimeMillis()+"','-1')");
 	}
 	public void doneWorker(ReportEntity e,int playerId){
-		ReportWorker w = null;
 		for(ReportWorker dw : e.getWorkers())
 			if(dw.getPlayerId() == playerId){
-				w.setEnd(System.currentTimeMillis());
-				MySQL.getInstance().command("UPDATE `report_workers` SET `end`='"+System.currentTimeMillis()+"' WHERE `reportId`='"+w.getPlayerId()+"' AND `playerId`='"+playerId+"'");
+				dw.setEnd(System.currentTimeMillis());
+				MySQL.getInstance().command("UPDATE `report_workers` SET `end`='"+System.currentTimeMillis()+"' WHERE `reportId`='"+dw.getPlayerId()+"' AND `playerId`='"+playerId+"'");
 			}
 	}
 

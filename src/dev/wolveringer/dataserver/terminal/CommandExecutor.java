@@ -10,6 +10,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import dev.wolveringer.dataserver.Main;
 import jline.TerminalFactory;
 
 public interface CommandExecutor {
@@ -26,9 +27,12 @@ public interface CommandExecutor {
 	public default CommandLine paradiseOptions(String[] args,int start,boolean sendHelp){
 		try {
 			CommandLine line = optionsParser.parse(options, Arrays.copyOfRange(args, start, args.length));
+			if(line == null)
+				throw new Exception("line == null");
 			return line;
-		} catch (ParseException e) {
+		} catch (Exception e) {
 			if(sendHelp){
+				Main.getConsoleWriter().write("§cException: "+e.getMessage());
 				optionsHelper.printUsage(new PrintWriter(new CostumSystemPrintStream()), TerminalFactory.get().getWidth(), "Command Help", options);
 			}
 		}

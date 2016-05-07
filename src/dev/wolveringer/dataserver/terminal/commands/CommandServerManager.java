@@ -1,11 +1,13 @@
 package dev.wolveringer.dataserver.terminal.commands;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang3.ArrayUtils;
 
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.connection.server.ServerThread;
@@ -23,6 +25,7 @@ public class CommandServerManager implements CommandExecutor {
 
 	public CommandServerManager() {
 		options.addOption("st", "subtype", true, "Subtype parttern");
+		options.addOption("gt", "gametype", true, "Gametype");
 		options.addOption("t", "type", true, "Server type");
 		options.addOption("l", "inlobby", false, "List server only in lobby");
 		options.addOption("m", "message", true, "Restart/Stop message");
@@ -39,19 +42,22 @@ public class CommandServerManager implements CommandExecutor {
 		if(args.length >= 1){
 			if(args[0].equalsIgnoreCase("list")){
 				CommandLine cmdArgs = paradiseOptions(args, 1, true);
-				if (cmdArgs == null)
+				if (cmdArgs == null){
+					writer.sendMessage("§cCommand line is null! (Input '"+Arrays.toString(ArrayUtils.subarray(args, 1, args.length))+"')");
 					return;
+				}
 				if (ClientType.valueOf(cmdArgs.getOptionValue("type", ClientType.ALL + "")) == null) {
 					writer.sendMessage("§cClientType not found!");
 					return;
 				}
-				Stream<Client> clients = ServerThread.getServer(ClientType.valueOf(cmdArgs.getOptionValue("type", ClientType.ALL + ""))).stream();
+				Stream<Client> clients = ServerThread.getServer(ClientType.valueOf(cmdArgs.getOptionValue("type", ClientType.ALL.toString()))).stream();
 				if (cmdArgs.hasOption("gametype")) {
 					final GameType type = GameType.valueOf(cmdArgs.getOptionValue("gametype"));
 					if (type == null) {
 						writer.sendMessage("§cGameType not found!");
 						return;
 					}
+					writer.sendMessage("§aChecking for Gametype: "+type);
 					clients = clients.filter(new Predicate<Client>() {
 						@Override
 						public boolean test(Client t) {
@@ -61,6 +67,7 @@ public class CommandServerManager implements CommandExecutor {
 				}
 				if (cmdArgs.hasOption("subtype")) {
 					String subType = cmdArgs.getOptionValue("subtype");
+					writer.sendMessage("§aChecking for subtype: "+subType);
 					clients = clients.filter(new Predicate<Client>() {
 						@Override
 						public boolean test(Client t) {
@@ -68,13 +75,15 @@ public class CommandServerManager implements CommandExecutor {
 						}
 					});
 				}
-				if (cmdArgs.hasOption("inlobby"))
+				if (cmdArgs.hasOption("inlobby")){
+					writer.sendMessage("§aChecking for inlobby");
 					clients = clients.filter(new Predicate<Client>() {
 						@Override
 						public boolean test(Client t) {
 							return t.getStatus().getState() == GameState.LobbyPhase;
 						}
 					});
+				}
 				Iterator<Client> iclients = clients.iterator();
 				if (iclients.hasNext()) {
 					writer.sendMessage("§aServers:");
@@ -84,7 +93,7 @@ public class CommandServerManager implements CommandExecutor {
 						count++;
 						Client c = iclients.next();
 						player+=c.getPlayers().size();
-						writer.sendMessage(" §7- §a" + c.getName() + "§r§7[§b" + c.getStatus().getSubType() + "§7] §eServer-ID: §6"+c.getStatus().getServerId()+" §eType: §6" + c.getType() + " §eGame: §6" + c.getStatus().getTyp() + " §eState: §6" + c.getStatus().getState() + " §ePlayers: " + c.getStatus().getPlayers()+" §ePublic: §6"+c.getStatus().isVisiable());
+						writer.sendMessage(" §7- §"+(c.isConnected()?"a":"c") + c.getName() + "§r§7[§b" + c.getStatus().getSubType() + "§7] §eServer-ID: §6"+c.getStatus().getServerId()+" §eType: §6" + c.getType() + " §eGame: §6" + c.getStatus().getTyp() + " §eState: §6" + c.getStatus().getState() + " §ePlayers: " + c.getStatus().getPlayers()+" §ePublic: §6"+c.getStatus().isVisiable());
 					}
 					writer.sendMessage("§a"+count+" Servers are now displayed. Player online on this servers: "+player);
 				} else

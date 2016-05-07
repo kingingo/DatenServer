@@ -98,7 +98,7 @@ public class PacketHandlerBoss {
 				}
 				if (!((PacketHandschakeInStart) packet).getProtocollVersion().equalsIgnoreCase(Packet.PROTOCOLL_VERSION)) {
 					owner.disconnect("Protocollversion is not up to date!");
-					System.out.println("A client try to connect with version-number: " + ((PacketHandschakeInStart) packet).getProtocollVersion() + " Server-version: " + Packet.PROTOCOLL_VERSION);
+					//System.out.println("A client try to connect with version-number: " + ((PacketHandschakeInStart) packet).getProtocollVersion() + " Server-version: " + Packet.PROTOCOLL_VERSION);
 					return;
 				}
 				if (ServerThread.getServer(((PacketHandschakeInStart) packet).getName()) != null) {
@@ -246,7 +246,7 @@ public class PacketHandlerBoss {
 				switch (target.getType()) {
 				case BROTCAST:
 					for (Client clients : ServerThread.getBungeecords())
-						if (clients != owner)
+						//if (clients != owner)
 							clients.writePacket(new PacketChatMessage(((PacketChatMessage) packet).getMessage(), new Target[] { target }));
 					break loop;
 				case PLAYER:
@@ -521,7 +521,8 @@ public class PacketHandlerBoss {
 				response = ReportManager.getInstance().getOpenReports();
 				break;
 			case PLAYER_OPEN_REPORTS:
-				response = ReportManager.getInstance().getReportsFor(p.getValue(), true);
+				System.out.println("Request player open reports");
+				response = ReportManager.getInstance().getReportsFromReporter(p.getValue(), false);
 				break;
 			default:
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Type not found")));
@@ -544,6 +545,7 @@ public class PacketHandlerBoss {
 				}
 				ReportManager.getInstance().addWorker(e, p.getValue2());
 				owner.writePacket(new PacketOutPacketStatus(packet, null));
+				return;
 			case DONE_WORKER:
 				e = ReportManager.getInstance().getReportEntity(p.getValue());
 				if(e == null){
@@ -552,6 +554,7 @@ public class PacketHandlerBoss {
 				}
 				ReportManager.getInstance().doneWorker(e, p.getValue2());
 				owner.writePacket(new PacketOutPacketStatus(packet, null));
+				return;
 			case CLOSE:
 				e = ReportManager.getInstance().getReportEntity(p.getValue());
 				if(e == null){
@@ -559,6 +562,7 @@ public class PacketHandlerBoss {
 					return;
 				}
 				ReportManager.getInstance().closeReport(e);
+				return;
 			default:
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Type not found")));
 				return;
