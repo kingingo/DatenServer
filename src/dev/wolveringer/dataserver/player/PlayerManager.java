@@ -84,10 +84,20 @@ public class PlayerManager{
 	}
 
 	public static List<String> getPlayersFromServer(String value) {
+		if(value == null){
+			
+		}
 		ArrayList<String> players = new ArrayList<>();
+		ArrayList<String> playerLow = new ArrayList<>();
+		
 		for(OnlinePlayer p : getPlayers())
-			if((p.getServer() != null && p.getServer().equalsIgnoreCase(value) && p.isPlaying()) || (value == null && p.isPlaying()))
+			if((p.getServer() != null && p.getServer().equalsIgnoreCase(value) && p.isPlaying()) || (value == null && p.isPlaying())){
+				if(playerLow.contains(p.getName().toLowerCase()))
+					continue;
+				playerLow.add(p.getName().toLowerCase());
 				players.add(p.getName());
+			}
+				
 		return players;
 	}
 

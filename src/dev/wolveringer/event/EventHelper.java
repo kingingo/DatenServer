@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import dev.wolveringer.booster.BoosterType;
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.connection.Client;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.events.EventConditions;
+import dev.wolveringer.events.booster.BoosterStatusChangeEvent;
 import dev.wolveringer.events.player.PlayerServerSwitchEvent;
 
 public class EventHelper {
@@ -28,6 +30,15 @@ public class EventHelper {
 		builder.put(EventConditions.CLIENT_TYPE_ARRAY, client.getType()).put(EventConditions.SERVER_NAME_ARRAY, serverOld,serverNew);
 		builder.put(EventConditions.PLAYERS_BACKLIST, player.getUuid()).put(EventConditions.PLAYERS_WHITELIST, player.getUuid());
 
+		EventConditionKey[] keys = builder.build();
+		for(Client c : ServerThread.getServer(ClientType.ALL))
+			c.getEventHander().callEvent(event,keys);
+	}
+	
+	public static void callNetworkBoosterUpdateEvent(BoosterType type,boolean active){
+		BoosterStatusChangeEvent event = new BoosterStatusChangeEvent(type, active);
+		EventConditionKeyBuilder builder = new EventConditionKeyBuilder();
+		builder.put(EventConditions.BOOSTER_TYPE, type);
 		EventConditionKey[] keys = builder.build();
 		for(Client c : ServerThread.getServer(ClientType.ALL))
 			c.getEventHander().callEvent(event,keys);

@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.common.collect.ClassToInstanceMap;
+
+import dev.wolveringer.booster.NetworkBooster;
 import dev.wolveringer.configuration.ServerConfiguration;
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.ban.BanEntity;
@@ -18,6 +21,9 @@ import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.dataserver.player.Setting;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
+import dev.wolveringer.dataserver.protocoll.packets.PacketBoosterActive;
+import dev.wolveringer.dataserver.protocoll.packets.PacketBoosterStatusRequest;
+import dev.wolveringer.dataserver.protocoll.packets.PacketBoosterStatusResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketForward;
 import dev.wolveringer.dataserver.protocoll.packets.PacketHandschakeInStart;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInBanPlayer;
@@ -51,6 +57,7 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketSkinSet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction.PlayerAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketSkinData.SkinResponse;
 import dev.wolveringer.dataserver.skin.SkinCash;
+import dev.wolveringer.doublecoins.BoosterManager;
 import dev.wolveringer.event.EventHelper;
 import dev.wolveringer.language.LanguageFile;
 import dev.wolveringer.language.LanguageManager;
@@ -567,6 +574,16 @@ public class PacketHandlerBoss {
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Type not found")));
 				return;
 			}
+		} else if(packet instanceof PacketBoosterStatusRequest){
+			PacketBoosterStatusRequest p = (PacketBoosterStatusRequest) packet;
+			if(p.getPlayerId() == -1){
+				NetworkBooster booster = BoosterManager.getManager().getBooster(p.getType());
+				owner.writePacket(new PacketBoosterStatusResponse(booster.getPlayer(), booster.getType(), booster.getStart(), booster.getTime()));
+				return;
+			}
+			NetworkBooster booster = BoosterManager.getManager().getBooster(p.getType(),PlayerManager.getPlayer(p.getPlayerId()));
+			owner.writePacket(new PacketBoosterStatusResponse(booster.getPlayer(), booster.getType(), booster.getStart(), booster.getTime()));
+			return;
 		}
 	}
 
