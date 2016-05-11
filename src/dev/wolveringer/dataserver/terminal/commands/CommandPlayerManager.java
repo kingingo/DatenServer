@@ -1,7 +1,9 @@
 package dev.wolveringer.dataserver.terminal.commands;
 
+import dev.wolveringer.dataserver.terminal.ArgumentList;
 import dev.wolveringer.dataserver.terminal.CommandExecutor;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
+import dev.wolveringer.dataserver.terminal.ArgumentList.Argument;
 
 public class CommandPlayerManager implements CommandExecutor{
 
@@ -11,8 +13,8 @@ public class CommandPlayerManager implements CommandExecutor{
 	}
 
 	@Override
-	public String[] getArguments() {
-		return new String[]{"§a/playermanager - §cComming soon"};
+	public ArgumentList getArguments() {
+		return ArgumentList.builder().arg(new Argument("/playermanager", "Comming soon")).build();
 	}
 
 }

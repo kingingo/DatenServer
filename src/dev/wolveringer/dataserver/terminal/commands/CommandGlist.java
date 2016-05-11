@@ -1,8 +1,10 @@
 package dev.wolveringer.dataserver.terminal.commands;
 
 import dev.wolveringer.dataserver.player.PlayerManager;
+import dev.wolveringer.dataserver.terminal.ArgumentList;
 import dev.wolveringer.dataserver.terminal.CommandExecutor;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
+import dev.wolveringer.dataserver.terminal.ArgumentList.Argument;
 
 public class CommandGlist implements CommandExecutor{
 
@@ -16,8 +18,8 @@ public class CommandGlist implements CommandExecutor{
 	}
 
 	@Override
-	public String[] getArguments() {
-		return new String[]{"§a/glist §7- §aShow all players"};
+	public ArgumentList getArguments() {
+		return ArgumentList.builder().arg(new Argument("/glist", "Show all players")).build();
 	}
 
 }

@@ -1,6 +1,7 @@
 package dev.wolveringer.dataserver;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import dev.wolveringer.autorestart.RestartTimer;
 import dev.wolveringer.configuration.ServerConfiguration;
@@ -15,12 +16,15 @@ import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.save.SaveManager;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
 import dev.wolveringer.dataserver.terminal.Terminal;
+import dev.wolveringer.doublecoins.BoosterManager;
 import dev.wolveringer.language.LanguageManager;
+import dev.wolveringer.log.SystemLogger;
 import dev.wolveringer.mysql.MySQL;
 import dev.wolveringer.report.ReportManager;
 import lombok.Getter;
 
 public class Main {
+	public static Logger logger;
 	@Getter
 	private static Terminal terminal;
 	
@@ -48,7 +52,7 @@ public class Main {
 			terminal.init();
 		}
 		
-		
+		logger = new SystemLogger();
 		getConsoleWriter().write("§aSetting up DatenServer");
 		
 		
@@ -72,6 +76,7 @@ public class Main {
 		TopStatsManager.setManager(new TopStatsManager());
 		SaveManager.setSaveManager(new SaveManager().start());
 		ReportManager.setInstance(new ReportManager());
+		BoosterManager.setManager(new BoosterManager());
 		ReportManager.getInstance().load();
 		TickSeduller s = new TickSeduller();
 		s.start();

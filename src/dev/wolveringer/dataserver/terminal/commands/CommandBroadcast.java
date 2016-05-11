@@ -6,6 +6,8 @@ import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.connection.Client;
 import dev.wolveringer.dataserver.protocoll.packets.PacketChatMessage;
 import dev.wolveringer.dataserver.protocoll.packets.PacketChatMessage.TargetType;
+import dev.wolveringer.dataserver.terminal.ArgumentList;
+import dev.wolveringer.dataserver.terminal.ArgumentList.Argument;
 import dev.wolveringer.dataserver.terminal.ChatColor;
 import dev.wolveringer.dataserver.terminal.CommandExecutor;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
@@ -23,8 +25,8 @@ public class CommandBroadcast implements CommandExecutor{
 	}
 
 	@Override
-	public String[] getArguments() {
-		return new String[]{"§a/broad <message> §7| §aBroadcast a message"};
+	public ArgumentList getArguments() {
+		return ArgumentList.builder().arg(new Argument("/broad <message>", "Broadcast a message")).build();
 	}
 
 }

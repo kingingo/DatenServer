@@ -9,9 +9,11 @@ import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.dataserver.protocoll.packets.PacketChatMessage;
 import dev.wolveringer.dataserver.protocoll.packets.PacketChatMessage.TargetType;
+import dev.wolveringer.dataserver.terminal.ArgumentList;
 import dev.wolveringer.dataserver.terminal.ChatColor;
 import dev.wolveringer.dataserver.terminal.CommandExecutor;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
+import dev.wolveringer.dataserver.terminal.ArgumentList.Argument;
 
 public class CommandSendMessage implements CommandExecutor{
 
@@ -41,8 +43,8 @@ public class CommandSendMessage implements CommandExecutor{
 	}
 
 	@Override
-	public String[] getArguments() {
-		return new String[]{"/sendMessage <Player/UUID> <Message>"};
+	public ArgumentList getArguments() {
+		return ArgumentList.builder().arg(new Argument("/sendMessage <Player/UUID> <Messgage>", "Send a message to a player")).build();
 	}
 
 }

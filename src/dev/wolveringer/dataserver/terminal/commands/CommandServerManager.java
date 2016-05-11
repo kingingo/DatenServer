@@ -1,6 +1,5 @@
 package dev.wolveringer.dataserver.terminal.commands;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.Predicate;
@@ -16,9 +15,11 @@ import dev.wolveringer.dataserver.gamestats.GameState;
 import dev.wolveringer.dataserver.gamestats.GameType;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketServerAction.Action;
+import dev.wolveringer.dataserver.terminal.ArgumentList;
 import dev.wolveringer.dataserver.terminal.ChatColor;
 import dev.wolveringer.dataserver.terminal.CommandExecutor;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
+import dev.wolveringer.dataserver.terminal.ArgumentList.Argument;
 import dev.wolveringer.serverbalancer.AcardeManager;
 
 public class CommandServerManager implements CommandExecutor {
@@ -33,12 +34,6 @@ public class CommandServerManager implements CommandExecutor {
 
 	@Override
 	public void onCommand(String command, ConsoleWriter writer, String[] args) {
-		if (args.length == 1) {
-			if (args[0].equalsIgnoreCase("help")) {
-				for(String s : getArguments())
-					writer.sendMessage(s);
-			}
-		}
 		if(args.length >= 1){
 			if(args[0].equalsIgnoreCase("list")){
 				CommandLine cmdArgs = paradiseOptions(args, 1, true);
@@ -301,19 +296,18 @@ public class CommandServerManager implements CommandExecutor {
 	}
 
 	@Override
-	public String[] getArguments() {
-		ArrayList<String> list = new ArrayList<>();
-		list.add("§a/smanager list [-subtype <pattern> | -gametype <gametype> | -type <clientype> | -inlobby]");
-		list.add("§a/smanager info <ClientName>");
-		list.add("§a/smanager restart [-subtype <pattern> | -gametype <gametype> | -type <clientype> | -m <message>]");
-		list.add("§a/smanager stop [-subtype <pattern> | -gametype <gametype> | -type <clientype> | -m <message>]");
-		list.add("§a/smanager switch <ClientName> <GameType> [<SubType>]");
-		list.add("§a/smanager setVisiabe <ClientName> <flag>");
-		list.add("§a/smanager blocklist add <Gametype> <Subtype>");
-		list.add("§a/smanager blocklist remove <Gametype> <Subtype>");
-		list.add("§a/smanager blocklist list");
-		list.add("§a/smanager printLobbies");
-		return list.toArray(new String[0]);
+	public ArgumentList getArguments() {
+		ArgumentList.ArgumentListBuilder builder = ArgumentList.builder();
+		builder.arg(new Argument("/smanager list [-subtype <pattern> | -gametype <gametype> | -type <clientype> | -inlobby]", "List servers with condition"));
+		builder.arg(new Argument("/smanager info <ClientName>", "List alle informations abaout a client"));
+		builder.arg(new Argument("/smanager restart [-subtype <pattern> | -gametype <gametype> | -type <clientype> | -m <message>]", "Restart all servers with condition"));
+		builder.arg(new Argument("/smanager stop [-subtype <pattern> | -gametype <gametype> | -type <clientype> | -m <message>]", "Stop all servers with condition"));
+		builder.arg(new Argument("/smanager switch <ClientName> <GameType> [<SubType>]", "Switch a server to an other type"));
+		builder.arg(new Argument("/smanager setVisiabe <ClientName> <flag>", "Set the server visiablety",true));
+		builder.arg(new Argument("/smanager blocklist add <Gametype> <Subtype>", "Add servertype to blacklist"));
+		builder.arg(new Argument("/smanager blocklist remove <Gametype> <Subtype>", "Remove servertype from blacklist"));
+		builder.arg(new Argument("/smanager blocklist list", "List all blocked server types."));
+		return builder.build();
 	}
 
 }

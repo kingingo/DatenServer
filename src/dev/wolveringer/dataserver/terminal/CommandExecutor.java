@@ -8,9 +8,9 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 import dev.wolveringer.dataserver.Main;
+import dev.wolveringer.dataserver.terminal.ArgumentList.Argument;
 import jline.TerminalFactory;
 
 public interface CommandExecutor {
@@ -19,7 +19,7 @@ public interface CommandExecutor {
 	HelpFormatter optionsHelper = new HelpFormatter();
 	
 	public void onCommand(String command,ConsoleWriter writer,String[] args);
-	public String[] getArguments();
+	public ArgumentList getArguments();
 	
 	public default CommandLine paradiseOptions(String[] args,int start){
 		return paradiseOptions(args, start,true);
@@ -37,5 +37,18 @@ public interface CommandExecutor {
 			}
 		}
 		return null;
+	}
+	public default void printHelp(boolean wrongUsage){
+		if(wrongUsage){
+			Main.getConsoleWriter().sendMessage("§cWrong command usage!");
+			Main.getConsoleWriter().sendMessage("§cAvariable options:");
+		}
+			
+		for(Argument s : getArguments().getArguments())
+			Main.getConsoleWriter().sendMessage(s.format());
+	}
+	
+	public default String createArgumentInfo(String args,String usage){
+		return "§c"+args+" §7| §a"+usage;
 	}
 }
