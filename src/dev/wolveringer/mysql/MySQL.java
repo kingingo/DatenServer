@@ -38,7 +38,6 @@ public class MySQL {
 		@Override
 		public void createAsync(Runnable run,EventLoop loop) {
 			loop.join(run);
-			//BungeeCord.getInstance().getScheduler().runAsync(Main.getMain(), run);
 		}
 	};
 	

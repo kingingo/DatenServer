@@ -331,8 +331,12 @@ public class PacketHandlerBoss {
 				break;
 			case GENERAL:
 				List<String> players = PlayerManager.getPlayersFromServer(null);
+				int playersCount = 0;
+				for(Client bungee : ServerThread.getBungeecords()){
+					playersCount += bungee.getStatus().getPlayers();
+				}
 				if (players != null) {
-					owner.writePacket(new PacketOutServerStatus(Action.GENERAL, null, ((PacketInServerStatusRequest) packet).getValue(), "network", true, GameState.NONE, players.size(), -1, ((PacketInServerStatusRequest) packet).isPlayer() ? players : null));
+					owner.writePacket(new PacketOutServerStatus(Action.GENERAL, null, ((PacketInServerStatusRequest) packet).getValue(), "network", true, GameState.NONE, playersCount, -1, ((PacketInServerStatusRequest) packet).isPlayer() ? players : null));
 					return;
 				}
 				break;

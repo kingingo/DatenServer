@@ -17,7 +17,7 @@ public class SocketWriter {
 		this.out = os;
 	}
 
-	public void write(Packet packet) throws IOException {
+	public synchronized void write(Packet packet) throws IOException {
 		int id = Packet.getPacketId(packet,PacketDirection.TO_CLIENT);
 
 		if (id == -1) {

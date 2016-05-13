@@ -3,6 +3,7 @@ package dev.wolveringer.event;
 import java.util.HashMap;
 import java.util.UUID;
 
+import dev.wolveringer.booster.BoosterType;
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.dataserver.gamestats.GameType;
 import dev.wolveringer.dataserver.player.Setting;
@@ -46,6 +47,12 @@ public class ConditionChckerBoss {
 		checkers.put(EventConditions.SETTING_ARRAY, new ConditionChecker<Setting>() {
 			@Override
 			public boolean isValid(EventCondition<Setting> condition, Setting value) {
+				return condition.hasValue(value);
+			}
+		});
+		checkers.put(EventConditions.BOOSTER_TYPE, new ConditionChecker<BoosterType>() {
+			@Override
+			public boolean isValid(EventCondition<BoosterType> condition, BoosterType value) {
 				return condition.hasValue(value);
 			}
 		});

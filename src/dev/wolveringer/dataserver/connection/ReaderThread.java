@@ -34,7 +34,7 @@ public class ReaderThread {
 				} catch (Exception e) {
 					if (!active)
 						return;
-					System.err.println("Reader Broken");
+					System.err.println("Broken reader! Exception message: "+e.getMessage());
 					e.printStackTrace();
 					close0();
 				}
@@ -45,8 +45,7 @@ public class ReaderThread {
 	private void readPacket() throws IOException {
 		int length = (in.read() << 24) & 0xff000000 | (in.read() << 16) & 0x00ff0000 | (in.read() << 8) & 0x0000ff00 | (in.read() << 0) & 0x000000ff;
 		if (length <= 0) {
-			System.out.println("Reader index wrong (Wrong length (" + length + "))");
-			return;
+			throw new RuntimeException("Reader index wrong (Wrong length (" + length + "))");
 		}
 		byte[] bbuffer = new byte[length];
 		in.read(bbuffer);
@@ -61,13 +60,13 @@ public class ReaderThread {
 				try {
 					client.getHandlerBoss().handle(packet);
 				} catch (Exception e) {
-					int length = Math.min(e.getStackTrace().length, 10);
+					int length = Math.min(e.getStackTrace().length+1, 10);
 					PacketOutPacketStatus.Error[] stack = new PacketOutPacketStatus.Error[length];
 					stack[0] = new PacketOutPacketStatus.Error(1, "Exception: " + e.getMessage());
 					for (int i = 1; i < length; i++)
-						stack[i] = new PacketOutPacketStatus.Error(2, e.getStackTrace()[i].toString());
+						stack[i] = new PacketOutPacketStatus.Error(2, e.getStackTrace()[i-1].toString());
 					client.writePacket(new PacketOutPacketStatus(packet, stack));
-					System.err.println("Error while handeling: " + id);
+					System.err.println("Error while handeling packet" + Integer.toHexString(id)+" (Client: "+client.getName()+")");
 					e.printStackTrace();
 				}
 			}

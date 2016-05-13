@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit;
 
 import dev.wolveringer.arrays.CachedArrayList;
 import dev.wolveringer.arrays.CachedArrayList.UnloadListener;
+import dev.wolveringer.connection.server.ServerThread;
+import dev.wolveringer.dataserver.connection.Client;
 
 public class PlayerManager{
 	private static CachedArrayList<OnlinePlayer> players = new CachedArrayList<>(20, TimeUnit.MINUTES);
@@ -84,12 +86,15 @@ public class PlayerManager{
 	}
 
 	public static List<String> getPlayersFromServer(String value) {
-		if(value == null){
-			
-		}
 		ArrayList<String> players = new ArrayList<>();
 		ArrayList<String> playerLow = new ArrayList<>();
 		
+		if(value == null){
+			for(Client bungee : ServerThread.getBungeecords()){
+				players.addAll(bungee.getPlayers());
+			}
+			return players;
+		}
 		for(OnlinePlayer p : getPlayers())
 			if((p.getServer() != null && p.getServer().equalsIgnoreCase(value) && p.isPlaying()) || (value == null && p.isPlaying())){
 				if(playerLow.contains(p.getName().toLowerCase()))
