@@ -1,8 +1,8 @@
 package dev.wolveringer.dataserver;
 
-import dev.wolveringer.serverbalancer.AcardeManager;
+import dev.wolveringer.serverbalancer.ArcadeManager;
 
-public class TickSeduller {
+public class TickScheduler {
 	boolean active;
 	Thread runner = new Thread(new Runnable() {
 		@Override
@@ -16,8 +16,8 @@ public class TickSeduller {
 				try{
 					long start = System.currentTimeMillis();
 					System.out.println("Start balancing");
-					AcardeManager.balance();
-					AcardeManager.writeServers();
+					ArcadeManager.balance();
+					ArcadeManager.writeServers();
 					System.out.println("Balancing done in "+(System.currentTimeMillis()-start)+"ms");
 				}catch(Exception e){
 					e.printStackTrace();

@@ -23,7 +23,7 @@ import dev.wolveringer.dataserver.gamestats.GameType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-public class AcardeManager {
+public class ArcadeManager {
 	@AllArgsConstructor
 	@Getter
 	public static class ServerType {

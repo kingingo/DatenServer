@@ -58,13 +58,13 @@ public class Main {
 		
 		//TODO init MySQL
 		ServerConfiguration.init();
-		MySQL.setInstance(new MySQL(ServerConfiguration.getMySQLConfiguration())); //new MySQL("148.251.143.2", "3306", "test", "root", "55P_YHmK8MXlPiqEpGKuH_5WVlhsXT")
+		MySQL.setInstance(new MySQL(ServerConfiguration.getMySQLConfiguration()));
 		if(!MySQL.getInstance().isMySQLSupported()){
-			getConsoleWriter().sendMessage("§cMySQL isnt supported");
+			getConsoleWriter().sendMessage("§cMySQL is not supported");
 			return;
 		}
 		if(!MySQL.getInstance().connect()){
-			getConsoleWriter().sendMessage("§cCantconnect to MySQL");
+			getConsoleWriter().sendMessage("§cCannot connect to MySQL");
 			return;
 		}
 
@@ -78,7 +78,7 @@ public class Main {
 		ReportManager.setInstance(new ReportManager());
 		BoosterManager.setManager(new BoosterManager());
 		ReportManager.getInstance().load();
-		TickSeduller s = new TickSeduller();
+		TickScheduler s = new TickScheduler();
 		s.start();
 		restarter = new RestartTimer(3, 0, 0);
 		restarter.startListening();

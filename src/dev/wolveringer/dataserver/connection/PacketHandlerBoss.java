@@ -64,8 +64,8 @@ import dev.wolveringer.language.LanguageManager;
 import dev.wolveringer.report.ReportEntity;
 import dev.wolveringer.report.ReportManager;
 import dev.wolveringer.report.ReportWorker;
-import dev.wolveringer.serverbalancer.AcardeManager;
-import dev.wolveringer.serverbalancer.AcardeManager.ServerType;
+import dev.wolveringer.serverbalancer.ArcadeManager;
+import dev.wolveringer.serverbalancer.ArcadeManager.ServerType;
 import dev.wolveringer.skin.Skin;
 import dev.wolveringer.skin.SteveSkin;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerSwitch;
@@ -90,14 +90,14 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketEventTypeSettings;
 
 public class PacketHandlerBoss {
 	private Client owner;
-	private boolean handschakeComplete = false;
+	private boolean handshakeComplete = false;
 
 	public PacketHandlerBoss(Client owner) {
 		this.owner = owner;
 	}
 
 	public void handle(Packet packet) {
-		if (!handschakeComplete) {
+		if (!handshakeComplete) {
 			if (packet instanceof PacketHandschakeInStart) {
 				if (!Arrays.equals(((PacketHandschakeInStart) packet).getPassword(), ServerConfiguration.getServerPassword().getBytes())) {
 					owner.disconnect("Password incorrect [" + ((PacketHandschakeInStart) packet).getHost() + "|" + ((PacketHandschakeInStart) packet).getName() + "]");
@@ -113,7 +113,7 @@ public class PacketHandlerBoss {
 						if (ServerThread.getServer(((PacketHandschakeInStart) packet).getName()) != null)
 							ServerThread.getServer(((PacketHandschakeInStart) packet).getName()).disconnect("Timeout (Logged in from other location)");
 					} else {
-						owner.disconnect("A server with this name is alredy connected!");
+						owner.disconnect("A server with this name is already connected!");
 						System.out.println("Server " + ((PacketHandschakeInStart) packet).getName() + " try to connect twice!");
 						return;
 					}
@@ -122,7 +122,7 @@ public class PacketHandlerBoss {
 				owner.type = ((PacketHandschakeInStart) packet).getType();
 				owner.name = ((PacketHandschakeInStart) packet).getName();
 				owner.writePacket(new PacketOutHandschakeAccept());
-				handschakeComplete = true;
+				handshakeComplete = true;
 				System.out.println("Client connected (" + owner.host + "|" + owner.type + ")");
 			}
 			return;
@@ -298,14 +298,14 @@ public class PacketHandlerBoss {
 				}
 				Client owner = player.getPlayerBungeecord();
 				if (owner == null) {
-					errors.add(new PacketOutPacketStatus.Error(0, "Player " + action.getPlayer() + " ist online"));
+					errors.add(new PacketOutPacketStatus.Error(0, "Player " + action.getPlayer() + " is online"));
 					continue;
 				}
 				owner.writePacket(new PacketServerAction(new PlayerAction[] { action }));
 			}
 			owner.writePacket(new PacketOutPacketStatus(packet, errors.toArray(new Error[0])));
 		} else if (packet instanceof PacketInServerStatus) {
-			owner.getStatus().applayPacket((PacketInServerStatus) packet);
+			owner.getStatus().applyPacket((PacketInServerStatus) packet);
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		} else if (packet instanceof PacketInServerStatusRequest) {
 			switch (((PacketInServerStatusRequest) packet).getAction()) {
@@ -358,6 +358,8 @@ public class PacketHandlerBoss {
 			default:
 				break;
 			}
+			
+			//IS THAT RIGHT?
 			owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Server/Bungeecord not found")));
 		} else if (packet instanceof PacketPing) {
 			owner.writePacket(new PacketPong(System.currentTimeMillis()));
@@ -411,7 +413,7 @@ public class PacketHandlerBoss {
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		} else if (packet instanceof PacketInLobbyServerRequest) {
 			GameServers[] response = new GameServers[((PacketInLobbyServerRequest) packet).getRequest().length];
-			HashMap<ServerType, ArrayList<Client>> tempServers = new HashMap<ServerType, ArrayList<Client>>(AcardeManager.getLastCalculated());
+			HashMap<ServerType, ArrayList<Client>> tempServers = new HashMap<ServerType, ArrayList<Client>>(ArcadeManager.getLastCalculated());
 			HashMap<GameType, ArrayList<Client>> servers = new HashMap<GameType, ArrayList<Client>>() {
 				@Override
 				public ArrayList<Client> get(Object key) {

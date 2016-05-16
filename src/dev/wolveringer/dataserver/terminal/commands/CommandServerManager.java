@@ -20,7 +20,7 @@ import dev.wolveringer.dataserver.terminal.ChatColor;
 import dev.wolveringer.dataserver.terminal.CommandExecutor;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
 import dev.wolveringer.dataserver.terminal.ArgumentList.Argument;
-import dev.wolveringer.serverbalancer.AcardeManager;
+import dev.wolveringer.serverbalancer.ArcadeManager;
 
 public class CommandServerManager implements CommandExecutor {
 
@@ -95,7 +95,7 @@ public class CommandServerManager implements CommandExecutor {
 					writer.sendMessage("§cEs wurden keine Server unter diesem Parameter gefunden.");
 			}
 			else if(args[0].equalsIgnoreCase("printLobbies")){
-				AcardeManager.writeServers();
+				ArcadeManager.writeServers();
 			}
 			if(args[0].equalsIgnoreCase("restart")){
 				CommandLine cmdArgs = paradiseOptions(args, 1, true);
@@ -223,9 +223,9 @@ public class CommandServerManager implements CommandExecutor {
 			}
 			else if(args[0].equalsIgnoreCase("blacklist") && args[1].equalsIgnoreCase("list")){
 				writer.sendMessage("§aBlacklist:");
-				for(GameType t : AcardeManager.getBlackList().keySet()){
+				for(GameType t : ArcadeManager.getBlackList().keySet()){
 					writer.sendMessage("  §aType: "+t);
-					for(String un : AcardeManager.getBlackList().get(t))
+					for(String un : ArcadeManager.getBlackList().get(t))
 						writer.sendMessage("  §7- §e"+un);
 				}
 			}
@@ -278,13 +278,13 @@ public class CommandServerManager implements CommandExecutor {
 					return;
 				}
 				if(args[1].equalsIgnoreCase("add")){
-					if(AcardeManager.getBlackList().get(type).add(args[3]))
+					if(ArcadeManager.getBlackList().get(type).add(args[3]))
 						writer.sendMessage("§aType blacklisted");
 					else
 						writer.sendMessage("§cType alredy blacklisted!");
 				}
 				else if(args[1].equalsIgnoreCase("remove")){
-					if(AcardeManager.getBlackList().get(type).remove(args[3]))
+					if(ArcadeManager.getBlackList().get(type).remove(args[3]))
 						writer.sendMessage("§aBlacklist type removed!");
 					else
 						writer.sendMessage("§cServer subtype isnt blacklisted.");

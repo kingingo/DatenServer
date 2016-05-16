@@ -15,7 +15,7 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketDisconnect;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutGammodeChange;
 import dev.wolveringer.dataserver.protocoll.packets.PacketPong;
 import dev.wolveringer.event.EventHandlerBoss;
-import dev.wolveringer.serverbalancer.AcardeManager;
+import dev.wolveringer.serverbalancer.ArcadeManager;
 import lombok.Getter;
 
 public class Client {
@@ -90,7 +90,7 @@ public class Client {
 			e.printStackTrace();
 		}
 		ServerThread.removeServer(this);
-		AcardeManager.serverDisconnected(name);
+		ArcadeManager.serverDisconnected(name);
 	}
 	
 	public void writePacket(Packet packet){

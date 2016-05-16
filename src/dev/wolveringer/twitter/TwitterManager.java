@@ -1,5 +1,7 @@
 package dev.wolveringer.twitter;
 
+import java.util.HashMap;
+
 import twitter4j.RateLimitStatusEvent;
 import twitter4j.RateLimitStatusListener;
 import twitter4j.Twitter;
@@ -10,6 +12,7 @@ import twitter4j.conf.ConfigurationBuilder;
 
 public class TwitterManager implements RateLimitStatusListener{
 	private static TwitterManager manager;
+	private HashMap<String,Boolean> isFollower;
 	
 	public static void setManager(TwitterManager manager) {
 		TwitterManager.manager = manager;

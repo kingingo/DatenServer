@@ -4,8 +4,8 @@ import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.dataserver.gamestats.GameState;
 import dev.wolveringer.dataserver.gamestats.GameType;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus;
-import dev.wolveringer.serverbalancer.AcardeManager;
-import dev.wolveringer.serverbalancer.AcardeManager.ServerType;
+import dev.wolveringer.serverbalancer.ArcadeManager;
+import dev.wolveringer.serverbalancer.ArcadeManager.ServerType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,7 +28,7 @@ public class ServerStatus {
 		this.owner = owner;
 	}
 
-	public void applayPacket(PacketInServerStatus packet) { //TODO Bitmask
+	public void applyPacket(PacketInServerStatus packet) { //TODO Bitmask
 		this.players = packet.getPlayers();
 		this.maxPlayers = packet.getMaxPlayers();
 		this.mots = packet.getMots();
@@ -38,7 +38,7 @@ public class ServerStatus {
 		this.serverId = packet.getServerId();
 		this.subType = packet.getSubstate();
 		if(!registered && typ != null && owner.getType() == ClientType.ACARDE){
-			AcardeManager.serverConnected(new ServerType(typ, subType));
+			ArcadeManager.serverConnected(new ServerType(typ, subType));
 			registered = true;
 		}
 	}
