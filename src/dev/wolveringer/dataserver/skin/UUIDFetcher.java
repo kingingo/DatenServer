@@ -28,7 +28,7 @@ public class UUIDFetcher implements Callable<Map<String, UUID>> {
 	private static LoadingCache<String, UUID> uuidCache = CacheBuilder.newBuilder().maximumSize(500).expireAfterWrite(4, TimeUnit.HOURS).build(new CacheLoader<String, UUID>() {
 		public UUID load(String name) throws Exception {
 			UUID response = new UUIDFetcher(Arrays.asList(name)).call().get(name);
-			System.out.println("Cant contact mojang...: "+response);
+//			System.out.println("Cant contact mojang...: "+response);
 			if(response == null)
 				return UUID.nameUUIDFromBytes(("OfflinePlayer:"+name).getBytes());
 			return response;

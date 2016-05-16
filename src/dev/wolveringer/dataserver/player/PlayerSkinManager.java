@@ -5,7 +5,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import dev.wolveringer.dataserver.skin.OperationCallback;
-import dev.wolveringer.dataserver.skin.SkinCash;
+import dev.wolveringer.dataserver.skin.SkinCache;
 import dev.wolveringer.mysql.MySQL;
 import dev.wolveringer.skin.Skin;
 import dev.wolveringer.skin.SteveSkin;
@@ -39,7 +39,7 @@ public class PlayerSkinManager {
 		boolean skinCached = !out.get(0)[2].equalsIgnoreCase("undefined") && Long.parseLong(out.get(0)[4])-System.currentTimeMillis() >= SKIN_CASH_TIME;
 		if(!skinCached && (!skinName.equalsIgnoreCase("nan") || skinUUID != null)){ //If nan than no skin set
 			if(skinUUID != null){
-				SkinCash.getSkin(skinUUID, new OperationCallback<Skin>() {
+				SkinCache.getSkin(skinUUID, new OperationCallback<Skin>() {
 					@Override
 					public void done(Skin obj) {
 						PlayerSkinManager.this.skin = skin;
@@ -48,7 +48,7 @@ public class PlayerSkinManager {
 			}
 			else
 			{
-				SkinCash.getSkin(skinName, new OperationCallback<Skin>() {
+				SkinCache.getSkin(skinName, new OperationCallback<Skin>() {
 					@Override
 					public void done(Skin obj) {
 						PlayerSkinManager.this.skin = skin;
@@ -62,7 +62,7 @@ public class PlayerSkinManager {
 		}
 		if(skin == null)
 			if(player.isPremiumPlayer())
-				skin = SkinCash.getSkin(player.getName());
+				skin = SkinCache.getSkin(player.getName());
 			else
 				skin = new SteveSkin();
 	}
@@ -75,7 +75,7 @@ public class PlayerSkinManager {
 	
 	@SuppressWarnings("unchecked")
 	public void setSkin(String name){
-		SkinCash.getSkin(name, new OperationCallback<Skin>() {
+		SkinCache.getSkin(name, new OperationCallback<Skin>() {
 			@Override
 			public void done(Skin obj) {
 				setSkin(obj);
@@ -85,7 +85,7 @@ public class PlayerSkinManager {
 	
 	@SuppressWarnings("unchecked")
 	public void setSkin(UUID uuid){
-		SkinCash.getSkin(uuid, new OperationCallback<Skin>() {
+		SkinCache.getSkin(uuid, new OperationCallback<Skin>() {
 			@Override
 			public void done(Skin obj) {
 				setSkin(obj);

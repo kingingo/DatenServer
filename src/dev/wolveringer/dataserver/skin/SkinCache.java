@@ -14,7 +14,7 @@ import com.google.common.cache.CacheLoader;
 import dev.wolveringer.skin.Skin;
 import dev.wolveringer.skin.SteveSkin;
 
-public class SkinCash {
+public class SkinCache {
 	
 	private static final String PROFILE_URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
 
@@ -38,7 +38,7 @@ public class SkinCash {
 		try{
 			return profileCache.get(uuid);
 		}catch (Exception e){
-			System.out.println("Cant loading Skin for " + uuid + " (Reson: " + e.getMessage() + ")");
+			System.out.println("Cant loading Skin for " + uuid + " (Reason: " + e.getMessage() + ")");
 			return new SteveSkin();
 		}
 	}
@@ -80,6 +80,9 @@ public class SkinCash {
 	}
 
 	private static Skin loadSkin(UUID uuid) throws IOException {
+		if (uuid.version() == 3) {
+			return new SteveSkin();
+		}
 		String s = SkinRequestFactory.performGetRequest(new URL(PROFILE_URL + uuid.toString().replace("-", "") + "?unsigned=false"));
 		if("".equalsIgnoreCase(s) || s == null)
 			throw new IOException("Player skin not found (" + uuid + ")");
@@ -89,7 +92,7 @@ public class SkinCash {
 	public static void main(String[] args) {
 		Skin s = Skin.createEmptySkin();
 		s.setRawData("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjdiYmQwYjI5MTFjOTZiNWQ4N2IyZGY3NjY5MWE1MWI4YjEyYzZmZWZkNTIzMTQ2ZDhhYzVlZjFiOGVlIn19fQ==");
-		System.out.println(SkinCash.getSkin("WolverinDEV").getName());
+		System.out.println(SkinCache.getSkin("WolverinDEV").getName());
 		s.setUUID(UUID.randomUUID());
 		System.out.print(s.getRawData());
 	}
