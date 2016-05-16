@@ -14,13 +14,13 @@ import lombok.Setter;
 public class ServerStatus {
 	private int players = -1;
 	private int maxPlayers = -1;
-	private String mots = "underknown"; //Message of the server :D equals <-> Message of the day (MOTD)
+	private String mots = "unknown"; //Message of the server :D equals <-> Message of the day (MOTD)
 	private GameType typ;
 	private GameState state;
 	private String subType;
 	private boolean visiable = false;
 	private Client owner;
-	private String serverId = "underknown";
+	private String serverId = "unknown";
 	
 	private boolean registered = false;
 	

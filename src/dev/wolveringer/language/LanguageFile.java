@@ -79,7 +79,7 @@ public class LanguageFile {
 				if (version == null || version.equalsIgnoreCase(""))
 					System.out.println("Missing version for: " + language);
 				if(version == null)
-					version = "underknown";
+					version = "unknown";
 				try {
 					this.version = Double.parseDouble(version);
 				} catch (Exception e) {
