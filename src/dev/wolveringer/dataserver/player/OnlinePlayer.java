@@ -122,8 +122,7 @@ public class OnlinePlayer {
 				response = MySQL.getInstance()
 						.querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + name + "'", 1);
 			}
-			System.out.println("User credicals for " + playerId + ":" + name + ":" + uuid + " -> "
-					+ StringUtils.join(response.get(0), ":"));
+			System.out.println("User credicals for " + playerId + ":" + name + ":" + uuid + " -> " + StringUtils.join(response.get(0), ":"));
 			this.playerId = Integer.parseInt(response.get(0)[0]);
 			if (name == null)
 				this.name = response.get(0)[1];
