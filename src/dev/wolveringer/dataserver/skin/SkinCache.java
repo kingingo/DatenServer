@@ -81,7 +81,7 @@ public class SkinCache {
 
 	private static Skin loadSkin(UUID uuid) throws IOException {
 		if (uuid.version() == 3) {
-			return new SteveSkin();
+			throw new IOException("The UUID ("+uuid+") is an Offline-UUID!");
 		}
 		String s = SkinRequestFactory.performGetRequest(new URL(PROFILE_URL + uuid.toString().replace("-", "") + "?unsigned=false"));
 		if("".equalsIgnoreCase(s) || s == null)
