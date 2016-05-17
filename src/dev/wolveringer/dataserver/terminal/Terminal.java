@@ -21,6 +21,7 @@ public class Terminal {
 	public void init() {
 		AnsiConsole.systemInstall();
 		System.setOut(new CostumSystemPrintStream());
+		System.setErr(System.out);
 		writer = new ConsoleWriter(this);
 		initReader();
 	}

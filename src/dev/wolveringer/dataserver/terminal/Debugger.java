@@ -2,9 +2,9 @@ package dev.wolveringer.dataserver.terminal;
 
 public class Debugger {
 	public static void printMessage(String message){
-		System.out.print("[Debuger] ["+getLastCallerClass()+"] -> "+message);
-		System.out.println();
+		System.out.println("[Debugger] ["+getLastCallerClass()+"] -> "+message);
 	}
+	
 	public static String getLastCallerClass(){
 		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
 		for (int i = 0; i < stack.length; i++) {
