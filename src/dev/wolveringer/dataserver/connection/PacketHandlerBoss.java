@@ -321,6 +321,7 @@ public class PacketHandlerBoss {
 					return;
 				}
 				if (player != null) {
+					
 					owner.writePacket(new PacketOutServerStatus(Action.SERVER, null, ((PacketInServerStatusRequest) packet).getValue(), client.getStatus().getServerId(), client.getStatus().isVisiable(), client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), ((PacketInServerStatusRequest) packet).isPlayer() ? player : null));
 					return;
 				}
