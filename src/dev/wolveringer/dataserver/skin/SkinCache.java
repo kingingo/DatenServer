@@ -19,10 +19,10 @@ public class SkinCache {
 	private static final String PROFILE_URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
 
 	private static Cache<UUID, Skin> profileCache = CacheBuilder.newBuilder().maximumSize(500).expireAfterWrite(4, TimeUnit.HOURS).build(new CacheLoader<UUID, Skin>() {
-		public Skin load(UUID name) throws Exception {
+		public Skin load(UUID uuid) throws Exception {
 			Skin out = null;
 			try{
-				out = loadSkin(name);
+				out = loadSkin(uuid);
 			}catch(Exception e){
 				e.printStackTrace();
 				out = new SteveSkin();
@@ -81,7 +81,8 @@ public class SkinCache {
 
 	private static Skin loadSkin(UUID uuid) throws IOException {
 		if (uuid.version() == 3) {
-			throw new IOException("The UUID ("+uuid+") is an Offline-UUID!");
+//			throw new IOException("The UUID ("+uuid+") is an Offline-UUID!");
+			return new SteveSkin();
 		}
 		String s = SkinRequestFactory.performGetRequest(new URL(PROFILE_URL + uuid.toString().replace("-", "") + "?unsigned=false"));
 		if("".equalsIgnoreCase(s) || s == null)

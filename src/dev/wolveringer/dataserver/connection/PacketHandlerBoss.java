@@ -27,7 +27,7 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketDisconnect;
 import dev.wolveringer.dataserver.protocoll.packets.PacketEventCondition;
 import dev.wolveringer.dataserver.protocoll.packets.PacketEventTypeSettings;
 import dev.wolveringer.dataserver.protocoll.packets.PacketForward;
-import dev.wolveringer.dataserver.protocoll.packets.PacketHandschakeInStart;
+import dev.wolveringer.dataserver.protocoll.packets.PacketHandshakeInStart;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInBanPlayer;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInBanStatsRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInChangePlayerSettings;
@@ -94,29 +94,29 @@ public class PacketHandlerBoss {
 
 	public void handle(Packet packet) {
 		if (!handshakeComplete) {
-			if (packet instanceof PacketHandschakeInStart) {
-				if (!Arrays.equals(((PacketHandschakeInStart) packet).getPassword(), ServerConfiguration.getServerPassword().getBytes())) {
-					owner.disconnect("Password incorrect [" + ((PacketHandschakeInStart) packet).getHost() + "|" + ((PacketHandschakeInStart) packet).getName() + "]");
+			if (packet instanceof PacketHandshakeInStart) {
+				if (!Arrays.equals(((PacketHandshakeInStart) packet).getPassword(), ServerConfiguration.getServerPassword().getBytes())) {
+					owner.disconnect("Password incorrect [" + ((PacketHandshakeInStart) packet).getHost() + "|" + ((PacketHandshakeInStart) packet).getName() + "]");
 					return;
 				}
-				if (!((PacketHandschakeInStart) packet).getProtocollVersion().equalsIgnoreCase(Packet.PROTOCOLL_VERSION)) {
+				if (!((PacketHandshakeInStart) packet).getProtocollVersion().equalsIgnoreCase(Packet.PROTOCOLL_VERSION)) {
 					owner.disconnect("Protocollversion is not up to date!");
-					//System.out.println("A client try to connect with version-number: " + ((PacketHandschakeInStart) packet).getProtocollVersion() + " Server-version: " + Packet.PROTOCOLL_VERSION);
+					//System.out.println("A client try to connect with version-number: " + ((PacketHandshakeInStart) packet).getProtocollVersion() + " Server-version: " + Packet.PROTOCOLL_VERSION);
 					return;
 				}
-				if (ServerThread.getServer(((PacketHandschakeInStart) packet).getName()) != null) {
-					if (!ServerThread.getServer(((PacketHandschakeInStart) packet).getName()).isReachable(1000)) {
-						if (ServerThread.getServer(((PacketHandschakeInStart) packet).getName()) != null)
-							ServerThread.getServer(((PacketHandschakeInStart) packet).getName()).disconnect("Timeout (Logged in from other location)");
+				if (ServerThread.getServer(((PacketHandshakeInStart) packet).getName()) != null) {
+					if (!ServerThread.getServer(((PacketHandshakeInStart) packet).getName()).isReachable(1000)) {
+						if (ServerThread.getServer(((PacketHandshakeInStart) packet).getName()) != null)
+							ServerThread.getServer(((PacketHandshakeInStart) packet).getName()).disconnect("Timeout (Logged in from other location)");
 					} else {
 						owner.disconnect("A server with this name is already connected!");
-						System.out.println("Server " + ((PacketHandschakeInStart) packet).getName() + " try to connect twice!");
+						System.out.println("Server " + ((PacketHandshakeInStart) packet).getName() + " try to connect twice!");
 						return;
 					}
 				}
-				owner.host = ((PacketHandschakeInStart) packet).getHost();
-				owner.type = ((PacketHandschakeInStart) packet).getType();
-				owner.name = ((PacketHandschakeInStart) packet).getName();
+				owner.host = ((PacketHandshakeInStart) packet).getHost();
+				owner.type = ((PacketHandshakeInStart) packet).getType();
+				owner.name = ((PacketHandshakeInStart) packet).getName();
 				owner.writePacket(new PacketOutHandschakeAccept());
 				handshakeComplete = true;
 				System.out.println("Client connected (" + owner.host + "|" + owner.type + ")");
