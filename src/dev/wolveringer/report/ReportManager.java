@@ -47,11 +47,11 @@ public class ReportManager {
 			}
 		}
 
-		query = MySQL.getInstance().querySync("SELECT `reportId`, `reporter`, `reporterIp`, `target`, `reson`, `info`, `timestamp`, `open` FROM `report_reports`", -1);
+		query = MySQL.getInstance().querySync("SELECT `reportId`, `reporter`, `reporterIp`, `target`, `reson`, `info`, `timestamp`, `state` FROM `report_reports`", -1);
 		for (String[] sreport : query) {
 			try {
 				int rid = Integer.parseInt(sreport[0]);
-				ReportEntity e = new ReportEntity(rid, Integer.parseInt(sreport[1]), sreport[2], Integer.parseInt(sreport[3]), sreport[4], sreport[5], Long.parseLong(sreport[6]), sreport[7].equalsIgnoreCase("1") || sreport[7].equalsIgnoreCase("true"), workers.get(rid));
+				ReportEntity e = new ReportEntity(rid, Integer.parseInt(sreport[1]), sreport[2], Integer.parseInt(sreport[3]), sreport[4], sreport[5], Long.parseLong(sreport[6]), Integer.parseInt(sreport[7]), workers.get(rid));
 			} catch (Exception e) {
 				System.err.println("Cant serelize report " + StringUtils.join(sreport, ":"));
 			}
@@ -61,9 +61,9 @@ public class ReportManager {
 	public int createReport(int reporter, int target, String reson, String info) {
 		OnlinePlayer preporter = PlayerManager.getPlayer(reporter);
 		String ip = preporter == null || preporter.getCurruntIp() == null ? "undefined" : preporter.getCurruntIp();
-		ReportEntity e = new ReportEntity(createReportId(), reporter, ip, target, reson, info, System.currentTimeMillis(), true, new ArrayList<>());
+		ReportEntity e = new ReportEntity(createReportId(), reporter, ip, target, reson, info, System.currentTimeMillis(), -1, new ArrayList<>());
 		entities.add(e);
-		MySQL.getInstance().command("INSERT INTO `report_reports`(`reportId`, `reporter`, `reporterIp`, `target`, `reson`, `info`, `timestamp`, `open`) VALUES ('"+e.getReportId()+"','"+e.getReporter()+"','"+e.getReporterIp()+"','"+e.getTarget()+"','"+e.getReson()+"','"+e.getInfos()+"','"+e.getTime()+"','"+(e.isOpen() ? "1":"0")+"')");
+		MySQL.getInstance().command("INSERT INTO `report_reports`(`reportId`, `reporter`, `reporterIp`, `target`, `reson`, `info`, `timestamp`, `state`) VALUES ('"+e.getReportId()+"','"+e.getReporter()+"','"+e.getReporterIp()+"','"+e.getTarget()+"','"+e.getReson()+"','"+e.getInfos()+"','"+e.getTime()+"','"+e.getState()+"')");
 		return e.getReportId();
 	}
 
@@ -129,11 +129,11 @@ public class ReportManager {
 	}
 
 	public void saveReportEntity(ReportEntity report) {
-		String command = "UPDATE `report_reports` SET `reporter`='" + report.getReporter() + "',`reporterIp`='" + report.getReporterIp() + "',`target`='" + report.getTarget() + "',`reson`='" + report.getReson() + "',`info`='" + report.getInfos() + "',`open`='" + (report.isOpen() ? "1" : "0") + "' WHERE `reportId`='" + report.getReportId() + "'";
+		String command = "UPDATE `report_reports` SET `reporter`='" + report.getReporter() + "',`reporterIp`='" + report.getReporterIp() + "',`target`='" + report.getTarget() + "',`reson`='" + report.getReson() + "',`info`='" + report.getInfos() + "',`state`='" + report.getState() + "' WHERE `reportId`='" + report.getReportId() + "'";
 		MySQL.getInstance().command(command);
 	}
-	public void closeReport(ReportEntity e) {
-		e.setOpen(false);
+	public void closeReport(ReportEntity e,int state) {
+		e.setState(state);
 		saveReportEntity(e);
 	}
 }

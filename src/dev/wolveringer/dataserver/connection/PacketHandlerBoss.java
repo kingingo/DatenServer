@@ -571,7 +571,7 @@ public class PacketHandlerBoss {
 					owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Type report not found")));
 					return;
 				}
-				ReportManager.getInstance().closeReport(e);
+				ReportManager.getInstance().closeReport(e,p.getValue2());
 				return;
 			default:
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Type not found")));
