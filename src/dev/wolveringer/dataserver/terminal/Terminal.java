@@ -1,6 +1,7 @@
 package dev.wolveringer.dataserver.terminal;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.logging.Level;
 
@@ -21,7 +22,14 @@ public class Terminal {
 	public void init() {
 		AnsiConsole.systemInstall();
 		System.setOut(new CostumSystemPrintStream());
-		System.setErr(System.out);
+		final PrintStream defaultErr = System.err;
+		System.setErr(new CostumSystemPrintStream(){
+			@Override
+			public void write(String message) {
+				Main.logger.log(Level.WARNING, message);
+				defaultErr.println("\r"+message);
+			}
+		});
 		writer = new ConsoleWriter(this);
 		initReader();
 	}

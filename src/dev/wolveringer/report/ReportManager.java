@@ -47,7 +47,7 @@ public class ReportManager {
 			}
 		}
 
-		query = MySQL.getInstance().querySync("SELECT `reportId`, `reporter`, `reporterIp`, `target`, `reson`, `info`, `timestamp`, `state` FROM `report_reports`", -1);
+		query = MySQL.getInstance().querySync("SELECT `reportId`, `reporter`, `reporterIp`, `target`, `reson`, `info`, `timestamp`, `open` FROM `report_reports`", -1);
 		for (String[] sreport : query) {
 			try {
 				int rid = Integer.parseInt(sreport[0]);
@@ -61,9 +61,9 @@ public class ReportManager {
 	public int createReport(int reporter, int target, String reson, String info) {
 		OnlinePlayer preporter = PlayerManager.getPlayer(reporter);
 		String ip = preporter == null || preporter.getCurruntIp() == null ? "undefined" : preporter.getCurruntIp();
-		ReportEntity e = new ReportEntity(createReportId(), reporter, ip, target, reson, info, System.currentTimeMillis(), -1, new ArrayList<>());
+		ReportEntity e = new ReportEntity(createReportId(), reporter, ip, target, reson, info, System.currentTimeMillis(), 1, new ArrayList<>());
 		entities.add(e);
-		MySQL.getInstance().command("INSERT INTO `report_reports`(`reportId`, `reporter`, `reporterIp`, `target`, `reson`, `info`, `timestamp`, `state`) VALUES ('"+e.getReportId()+"','"+e.getReporter()+"','"+e.getReporterIp()+"','"+e.getTarget()+"','"+e.getReson()+"','"+e.getInfos()+"','"+e.getTime()+"','"+e.getState()+"')");
+		MySQL.getInstance().command("INSERT INTO `report_reports`(`reportId`, `reporter`, `reporterIp`, `target`, `reson`, `info`, `timestamp`, `open`) VALUES ('"+e.getReportId()+"','"+e.getReporter()+"','"+e.getReporterIp()+"','"+e.getTarget()+"','"+e.getReson()+"','"+e.getInfos()+"','"+e.getTime()+"','"+e.getState()+"')");
 		return e.getReportId();
 	}
 
@@ -129,7 +129,7 @@ public class ReportManager {
 	}
 
 	public void saveReportEntity(ReportEntity report) {
-		String command = "UPDATE `report_reports` SET `reporter`='" + report.getReporter() + "',`reporterIp`='" + report.getReporterIp() + "',`target`='" + report.getTarget() + "',`reson`='" + report.getReson() + "',`info`='" + report.getInfos() + "',`state`='" + report.getState() + "' WHERE `reportId`='" + report.getReportId() + "'";
+		String command = "UPDATE `report_reports` SET `reporter`='" + report.getReporter() + "',`reporterIp`='" + report.getReporterIp() + "',`target`='" + report.getTarget() + "',`reson`='" + report.getReson() + "',`info`='" + report.getInfos() + "',`open`='" + report.getState() + "' WHERE `reportId`='" + report.getReportId() + "'";
 		MySQL.getInstance().command(command);
 	}
 	public void closeReport(ReportEntity e,int state) {

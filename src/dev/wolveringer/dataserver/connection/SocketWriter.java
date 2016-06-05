@@ -24,7 +24,6 @@ public class SocketWriter {
 			System.out.println("Cant find Packet: " + packet);
 			return;
 		}
-
 		DataBuffer dbuffer = new DataBuffer();
 		dbuffer.writeInt(id);
 		dbuffer.writeUUID(packet.getPacketUUID());

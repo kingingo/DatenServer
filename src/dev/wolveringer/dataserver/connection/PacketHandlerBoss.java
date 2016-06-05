@@ -13,12 +13,14 @@ import dev.wolveringer.dataserver.ban.BanEntity;
 import dev.wolveringer.dataserver.ban.BanManager;
 import dev.wolveringer.dataserver.gamestats.GameState;
 import dev.wolveringer.dataserver.gamestats.GameType;
+import dev.wolveringer.dataserver.gamestats.StatsKey;
 import dev.wolveringer.dataserver.gamestats.TopStatsManager;
 import dev.wolveringer.dataserver.player.LanguageType;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.dataserver.player.Setting;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
+import dev.wolveringer.dataserver.protocoll.packets.PacketBoosterActive;
 import dev.wolveringer.dataserver.protocoll.packets.PacketBoosterStatusRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketBoosterStatusResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketChatMessage;
@@ -587,6 +589,10 @@ public class PacketHandlerBoss {
 			NetworkBooster booster = BoosterManager.getManager().getBooster(p.getType(),PlayerManager.getPlayer(p.getPlayerId()));
 			owner.writePacket(new PacketBoosterStatusResponse(booster.getPlayer(), booster.getType(), booster.getStart(), booster.getTime()));
 			return;
+		} else if(packet instanceof PacketBoosterActive){
+			PacketBoosterActive p = (PacketBoosterActive) packet;
+			OnlinePlayer player = PlayerManager.getPlayer(p.getPlayerId());
+			BoosterManager.getManager().activeBooster(player, p.getTime(), p.getType());
 		}
 	}
 

@@ -8,7 +8,6 @@ import java.util.Locale;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.fusesource.jansi.AnsiConsole;
 
 import dev.wolveringer.dataserver.Main;
 
@@ -52,7 +51,7 @@ public class CostumSystemPrintStream extends PrintStream {
 	}
 
 	public void write(byte[] buf, int off, int len) {
-		Main.getConsoleWriter().write("§cWritebyte: "+Arrays.toString(ArrayUtils.subarray(buf, off, off+len)));
+		write("§cWritebyte: "+Arrays.toString(ArrayUtils.subarray(buf, off, off+len)));
 	}
 
 	public void print(boolean b) {
@@ -92,77 +91,81 @@ public class CostumSystemPrintStream extends PrintStream {
 	}
 
 	public void println() {
-		Main.getConsoleWriter().write("");
+		write("");
 	}
 
 	public void println(boolean x) {
-		Main.getConsoleWriter().write(x+"");
+		write(x+"");
 	}
 
 	public void println(char x) {
-		Main.getConsoleWriter().write(ObjectUtils.toString(x));
+		write(ObjectUtils.toString(x));
 	}
 
 	public void println(int x) {
-		Main.getConsoleWriter().write(ObjectUtils.toString(x));
+		write(ObjectUtils.toString(x));
 	}
 
 	public void println(long x) {
-		Main.getConsoleWriter().write(ObjectUtils.toString(x));
+		write(ObjectUtils.toString(x));
 	}
 
 	public void println(float x) {
-		Main.getConsoleWriter().write(ObjectUtils.toString(x));
+		write(ObjectUtils.toString(x));
 	}
 
 	public void println(double x) {
-		Main.getConsoleWriter().write(ObjectUtils.toString(x));
+		write(ObjectUtils.toString(x));
 	}
 
 	public void println(char[] x) {
-		Main.getConsoleWriter().write(ObjectUtils.toString(x));
+		write(ObjectUtils.toString(x));
 	}
 
 	public void println(String x) {
-		Main.getConsoleWriter().write("["+Debugger.getLastCallerClass()+"] "+ObjectUtils.toString(x));
+		write("["+Debugger.getLastCallerClass()+"] "+ObjectUtils.toString(x));
 	}
 
 	public void println(Object x) {
-		Main.getConsoleWriter().write(ObjectUtils.toString(x));
+		write(ObjectUtils.toString(x));
 	}
 
 	public PrintStream printf(String format, Object... args) {
-		Main.getConsoleWriter().write(String.format(format, args));
+		write(String.format(format, args));
 		return this;
 	}
 
 	public PrintStream printf(Locale l, String format, Object... args) {
-		Main.getConsoleWriter().write(String.format(l,format, args));
+		write(String.format(l,format, args));
 		return this;
 	}
 
 	public PrintStream format(String format, Object... args) {
-		Main.getConsoleWriter().write(String.format(format, args));
+		write(String.format(format, args));
 		return this;
 	}
 
 	public PrintStream format(Locale l, String format, Object... args) {
-		Main.getConsoleWriter().write(String.format(l,format, args));
+		write(String.format(l,format, args));
 		return this;
 	}
 
 	public PrintStream append(CharSequence csq) {
-		Main.getConsoleWriter().write("§cAppend: "+csq);
+		write("§cAppend: "+csq);
 		return this;
 	}
 
 	public PrintStream append(CharSequence csq, int start, int end) {
-		Main.getConsoleWriter().write("§cAppend: "+csq);
+		write("§cAppend: "+csq);
 		return this;
 	}
 
 	public PrintStream append(char c) {
-		Main.getConsoleWriter().write("§cAppend: "+c);
+		write("§cAppend: "+c);
 		return this;
+	}
+	
+	public void write(String message){
+		Main.getConsoleWriter().write(message);
 	}
 }

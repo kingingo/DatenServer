@@ -48,7 +48,7 @@ public class ReaderThread {
 			throw new RuntimeException("Reader index wrong (Wrong length (" + length + "))");
 		}
 		byte[] bbuffer = new byte[length];
-		in.read(bbuffer);
+		in.read(bbuffer, 0, length);
 		ThreadHandleManager.join(new Runnable() {
 			@Override
 			public void run() {
