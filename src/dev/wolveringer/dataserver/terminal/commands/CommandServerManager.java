@@ -1,12 +1,15 @@
 package dev.wolveringer.dataserver.terminal.commands;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.connection.server.ServerThread;
@@ -34,11 +37,11 @@ public class CommandServerManager implements CommandExecutor {
 
 	@Override
 	public void onCommand(String command, ConsoleWriter writer, String[] args) {
-		if(args.length >= 1){
-			if(args[0].equalsIgnoreCase("list")){
+		if (args.length >= 1) {
+			if (args[0].equalsIgnoreCase("list")) {
 				CommandLine cmdArgs = paradiseOptions(args, 1, true);
-				if (cmdArgs == null){
-					writer.sendMessage("§cCommand line is null! (Input '"+Arrays.toString(ArrayUtils.subarray(args, 1, args.length))+"')");
+				if (cmdArgs == null) {
+					writer.sendMessage("§cCommand line is null! (Input '" + Arrays.toString(ArrayUtils.subarray(args, 1, args.length)) + "')");
 					return;
 				}
 				if (ClientType.valueOf(cmdArgs.getOptionValue("type", ClientType.ALL + "")) == null) {
@@ -52,7 +55,7 @@ public class CommandServerManager implements CommandExecutor {
 						writer.sendMessage("§cGameType not found!");
 						return;
 					}
-					writer.sendMessage("§aChecking for Gametype: "+type);
+					writer.sendMessage("§aChecking for Gametype: " + type);
 					clients = clients.filter(new Predicate<Client>() {
 						@Override
 						public boolean test(Client t) {
@@ -62,7 +65,7 @@ public class CommandServerManager implements CommandExecutor {
 				}
 				if (cmdArgs.hasOption("subtype")) {
 					String subType = cmdArgs.getOptionValue("subtype");
-					writer.sendMessage("§aChecking for subtype: "+subType);
+					writer.sendMessage("§aChecking for subtype: " + subType);
 					clients = clients.filter(new Predicate<Client>() {
 						@Override
 						public boolean test(Client t) {
@@ -70,7 +73,7 @@ public class CommandServerManager implements CommandExecutor {
 						}
 					});
 				}
-				if (cmdArgs.hasOption("inlobby")){
+				if (cmdArgs.hasOption("inlobby")) {
 					writer.sendMessage("§aChecking for inlobby");
 					clients = clients.filter(new Predicate<Client>() {
 						@Override
@@ -79,6 +82,16 @@ public class CommandServerManager implements CommandExecutor {
 						}
 					});
 				}
+				clients = clients.sorted(new Comparator<Client>() {
+					@Override
+					public int compare(Client c1, Client c2) {
+						if (c1 == null || c1.getName() == null)
+							return 1;
+						if (c2 == null || c2.getName() == null)
+							return -1;
+						return c1.getName().compareToIgnoreCase(c2.getName());
+					}
+				});
 				Iterator<Client> iclients = clients.iterator();
 				if (iclients.hasNext()) {
 					writer.sendMessage("§aServers:");
@@ -87,17 +100,16 @@ public class CommandServerManager implements CommandExecutor {
 					while (iclients.hasNext()) {
 						count++;
 						Client c = iclients.next();
-						player+=c.getPlayers().size();
-						writer.sendMessage(" §7- §"+(c.isConnected()?"a":"c") + c.getName() + "§r§7[§b" + c.getStatus().getSubType() + "§7] §eServer-ID: §6"+c.getStatus().getServerId()+" §eType: §6" + c.getType() + " §eGame: §6" + c.getStatus().getTyp() + " §eState: §6" + c.getStatus().getState() + " §ePlayers: " + c.getStatus().getPlayers()+" §ePublic: §6"+c.getStatus().isVisiable());
+						player += c.getPlayers().size();
+						writer.sendMessage(" §7- §" + (c.isConnected() ? "a" : "c") + c.getName() + "§r§7[§b" + c.getStatus().getSubType() + "§7] §eServer-ID: §6" + c.getStatus().getServerId() + " §eType: §6" + c.getType() + " §eGame: §6" + c.getStatus().getTyp() + " §eState: §6" + c.getStatus().getState() + " §ePlayers: " + c.getStatus().getPlayers() + " §ePublic: §6" + c.getStatus().isVisiable());
 					}
-					writer.sendMessage("§a"+count+" Servers are now displayed. Player online on this servers: "+player);
+					writer.sendMessage("§a" + count + " Servers are now displayed. Player online on this servers: " + player);
 				} else
 					writer.sendMessage("§cEs wurden keine Server unter diesem Parameter gefunden.");
-			}
-			else if(args[0].equalsIgnoreCase("printLobbies")){
+			} else if (args[0].equalsIgnoreCase("printLobbies")) {
 				ArcadeManager.writeServers();
 			}
-			if(args[0].equalsIgnoreCase("restart")){
+			if (args[0].equalsIgnoreCase("restart")) {
 				CommandLine cmdArgs = paradiseOptions(args, 1, true);
 				if (cmdArgs == null)
 					return;
@@ -130,29 +142,30 @@ public class CommandServerManager implements CommandExecutor {
 					clients = clients.filter(new Predicate<Client>() {
 						@Override
 						public boolean test(Client t) {
-							if(t == null ||t.getStatus() == null|| t.getStatus().getSubType() == null)
+							if (t == null || t.getStatus() == null || t.getStatus().getSubType() == null)
 								return false;
 							return t.getStatus().getSubType().matches(subType);
 						}
 					});
 					filter++;
 				}
-				if(filter == 0){
+				if (filter == 0) {
 					writer.sendMessage("Please provide a filter!");
 					return;
 				}
 				Iterator<Client> iclients = clients.iterator();
 				int count = 0;
 				String message = "§cServer is restarting.";
-				if(cmdArgs.hasOption("message"))
+				if (cmdArgs.hasOption("message"))
 					message = ChatColor.translateAlternateColorCodes('&', cmdArgs.getOptionValue("message"));
 				while (iclients.hasNext()) {
 					count++;
-					iclients.next().writePacket(new PacketServerAction(new PacketServerAction.PlayerAction[]{new PacketServerAction.PlayerAction(-1, Action.RESTART, message)}));
+					iclients.next().writePacket(new PacketServerAction(new PacketServerAction.PlayerAction[]
+					{ new PacketServerAction.PlayerAction(-1, Action.RESTART, message) }));
 				}
-				writer.sendMessage("§c"+count+" server are restarting");
+				writer.sendMessage("§c" + count + " server are restarting");
 			}
-			if(args[0].equalsIgnoreCase("stop")){
+			if (args[0].equalsIgnoreCase("stop")) {
 				CommandLine cmdArgs = paradiseOptions(args, 1, true);
 				if (cmdArgs == null)
 					return;
@@ -185,69 +198,67 @@ public class CommandServerManager implements CommandExecutor {
 					});
 					filter++;
 				}
-				if(filter == 0){
+				if (filter == 0) {
 					writer.sendMessage("Please provide a filter!");
 					return;
 				}
 				Iterator<Client> iclients = clients.iterator();
 				int count = 0;
 				String message = "§cServer is stoping.";
-				if(cmdArgs.hasOption("message"))
+				if (cmdArgs.hasOption("message"))
 					message = ChatColor.translateAlternateColorCodes('&', cmdArgs.getOptionValue("message"));
 				while (iclients.hasNext()) {
 					count++;
-					iclients.next().writePacket(new PacketServerAction(new PacketServerAction.PlayerAction[]{new PacketServerAction.PlayerAction(-1, Action.RESTART, message)}));
+					iclients.next().writePacket(new PacketServerAction(new PacketServerAction.PlayerAction[]
+					{ new PacketServerAction.PlayerAction(-1, Action.STOP, message) }));
 				}
-				writer.sendMessage("§c"+count+" server are stoping");
+				writer.sendMessage("§c" + count + " server are stoping");
 			}
 		}
-		if(args.length == 2){
-			if(args[0].equalsIgnoreCase("info")){
+		if (args.length == 2) {
+			if (args[0].equalsIgnoreCase("info")) {
 				Client client = ServerThread.getServer(args[1]);
-				if(client == null)
+				if (client == null)
 					writer.sendMessage("§cClient not found!");
-				else
-				{
-					writer.sendMessage("§aServerinformationen für den Server: "+client.getName());
-					writer.sendMessage("  §aHost: §b"+client.getHost());
-					writer.sendMessage("  §aPing: §b"+client.getPing());
-					writer.sendMessage("  §aType: §b"+client.getType());
-					if(client.getType() != ClientType.BUNGEECORD){
-						writer.sendMessage("  §aGamemode: §b"+client.getStatus().getTyp());
-						writer.sendMessage("  §aSub-type: §b"+client.getStatus().getSubType());
-						writer.sendMessage("  §aState: §b"+client.getStatus().getState());
+				else {
+					writer.sendMessage("§aServerinformationen für den Server: " + client.getName());
+					writer.sendMessage("  §aHost: §b" + client.getHost());
+					writer.sendMessage("  §aPing: §b" + client.getPing());
+					writer.sendMessage("  §aType: §b" + client.getType());
+					if (client.getType() != ClientType.BUNGEECORD) {
+						writer.sendMessage("  §aGamemode: §b" + client.getStatus().getTyp());
+						writer.sendMessage("  §aSub-type: §b" + client.getStatus().getSubType());
+						writer.sendMessage("  §aState: §b" + client.getStatus().getState());
 					}
-					writer.sendMessage("  §aSpieler: §b"+client.getStatus().getPlayers()+"/"+client.getStatus().getPlayers());
-					writer.sendMessage("  §aVisiable: §b"+client.getStatus().isVisiable());
+					writer.sendMessage("  §aSpieler: §b" + client.getStatus().getPlayers() + "/" + client.getStatus().getPlayers());
+					writer.sendMessage("  §aVisiable: §b" + client.getStatus().isVisiable());
 				}
-			}
-			else if(args[0].equalsIgnoreCase("blacklist") && args[1].equalsIgnoreCase("list")){
+			} else if (args[0].equalsIgnoreCase("blacklist") && args[1].equalsIgnoreCase("list")) {
 				writer.sendMessage("§aBlacklist:");
-				for(GameType t : ArcadeManager.getBlackList().keySet()){
-					writer.sendMessage("  §aType: "+t);
-					for(String un : ArcadeManager.getBlackList().get(t))
-						writer.sendMessage("  §7- §e"+un);
+				for (GameType t : ArcadeManager.getBlackList().keySet()) {
+					writer.sendMessage("  §aType: " + t);
+					for (String un : ArcadeManager.getBlackList().get(t))
+						writer.sendMessage("  §7- §e" + un);
 				}
 			}
 		}
-		if(args.length >= 2){
-			if(args[0].equalsIgnoreCase("switch")){
+		if (args.length >= 2) {
+			if (args[0].equalsIgnoreCase("switch")) {
 				Client client = ServerThread.getServer(args[1]);
-				if(client == null)
+				if (client == null)
 					writer.sendMessage("§cClient not found!");
-				else
-				{
-					if(client.getType() != ClientType.ACARDE){
+				else {
+					if (client.getType() != ClientType.ACARDE) {
 						writer.sendMessage("§cClient isnt a Arcade Server!");
 						return;
 					}
 					GameType type = GameType.valueOf(args[2]);
 					String subType = args.length == 4 ? args[3] : "NONE";
-					if(type == null){
+					if (type == null) {
 						writer.sendMessage("§cGameType not found");
 						return;
 					}
-					if(client.getStatus().getTyp() == type && client.getStatus().getSubType().equalsIgnoreCase(subType)){
+					if (client.getStatus().getTyp() == type && client.getStatus().getSubType().equalsIgnoreCase(subType)) {
 						writer.sendMessage("§aServer ist schon in diesem zustand!");
 						return;
 					}
@@ -256,41 +267,38 @@ public class CommandServerManager implements CommandExecutor {
 				}
 			}
 		}
-		if(args.length == 3){
-			if(args[0].equalsIgnoreCase("setVisiabe")){
+		if (args.length == 3) {
+			if (args[0].equalsIgnoreCase("setVisiabe")) {
 				Client client = ServerThread.getServer(args[1]);
-				if(client == null)
+				if (client == null)
 					writer.sendMessage("§cClient not found!");
-				else
-				{
+				else {
 					boolean flag = Boolean.getBoolean(args[2]);
 					client.getStatus().setVisiable(flag);
 					writer.sendMessage("§aDu hast die sichtbarkeit geändert.");
 				}
 			}
 		}
-		
-		if(args.length == 4){
-			if(args[0].equalsIgnoreCase("blacklist")){
+
+		if (args.length == 4) {
+			if (args[0].equalsIgnoreCase("blacklist")) {
 				GameType type = GameType.valueOf(args[2]);
-				if(type == null){
+				if (type == null) {
 					writer.sendMessage("§cGametype not found.");
 					return;
 				}
-				if(args[1].equalsIgnoreCase("add")){
-					if(ArcadeManager.getBlackList().get(type).add(args[3]))
+				if (args[1].equalsIgnoreCase("add")) {
+					if (ArcadeManager.getBlackList().get(type).add(args[3]))
 						writer.sendMessage("§aType blacklisted");
 					else
 						writer.sendMessage("§cType alredy blacklisted!");
-				}
-				else if(args[1].equalsIgnoreCase("remove")){
-					if(ArcadeManager.getBlackList().get(type).remove(args[3]))
+				} else if (args[1].equalsIgnoreCase("remove")) {
+					if (ArcadeManager.getBlackList().get(type).remove(args[3]))
 						writer.sendMessage("§aBlacklist type removed!");
 					else
 						writer.sendMessage("§cServer subtype isnt blacklisted.");
-				}
-				else
-					writer.sendMessage("§cOperaion "+args[1]+" not supported.");
+				} else
+					writer.sendMessage("§cOperaion " + args[1] + " not supported.");
 			}
 		}
 	}
@@ -303,7 +311,7 @@ public class CommandServerManager implements CommandExecutor {
 		builder.arg(new Argument("/smanager restart [-subtype <pattern> | -gametype <gametype> | -type <clientype> | -m <message>]", "Restart all servers with condition"));
 		builder.arg(new Argument("/smanager stop [-subtype <pattern> | -gametype <gametype> | -type <clientype> | -m <message>]", "Stop all servers with condition"));
 		builder.arg(new Argument("/smanager switch <ClientName> <GameType> [<SubType>]", "Switch a server to an other type"));
-		builder.arg(new Argument("/smanager setVisiabe <ClientName> <flag>", "Set the server visiablety",true));
+		builder.arg(new Argument("/smanager setVisiabe <ClientName> <flag>", "Set the server visiablety", true));
 		builder.arg(new Argument("/smanager blocklist add <Gametype> <Subtype>", "Add servertype to blacklist"));
 		builder.arg(new Argument("/smanager blocklist remove <Gametype> <Subtype>", "Remove servertype from blacklist"));
 		builder.arg(new Argument("/smanager blocklist list", "List all blocked server types."));

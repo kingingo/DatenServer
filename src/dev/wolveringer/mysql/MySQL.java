@@ -132,6 +132,10 @@ public class MySQL {
 		return conn;
 	}
 	
+	public ArrayList<String[]> querySync(String select) {
+		return querySync(select, -1);
+	}
+	
 	public ArrayList<String[]> querySync(String select, int limit) {
 		ArrayList<String[]> x = new ArrayList<String[]>();
 		Connection conn = getNextConnectionInstance();

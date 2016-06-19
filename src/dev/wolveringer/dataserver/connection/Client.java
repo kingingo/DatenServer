@@ -1,6 +1,8 @@
 package dev.wolveringer.dataserver.connection;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -148,7 +150,11 @@ public class Client {
 	public boolean isConnected() {
 		return connected;
 	}
-
+	
+	public InetAddress getRemoteAdress(){
+		return ((InetSocketAddress)socket.getRemoteSocketAddress()).getAddress();
+	}
+	
 	public boolean isReachable(int timeout) {
 		long sended = System.currentTimeMillis();
 		writePacket(new PacketPong(sended));

@@ -3,12 +3,14 @@ package dev.wolveringer.event;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.UUID;
 
 import dev.wolveringer.booster.BoosterType;
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.connection.Client;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
+import dev.wolveringer.events.Event;
 import dev.wolveringer.events.EventConditions;
 import dev.wolveringer.events.booster.BoosterStatusChangeEvent;
 import dev.wolveringer.events.player.PlayerServerSwitchEvent;
@@ -39,6 +41,14 @@ public class EventHelper {
 		BoosterStatusChangeEvent event = new BoosterStatusChangeEvent(type, active);
 		EventConditionKeyBuilder builder = new EventConditionKeyBuilder();
 		builder.put(EventConditions.BOOSTER_TYPE, type);
+		EventConditionKey[] keys = builder.build();
+		for(Client c : ServerThread.getServer(ClientType.ALL))
+			c.getEventHander().callEvent(event,keys);
+	}
+	
+	public static void callGildEvent(UUID gilde,Event event){
+		EventConditionKeyBuilder builder = new EventConditionKeyBuilder();
+		builder.put(EventConditions.GILDE_UUID, gilde);
 		EventConditionKey[] keys = builder.build();
 		for(Client c : ServerThread.getServer(ClientType.ALL))
 			c.getEventHander().callEvent(event,keys);

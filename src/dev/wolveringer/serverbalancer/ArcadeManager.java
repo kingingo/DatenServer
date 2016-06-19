@@ -56,7 +56,7 @@ public class ArcadeManager {
 			return true;
 		}
 	}
-	private static final int MIN_FREE_SERVER = 3;
+	private static final int MIN_FREE_SERVER = 2;
 
 	private static HashMap<ServerType, ArrayList<Client>> lastCalculated = new HashMap<>();
 	private static ArrayList<ServerType> types = new ArrayList<>();
@@ -128,11 +128,10 @@ public class ArcadeManager {
 					continue;
 				if(!servers.containsKey(game))
 					servers.put(game, new CachedArrayList<>(1, TimeUnit.MINUTES));
-				if (servers.get(game).size() < getMinServer(game)) {
+				if (servers.get(game).size()+serverChanging.get(game).size() < getMinServer(game)) {
 					filled++;
 					needed -= 1;
 					freeServersLeft--;
-					//System.out.println("Fills: "+fills+" Game: "+game);
 					if(!freeServer.hasNext())
 						continue;
 					Client next = freeServer.next();

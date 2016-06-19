@@ -57,6 +57,9 @@ public class ReaderThread {
 				DataBuffer buffer = new DataBuffer(bbuffer);
 				int id = 0;
 				Packet packet = Packet.createPacket(id = buffer.readInt(), buffer, PacketDirection.TO_SERVER);
+				if(packet == null){
+					System.out.println("packet is null! (Seems like packet not found!) (IP: "+client.host+"/"+client.getRemoteAdress()+")");
+				}
 				try {
 					client.getHandlerBoss().handle(packet);
 				} catch (Exception e) {

@@ -28,8 +28,7 @@ public class BoosterManager implements UnloadListener<Entry<BoosterType, Network
 		BoosterManager.manager = manager;
 	}
 	
-	@SuppressWarnings("serial")
-	private CachedArrayList<Entry<BoosterType, NetworkBooster>> times = new CachedArrayList<>(1, TimeUnit.MINUTES);
+	private CachedArrayList<Entry<BoosterType, NetworkBooster>> times = new CachedArrayList<>(1, TimeUnit.SECONDS);
 	
 	public BoosterManager() {
 		times.addUnloadListener(this);
@@ -41,7 +40,8 @@ public class BoosterManager implements UnloadListener<Entry<BoosterType, Network
 		for(Entry<BoosterType, NetworkBooster> e : new ArrayList<>(times))
 			if(e.getKey() == type)
 				times.remove(e);
-		times.add(new WriteThrowEntry(type, new NetworkBooster(System.currentTimeMillis(), time, player.getPlayerId(), type, true)));
+		System.out.println("Time cash: "+time);
+		times.add(new WriteThrowEntry(type, new NetworkBooster(System.currentTimeMillis(), time, player.getPlayerId(), type, true)),time,TimeUnit.MILLISECONDS);
 		EventHelper.callNetworkBoosterUpdateEvent(type, true);
 	}
 	public NetworkBooster getBooster(BoosterType type,OnlinePlayer player){
@@ -60,6 +60,7 @@ public class BoosterManager implements UnloadListener<Entry<BoosterType, Network
 	}
 	@Override
 	public boolean canUnload(Entry<BoosterType, NetworkBooster> element) {
+		System.out.println("Unload booster");
 		EventHelper.callNetworkBoosterUpdateEvent(element.getKey(), false);
 		return true;
 	}

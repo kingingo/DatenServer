@@ -1,5 +1,6 @@
 package dev.wolveringer.dataserver.connection;
 
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,6 +30,20 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketDisconnect;
 import dev.wolveringer.dataserver.protocoll.packets.PacketEventCondition;
 import dev.wolveringer.dataserver.protocoll.packets.PacketEventTypeSettings;
 import dev.wolveringer.dataserver.protocoll.packets.PacketForward;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildCostumDataAction;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildCostumDataResponse;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildInformationRequest;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildInformationResponse;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemberRequest;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemberResponse;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemberResponse.MemberInformation;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemeberAction;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildPermissionEdit;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildPermissionRequest;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildPermissionResponse;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildSarch;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildSarchResponse;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildUpdateSectionStatus;
 import dev.wolveringer.dataserver.protocoll.packets.PacketHandshakeInStart;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInBanPlayer;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInBanStatsRequest;
@@ -77,6 +92,10 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketSkinSet;
 import dev.wolveringer.dataserver.skin.SkinCache;
 import dev.wolveringer.doublecoins.BoosterManager;
 import dev.wolveringer.event.EventHelper;
+import dev.wolveringer.gild.GildPermissionGroup;
+import dev.wolveringer.gild.Gilde;
+import dev.wolveringer.gild.GildenManager;
+import dev.wolveringer.gilde.GildeType;
 import dev.wolveringer.language.LanguageFile;
 import dev.wolveringer.language.LanguageManager;
 import dev.wolveringer.report.ReportEntity;
@@ -519,7 +538,7 @@ public class PacketHandlerBoss {
 						ids[i] = PlayerManager.getPlayer(((PacketPlayerIdRequest) packet).getUuids()[i]).getPlayerId();
 					} catch (Exception e) {
 						e.printStackTrace();
-						ids[i] = -2;
+						ids[i] = -3;
 					}
 			}
 			if(ids == null)
@@ -593,6 +612,144 @@ public class PacketHandlerBoss {
 			PacketBoosterActive p = (PacketBoosterActive) packet;
 			OnlinePlayer player = PlayerManager.getPlayer(p.getPlayerId());
 			BoosterManager.getManager().activeBooster(player, p.getTime(), p.getType());
+			owner.writePacket(new PacketOutPacketStatus(packet, null));
+		}
+		
+		else if(packet instanceof PacketGildSarch){
+			Gilde gilde = null;
+			switch (((PacketGildSarch) packet).getAction()) {
+			case GILDE_NAME:
+				gilde = GildenManager.getManager().getGilde(((PacketGildSarch) packet).getValue());
+				break;
+			case PLAYER:
+				gilde = GildenManager.getManager().getGilde(Integer.parseInt(((PacketGildSarch) packet).getValue().split(";")[0]), GildeType.values()[Integer.parseInt(((PacketGildSarch) packet).getValue().split(";")[0])]);
+				break;
+			default:
+				break;
+			}
+			owner.writePacket(new PacketGildSarchResponse(packet.getPacketUUID(), ((PacketGildSarch) packet).getValue(), gilde == null ? null : gilde.getUuid()));
+		}
+		else if(packet instanceof PacketGildInformationRequest){
+			Gilde gilde = GildenManager.getManager().getGilde((((PacketGildInformationRequest) packet).getGild()));
+			if(gilde == null){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-2, "Gilde not found!")));
+				return;
+			}
+			owner.writePacket(new PacketGildInformationResponse(gilde.getUuid(), gilde.getActiveSectionsArray(), gilde.getName(), gilde.getShortName(), gilde.getOwnerId()));
+		}
+		else if(packet instanceof PacketGildCostumDataAction){
+			Gilde gilde = GildenManager.getManager().getGilde((((PacketGildCostumDataAction) packet).getGilde()));
+			if(gilde == null){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-2, "Gilde not found!")));
+				return;
+			}
+			if(!gilde.getSelection(((PacketGildCostumDataAction) packet).getType()).isActive()){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Section not active!")));
+				return;
+			}
+			switch (((PacketGildCostumDataAction) packet).getAction()) {
+			case GET:
+				owner.writePacket(new PacketGildCostumDataResponse(gilde.getUuid(), ((PacketGildCostumDataAction) packet).getType(), gilde.getSelection(((PacketGildCostumDataAction) packet).getType()).getCostumData()));
+				return;
+			case SET:
+				gilde.getSelection(((PacketGildCostumDataAction) packet).getType()).setCostumData(((PacketGildCostumDataAction) packet).getData());
+				owner.writePacket(new PacketOutPacketStatus(packet, null));
+				return;
+			default:
+				break;
+			}
+		}
+		else if(packet instanceof PacketGildMemberRequest){
+			Gilde gilde = GildenManager.getManager().getGilde((((PacketGildMemberRequest) packet).getGilde()));
+			if(gilde == null){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-2, "Gilde not found!")));
+				return;
+			}
+			if(!gilde.getSelection(((PacketGildMemberRequest) packet).getType()).isActive()){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Section not active!")));
+				return;
+			}
+			owner.writePacket(new PacketGildMemberResponse(gilde.getUuid(), gilde.buildMemberInfo()));
+		}
+		else if(packet instanceof PacketGildMemeberAction){
+			Gilde gilde = GildenManager.getManager().getGilde((((PacketGildMemeberAction) packet).getGilde()));
+			if(gilde == null){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-2, "Gilde not found!")));
+				return;
+			}
+			if(!gilde.getSelection(((PacketGildMemeberAction) packet).getType()).isActive()){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Section not active!")));
+				return;
+			}
+			switch (((PacketGildMemeberAction) packet).getAction()) {
+			case CHANGE_GROUP:
+				gilde.getSelection(((PacketGildMemeberAction) packet).getType()).addPlayer(((PacketGildMemeberAction) packet).getPlayerId(), ((PacketGildMemeberAction) packet).getData());
+				break;
+			case KICK:
+				gilde.getSelection(((PacketGildMemeberAction) packet).getType()).removePlayer(((PacketGildMemeberAction) packet).getPlayerId());
+				break;
+			default:
+				System.out.println("Type -> "+((PacketGildMemeberAction) packet).getAction()+" not supported");
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Type -> "+((PacketGildMemeberAction) packet).getAction()+" not supported")));
+				return;
+			}
+			owner.writePacket(new PacketOutPacketStatus(packet, null));
+		}
+		else if(packet instanceof PacketGildPermissionRequest){
+			Gilde gilde = GildenManager.getManager().getGilde((((PacketGildPermissionRequest) packet).getGilde()));
+			if(gilde == null){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-2, "Gilde not found!")));
+				return;
+			}
+			if(!gilde.getSelection(((PacketGildPermissionRequest) packet).getType()).isActive()){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Section not active!")));
+				return;
+			}
+			if(((PacketGildPermissionRequest) packet).getGroup() == null){
+				owner.writePacket(new PacketGildPermissionResponse(gilde.getUuid(), ((PacketGildPermissionRequest) packet).getType(), ((PacketGildPermissionRequest) packet).getGroup(), gilde.getSelection(((PacketGildPermissionRequest) packet).getType()).getPermission().getGroups()));
+				return;
+			}
+			owner.writePacket(new PacketGildPermissionResponse(gilde.getUuid(), ((PacketGildPermissionRequest) packet).getType(), ((PacketGildPermissionRequest) packet).getGroup(), gilde.getSelection(((PacketGildPermissionRequest) packet).getType()).getPermission().getGroup(((PacketGildPermissionRequest) packet).getGroup()).getPermissions()));
+		}
+		else if(packet instanceof PacketGildPermissionEdit){
+			Gilde gilde = GildenManager.getManager().getGilde((((PacketGildPermissionEdit) packet).getGilde()));
+			if(gilde == null){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-2, "Gilde not found!")));
+				return;
+			}
+			if(!gilde.getSelection(((PacketGildPermissionEdit) packet).getType()).isActive()){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Section not active!")));
+				return;
+			}
+			switch (((PacketGildPermissionEdit) packet).getAction()) {
+			case ADD_PERMISSION:
+				gilde.getSelection(((PacketGildPermissionEdit) packet).getType()).getPermission().getGroup(((PacketGildPermissionEdit) packet).getGroup()).addPermission(((PacketGildPermissionEdit) packet).getPermission());
+				owner.writePacket(new PacketOutPacketStatus(packet, null));
+				return;
+			case REMOVE_PERMISSION:
+				gilde.getSelection(((PacketGildPermissionEdit) packet).getType()).getPermission().getGroup(((PacketGildPermissionEdit) packet).getGroup()).removePermission(((PacketGildPermissionEdit) packet).getPermission());
+				owner.writePacket(new PacketOutPacketStatus(packet, null));
+				return;
+			case DELETE_GROUP:
+				gilde.getSelection(((PacketGildPermissionEdit) packet).getType()).getPermission().deleteGroup(((PacketGildPermissionEdit) packet).getGroup());
+				owner.writePacket(new PacketOutPacketStatus(packet, null));
+				return;
+			case CREATE_GROUP:
+				gilde.getSelection(((PacketGildPermissionEdit) packet).getType()).getPermission().createGroup(((PacketGildPermissionEdit) packet).getGroup());
+				owner.writePacket(new PacketOutPacketStatus(packet, null));
+				return;
+			default:
+				break;
+			}
+		}
+		else if(packet instanceof PacketGildUpdateSectionStatus){
+			Gilde gilde = GildenManager.getManager().getGilde((((PacketGildUpdateSectionStatus) packet).getGilde()));
+			if(gilde == null){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-2, "Gilde not found!")));
+				return;
+			}
+			gilde.getSelection(((PacketGildUpdateSectionStatus) packet).getType()).setActive(((PacketGildUpdateSectionStatus) packet).isState());
+			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		}
 	}
 

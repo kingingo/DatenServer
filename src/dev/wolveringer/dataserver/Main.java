@@ -17,6 +17,7 @@ import dev.wolveringer.dataserver.save.SaveManager;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
 import dev.wolveringer.dataserver.terminal.Terminal;
 import dev.wolveringer.doublecoins.BoosterManager;
+import dev.wolveringer.gild.GildenManager;
 import dev.wolveringer.language.LanguageManager;
 import dev.wolveringer.log.SystemLogger;
 import dev.wolveringer.mysql.MySQL;
@@ -78,6 +79,8 @@ public class Main {
 		ReportManager.setInstance(new ReportManager());
 		BoosterManager.setManager(new BoosterManager());
 		ReportManager.getInstance().load();
+		GildenManager.setManager(new GildenManager());
+		
 		TickScheduler s = new TickScheduler();
 		s.start();
 		restarter = new RestartTimer(3, 0, 0);
@@ -105,6 +108,7 @@ public class Main {
 		Main.getConsoleWriter().sendMessage("§cStopping server!");
 		Main.getTerminal().lock("§cShutting down...");
 		Main.getServer().stop();
+		MySQL.getInstance().getEventLoop().waitForAll();
 		PlayerManager.unloadAll();
 		Main.getTerminal().unlock();
 		Main.getTerminal().uninstall();
