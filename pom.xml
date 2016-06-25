@@ -81,6 +81,24 @@
 			</plugin>
 		</plugins>
 	</build>
+	<distributionManagement>
+		<repository>
+			<id>epicpvp-releases</id>
+			<name>epicpvp-artifactory-releases</name>
+			<url>http://149.202.150.185:8081/artifactory/epicpvp-releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>epicpvp-snapshots</id>
+			<name>epicpvp-artifactory-snapshots</name>
+			<url>http://149.202.150.185:8081/artifactory/epicpvp-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+	<repositories>
+		<repository>
+			<id>epicpvp-all</id>
+			<url>http://149.202.150.185:8081/artifactory/epicpvp-all/</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
