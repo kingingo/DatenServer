@@ -10,6 +10,7 @@ import dev.wolveringer.dataserver.terminal.commands.CommandBroadcast;
 import dev.wolveringer.dataserver.terminal.commands.CommandGlist;
 import dev.wolveringer.dataserver.terminal.commands.CommandHelp;
 import dev.wolveringer.dataserver.terminal.commands.CommandPlayerManager;
+import dev.wolveringer.dataserver.terminal.commands.CommandReport;
 import dev.wolveringer.dataserver.terminal.commands.CommandRestart;
 import dev.wolveringer.dataserver.terminal.commands.CommandSendMessage;
 import dev.wolveringer.dataserver.terminal.commands.CommandServerManager;
@@ -38,6 +39,7 @@ public class CommandRegistry {
 		registerCommand(new CommandSendMessage(), "sendMessage");
 		registerCommand(new CommandBroadcast(), "broadcast","bc");
 		registerCommand(new CommandGlist(), "glist");
+		registerCommand(new CommandReport(), "report");
 	}
 	
 	private static CopyOnWriteArrayList<CommandHolder> cmds;

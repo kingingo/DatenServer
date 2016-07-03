@@ -121,6 +121,13 @@ public class Terminal {
 	}
 	
 	protected synchronized void write(String message) {
+		if(message == null || message.length() == 0)
+			return;
+		if(message.split("\n").length > 1){
+			for(String s : message.split("\n"))
+				write(s);
+			return;
+		}
 		try {
 			Main.logger.log(Level.INFO, message);
 			String promt = "";

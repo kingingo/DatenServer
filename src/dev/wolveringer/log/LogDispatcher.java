@@ -23,7 +23,11 @@ public class LogDispatcher extends Thread {
 			} catch (InterruptedException ex) {
 				continue;
 			}
-
+			int length = record.getMessage().getBytes().length;
+			if(length > 65536){
+				System.err.println("§cTry to logging a too long message. (Length: "+length+")");
+				continue;
+			}
 			logger.doLog(record);
 		}
 		for (LogRecord record : queue) {

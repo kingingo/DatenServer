@@ -108,8 +108,8 @@ public class Main {
 		Main.getConsoleWriter().sendMessage("§cStopping server!");
 		Main.getTerminal().lock("§cShutting down...");
 		Main.getServer().stop();
-		MySQL.getInstance().getEventLoop().waitForAll();
 		PlayerManager.unloadAll();
+		MySQL.getInstance().getEventLoop().waitForAll();
 		Main.getTerminal().unlock();
 		Main.getTerminal().uninstall();
 		System.exit(-1);

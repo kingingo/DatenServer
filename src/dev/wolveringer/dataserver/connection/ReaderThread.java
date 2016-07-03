@@ -3,6 +3,8 @@ package dev.wolveringer.dataserver.connection;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.google.common.primitives.UnsignedInteger;
+
 import dev.wolveringer.dataserver.protocoll.DataBuffer;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPacketStatus;
@@ -46,6 +48,11 @@ public class ReaderThread {
 		int length = (in.read() << 24) & 0xff000000 | (in.read() << 16) & 0x00ff0000 | (in.read() << 8) & 0x0000ff00 | (in.read() << 0) & 0x000000ff;
 		if (length <= 0) {
 			throw new RuntimeException("Reader index wrong (Wrong length (" + length + "))");
+		}
+		if(length > 65536){
+			System.out.println("Try to read a too long packet (Length: "+length+")");
+			in.skip(length);
+			return;
 		}
 		byte[] bbuffer = new byte[length];
 		in.read(bbuffer, 0, length);
@@ -99,5 +106,7 @@ public class ReaderThread {
 			reader.interrupt();
 		}
 	}
-
+	public static void main(String[] args) {
+		System.out.println(UnsignedInteger.asUnsigned(Short.MIN_VALUE));
+	}
 }

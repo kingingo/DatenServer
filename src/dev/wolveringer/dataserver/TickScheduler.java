@@ -17,7 +17,6 @@ public class TickScheduler {
 					long start = System.currentTimeMillis();
 					System.out.println("Start balancing");
 					ArcadeManager.balance();
-					ArcadeManager.writeServers();
 					System.out.println("Balancing done in "+(System.currentTimeMillis()-start)+"ms");
 				}catch(Exception e){
 					e.printStackTrace();

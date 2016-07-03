@@ -181,7 +181,7 @@ public class PacketHandlerBoss {
 			player.setServer(((PacketInServerSwitch) packet).getServer(), owner);
 
 			EventHelper.callServerSwitchEvent(player, owner, old, player.getServer());
-			System.out.println("Player switched (" + ((PacketInServerSwitch) packet).getPlayer() + ") -> " + ((PacketInServerSwitch) packet).getServer());
+			System.out.println("Player switched "+PlayerManager.getPlayer(((PacketInServerSwitch) packet).getPlayer()).getName()+" (" + ((PacketInServerSwitch) packet).getPlayer() + ") -> " + ((PacketInServerSwitch) packet).getServer());
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		} else if (packet instanceof PacketInStatsEdit) {
 			OnlinePlayer player = PlayerManager.getPlayer(((PacketInStatsEdit) packet).getPlayer());
@@ -299,8 +299,16 @@ public class PacketHandlerBoss {
 			}
 			owner.writePacket(new PacketOutPlayerServer(player.getPlayerId(), player.getServer()));
 		} else if (packet instanceof PacketInBanStatsRequest) {//TODO down
-			BanEntity e = BanManager.getManager().getEntity(((PacketInBanStatsRequest) packet).getName(), ((PacketInBanStatsRequest) packet).getIp(), ((PacketInBanStatsRequest) packet).getPlayer());
-			owner.writePacket(new PacketOutBanStats(packet.getPacketUUID(), e));
+			if(((PacketInBanStatsRequest) packet).getDeep() == 1){
+				BanEntity e = BanManager.getManager().getEntity(((PacketInBanStatsRequest) packet).getName(), ((PacketInBanStatsRequest) packet).getIp(), ((PacketInBanStatsRequest) packet).getPlayer());
+				if(e == null)
+					owner.writePacket(new PacketOutBanStats(packet.getPacketUUID(), Arrays.asList())); //Faster but only for one entity
+				else
+					owner.writePacket(new PacketOutBanStats(packet.getPacketUUID(), Arrays.asList(e))); //Faster but only for one entity
+				return;
+			}
+			ArrayList<BanEntity> entities = BanManager.getManager().getEntitys(((PacketInBanStatsRequest) packet).getName(), ((PacketInBanStatsRequest) packet).getIp(), ((PacketInBanStatsRequest) packet).getPlayer());
+			owner.writePacket(new PacketOutBanStats(packet.getPacketUUID(), entities.subList(0, Math.min(((PacketInBanStatsRequest) packet).getDeep(), entities.size()))));
 		} else if (packet instanceof PacketInBanPlayer) {//TODO
 			PacketInBanPlayer p = (PacketInBanPlayer) packet;
 			BanManager.getManager().banPlayer(p.getName(), p.getIp(), p.getUuid(), p.getBannerName(), p.getBannerUuid(), p.getBannerIp(), p.getLevel(), p.getEnd(), p.getReson());
@@ -552,7 +560,6 @@ public class PacketHandlerBoss {
 				response = ReportManager.getInstance().getOpenReports();
 				break;
 			case PLAYER_OPEN_REPORTS:
-				System.out.println("Request player open reports");
 				response = ReportManager.getInstance().getReportsFromReporter(p.getValue(), false);
 				break;
 			default:
