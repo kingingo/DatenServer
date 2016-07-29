@@ -101,7 +101,7 @@ public class CommandServerManager implements CommandExecutor {
 						count++;
 						Client c = iclients.next();
 						player += c.getPlayers().size();
-						writer.sendMessage(" §7- §" + (c.isConnected() ? "a" : "c") + c.getName() + "§r§7[§b" + c.getStatus().getSubType() + "§7] §eServer-ID: §6" + c.getStatus().getServerId() + " §eType: §6" + c.getType() + " §eGame: §6" + c.getStatus().getTyp() + " §eState: §6" + c.getStatus().getState() + " §ePlayers: " + c.getStatus().getPlayers() + " §ePublic: §6" + c.getStatus().isVisiable());
+						writer.sendMessage(" §7- §" + (c.isConnected() ? "a" : "c") + c.getName() + "§r§7[§b" + c.getStatus().getSubType() + "§7] §eServer-ID: §6" + c.getStatus().getServerId() + " §eType: §6" + c.getType() + " §eGame: §6" + c.getStatus().getTyp() + " §eState: §6" + c.getStatus().getState() + " §ePlayers: " + c.getStatus().getPlayers()+"|"+c.getPlayers().size() + " §ePublic: §6" + c.getStatus().isVisiable());
 					}
 					writer.sendMessage("§a" + count + " Servers are now displayed. Player online on this servers: " + player);
 				} else

@@ -3,9 +3,16 @@ package dev.wolveringer.configuration;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
+
+import com.github.theholywaffle.teamspeak3.TS3Config;
 
 import dev.wolveringer.configuration.file.YamlConfiguration;
 import dev.wolveringer.mysql.MySQL.MySQLConfiguration;
+import dev.wolveringer.teamspeak.TeamspeakClient;
 
 public class ServerConfiguration {
 	private static Configuration config;
@@ -30,6 +37,16 @@ public class ServerConfiguration {
 		config.addDefault("server.host", "localhost");
 		config.addDefault("server.password", "HelloWorld");
 		
+		config.addDefault("teamspeak.host", "localhost");
+		config.addDefault("teamspeak.port", 10011);
+		config.addDefault("teamspeak.nickname", "WolverinDEV");
+		config.addDefault("teamspeak.username", "serveradmin");
+		config.addDefault("teamspeak.password", "undefined");
+		config.addDefault("teamspeak.serverId", 1);
+		config.addDefault("teamspeak.groups.linked", 5);
+		config.addDefault("teamspeak.groups.ignore", Arrays.asList(7,8,9));
+		config.addDefault("teamspeak.groups.mapping", Arrays.asList("owner|22","developer|23"));
+		
 		config.addDefault("savemanager.periode", 5*60*1000);
 		
 		config.options().copyDefaults(true);
@@ -53,5 +70,35 @@ public class ServerConfiguration {
 	
 	public static InetSocketAddress getServerHost() {
 		return new InetSocketAddress(config.getString("server.host"), config.getInt("server.port"));
+	}
+	
+	public static TeamspeakClient createClient(){
+		try{
+			TeamspeakClient client = new TeamspeakClient(new TS3Config().setHost(config.getString("teamspeak.host")).setQueryPort(config.getInt("teamspeak.port")));
+			client.connect();
+			if(client.login(config.getString("teamspeak.username"), config.getString("teamspeak.password"), config.getInt("teamspeak.serverId"))){
+				client.setName(config.getString("teamspeak.nickname"));
+				return client;
+			}
+			client.getClient().exit();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static List<Integer> getIgnoreGroup(){
+		return config.getIntegerList("teamspeak.groups.ignore");
+	}
+	
+	public static HashMap<String, Integer> getGroupMapping(){
+		HashMap<String, Integer> out = new HashMap<>();
+		for(String s : config.getStringList("teamspeak.groups.mapping"))
+			out.put(s.split("\\|")[0], Integer.parseInt(s.split("\\|")[1]));
+		return out;
+	}
+	
+	public static int getTeamspeakLinkedGroupId(){
+		return config.getInt("teamspeak.groups.linked");
 	}
 }

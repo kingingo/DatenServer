@@ -25,8 +25,13 @@ public class ReportManager {
 		ReportManager.instance = instance;
 	}
 	
-	private static int createReportId() {
-		return (int) (System.currentTimeMillis() % (Math.pow(2, 31)));
+	private static long lastId = System.currentTimeMillis();
+	private static synchronized int createReportId() {
+		int id = (int) (System.currentTimeMillis() % (Math.pow(2, 31)));
+		while (id != lastId && instance.getReportEntity(id) != null) {
+			id--;
+		}
+		return id;
 	}
 
 	private ArrayList<ReportEntity> entities = new ArrayList<>();
@@ -47,11 +52,12 @@ public class ReportManager {
 			}
 		}
 
-		query = MySQL.getInstance().querySync("SELECT `reportId`, `reporter`, `reporterIp`, `target`, `reson`, `info`, `timestamp`, `open` FROM `report_reports`", -1);
+		query = MySQL.getInstance().querySync("SELECT `reportId`, `reporter`, `reporterIp`, `target`, `reson`, `info`, `timestamp`, `open` FROM `report_reports` WHERE `open`='1'", -1);
 		for (String[] sreport : query) {
 			try {
 				int rid = Integer.parseInt(sreport[0]);
 				ReportEntity e = new ReportEntity(rid, Integer.parseInt(sreport[1]), sreport[2], Integer.parseInt(sreport[3]), sreport[4], sreport[5], Long.parseLong(sreport[6]), Integer.parseInt(sreport[7]), workers.get(rid));
+				entities.add(e);
 			} catch (Exception e) {
 				System.err.println("Cant serelize report " + StringUtils.join(sreport, ":"));
 			}

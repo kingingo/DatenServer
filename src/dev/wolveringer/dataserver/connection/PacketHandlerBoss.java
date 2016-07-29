@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import dev.wolveringer.booster.NetworkBooster;
@@ -32,6 +33,7 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketEventTypeSettings;
 import dev.wolveringer.dataserver.protocoll.packets.PacketForward;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildCostumDataAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildCostumDataResponse;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildCreate;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildInformationRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildInformationResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemberRequest;
@@ -89,6 +91,8 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketSkinData;
 import dev.wolveringer.dataserver.protocoll.packets.PacketSkinData.SkinResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketSkinRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketSkinSet;
+import dev.wolveringer.dataserver.protocoll.packets.PacketTeamspeakAction;
+import dev.wolveringer.dataserver.protocoll.packets.PacketTeamspeakRequestAction;
 import dev.wolveringer.dataserver.skin.SkinCache;
 import dev.wolveringer.doublecoins.BoosterManager;
 import dev.wolveringer.event.EventHelper;
@@ -104,12 +108,15 @@ import dev.wolveringer.serverbalancer.ArcadeManager;
 import dev.wolveringer.serverbalancer.ArcadeManager.ServerType;
 import dev.wolveringer.skin.Skin;
 import dev.wolveringer.skin.SteveSkin;
+import dev.wolveringer.teamspeak.TeamspeakClient;
 
 public class PacketHandlerBoss {
 	private Client owner;
 	private boolean handshakeComplete = false;
 
 	public PacketHandlerBoss(Client owner) {
+		
+		"".equals("");
 		this.owner = owner;
 	}
 
@@ -120,7 +127,7 @@ public class PacketHandlerBoss {
 					owner.disconnect("Password incorrect [" + ((PacketHandshakeInStart) packet).getHost() + "|" + ((PacketHandshakeInStart) packet).getName() + "]");
 					return;
 				}
-				if (!((PacketHandshakeInStart) packet).getProtocollVersion().equalsIgnoreCase(Packet.PROTOCOLL_VERSION)) {
+				if (!((PacketHandshakeInStart) packet).getProtocollVersion().equalsIgnoreCase(Packet.PROTOCOLL_VERSION) && false) {
 					owner.disconnect("Protocollversion is not up to date!");
 					//System.out.println("A client try to connect with version-number: " + ((PacketHandshakeInStart) packet).getProtocollVersion() + " Server-version: " + Packet.PROTOCOLL_VERSION);
 					return;
@@ -223,6 +230,9 @@ public class PacketHandlerBoss {
 			case CURRUNT_IP:
 				player.setCurruntIp(((PacketInChangePlayerSettings) packet).getValue());
 				break;
+			case NICKNAME:
+				player.setNickname(((PacketInChangePlayerSettings) packet).getValue());
+				break;
 			default:
 				break;
 			}
@@ -259,6 +269,9 @@ public class PacketHandlerBoss {
 					break;
 				case CURRUNT_IP:
 					values.add(new SettingValue(s, player.getCurruntIp()));
+					break;
+				case NICKNAME:
+					values.add(new SettingValue(s, player.getNickname()));
 					break;
 				default:
 					break;
@@ -350,8 +363,7 @@ public class PacketHandlerBoss {
 					return;
 				}
 				if (player != null) {
-					
-					owner.writePacket(new PacketOutServerStatus(Action.SERVER, null, ((PacketInServerStatusRequest) packet).getValue(), client.getStatus().getServerId(), client.getStatus().isVisiable(), client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), ((PacketInServerStatusRequest) packet).isPlayer() ? player : null));
+					owner.writePacket(new PacketOutServerStatus(Action.SERVER, new GameType[]{client.getStatus().getTyp()}, ((PacketInServerStatusRequest) packet).getValue(), client.getStatus().getServerId(), client.getStatus().isVisiable(), client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), ((PacketInServerStatusRequest) packet).isPlayer() ? player : null));
 					return;
 				}
 				break;
@@ -359,7 +371,7 @@ public class PacketHandlerBoss {
 				List<String> players = PlayerManager.getPlayersFromServer(null);
 				int playersCount = 0;
 				for(Client bungee : ServerThread.getBungeecords()){
-					playersCount += bungee.getStatus().getPlayers();
+					playersCount = playersCount+bungee.getStatus().getPlayers();
 				}
 				if (players != null) {
 					owner.writePacket(new PacketOutServerStatus(Action.GENERAL, null, ((PacketInServerStatusRequest) packet).getValue(), "network", true, GameState.NONE, playersCount, -1, ((PacketInServerStatusRequest) packet).isPlayer() ? players : null));
@@ -623,18 +635,43 @@ public class PacketHandlerBoss {
 		}
 		
 		else if(packet instanceof PacketGildSarch){
-			Gilde gilde = null;
+			List<Entry<UUID, String>> response = new ArrayList<>();
+			Gilde g = null;
 			switch (((PacketGildSarch) packet).getAction()) {
 			case GILDE_NAME:
-				gilde = GildenManager.getManager().getGilde(((PacketGildSarch) packet).getValue());
+				g = GildenManager.getManager().getGilde(((PacketGildSarch) packet).getValue());
 				break;
 			case PLAYER:
-				gilde = GildenManager.getManager().getGilde(Integer.parseInt(((PacketGildSarch) packet).getValue().split(";")[0]), GildeType.values()[Integer.parseInt(((PacketGildSarch) packet).getValue().split(";")[0])]);
+				g = GildenManager.getManager().getGilde(Integer.parseInt(((PacketGildSarch) packet).getValue().split(";")[0]), GildeType.values()[Integer.parseInt(((PacketGildSarch) packet).getValue().split(";")[0])]);
+				break;
+			case OWN_GILD:
+				g = GildenManager.getManager().getOwnGilde(Integer.valueOf(((PacketGildSarch) packet).getValue()));
+				break;
+			case TYPE:
+				response.addAll(GildenManager.getManager().getAvariableGilden(GildeType.values()[Integer.valueOf(((PacketGildSarch) packet).getValue())]).entrySet());
 				break;
 			default:
 				break;
 			}
-			owner.writePacket(new PacketGildSarchResponse(packet.getPacketUUID(), ((PacketGildSarch) packet).getValue(), gilde == null ? null : gilde.getUuid()));
+			final Gilde gc = g;
+			if(g != null)
+				response.add(new Entry<UUID, String>() {
+					@Override
+					public UUID getKey() {
+						return gc.getUuid();
+					}
+
+					@Override
+					public String getValue() {
+						return gc.getName();
+					}
+
+					@Override
+					public String setValue(String value) {
+						return gc.getName();
+					}
+				});
+			//owner.writePacket(new PacketGildSarchResponse(packet.getPacketUUID(), new HashMap<UUID, String>(response))); //TODO
 		}
 		else if(packet instanceof PacketGildInformationRequest){
 			Gilde gilde = GildenManager.getManager().getGilde((((PacketGildInformationRequest) packet).getGild()));
@@ -670,10 +707,6 @@ public class PacketHandlerBoss {
 			Gilde gilde = GildenManager.getManager().getGilde((((PacketGildMemberRequest) packet).getGilde()));
 			if(gilde == null){
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-2, "Gilde not found!")));
-				return;
-			}
-			if(!gilde.getSelection(((PacketGildMemberRequest) packet).getType()).isActive()){
-				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Section not active!")));
 				return;
 			}
 			owner.writePacket(new PacketGildMemberResponse(gilde.getUuid(), gilde.buildMemberInfo()));
@@ -756,6 +789,32 @@ public class PacketHandlerBoss {
 				return;
 			}
 			gilde.getSelection(((PacketGildUpdateSectionStatus) packet).getType()).setActive(((PacketGildUpdateSectionStatus) packet).isState());
+			owner.writePacket(new PacketOutPacketStatus(packet, null));
+		}
+		else if(packet instanceof PacketGildCreate){
+			//TODO
+		}
+		else if(packet instanceof PacketTeamspeakAction){
+			switch (((PacketTeamspeakAction) packet).getAction()) {
+			case UNLINK:
+				TeamspeakClient.getInstance().unlink(PlayerManager.getPlayer(((PacketTeamspeakAction) packet).getPlayerId()));
+				break;
+			case UPDATE_AVATAR:
+				TeamspeakClient.getInstance().updateIcon(PlayerManager.getPlayer(((PacketTeamspeakAction) packet).getPlayerId()));
+				break;
+			case UPDATE_GROUPS:
+				TeamspeakClient.getInstance().updateGroups(PlayerManager.getPlayer(((PacketTeamspeakAction) packet).getPlayerId()),Arrays.asList(((PacketTeamspeakAction) packet).getData().split(";")));
+				break;
+			default:
+				break;
+			}
+			owner.writePacket(new PacketOutPacketStatus(packet, null));
+		}
+		else if(packet instanceof PacketTeamspeakRequestAction){
+			if(((PacketTeamspeakRequestAction) packet).isAccept())
+				TeamspeakClient.getInstance().acceptRequest(((PacketTeamspeakRequestAction) packet).getRequest());
+			else
+				TeamspeakClient.getInstance().denyRequest(((PacketTeamspeakRequestAction) packet).getRequest());
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		}
 	}

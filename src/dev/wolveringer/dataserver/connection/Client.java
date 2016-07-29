@@ -95,25 +95,35 @@ public class Client {
 		ArcadeManager.serverDisconnected(name);
 	}
 	
-	public void writePacket(Packet packet){
-		if(server == null && server == null)
-			return; //TESTING MODE
-		if(!connected)
-			return;
-		try {
-			writer.write(packet);
-		} catch (IOException e) {
-			if(e.getMessage().equalsIgnoreCase("Broken pipe") || e.getMessage().equalsIgnoreCase("Connection reset")){
-				closePipeline();
-				return;
-			}
-			if(e.getMessage().equalsIgnoreCase("Socket closed")){
-				closePipeline();
-				return;
-			}
-			e.printStackTrace();
-		}
-	}
+	 public void writePacket(Packet packet)
+	  {
+	    if ((this.server == null) && (this.server == null)) {
+	      return;
+	    }
+	    if (!this.connected) {
+	      return;
+	    }
+	    try
+	    {
+	      this.writer.write(packet);
+	    }
+	    catch (IOException e)
+	    {
+	      if ((e.getMessage().equalsIgnoreCase("Broken pipe")) || (e.getMessage().equalsIgnoreCase("Connection reset")))
+	      {
+	        closePipeline();
+	        return;
+	      }
+	      if (e.getMessage().equalsIgnoreCase("Socket closed"))
+	      {
+	        closePipeline();
+	        return;
+	      }
+	      e.printStackTrace();
+	    }
+	  }
+	  
+	 
 	protected PacketHandlerBoss getHandlerBoss(){
 		return boss;
 	}

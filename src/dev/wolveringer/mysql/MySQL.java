@@ -239,6 +239,11 @@ public class MySQL {
 		}
 	}
 	
+	public void commandSync(String... commands) {
+		for(String s : commands)
+			commandSync(s);
+	}
+	
 	@SuppressWarnings({ "unchecked" })
 	public void command(final String command, final Callback<Boolean>... call) {
 		THREAD_FACTORY.createAsync(new Runnable() {

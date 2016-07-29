@@ -5,10 +5,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.Validate;
+
 import dev.wolveringer.arrays.CachedArrayList;
 import dev.wolveringer.arrays.CachedArrayList.UnloadListener;
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.connection.Client;
+import lombok.NonNull;
 
 public class PlayerManager{
 	private static CachedArrayList<OnlinePlayer> players = new CachedArrayList<>(20, TimeUnit.MINUTES);
@@ -22,33 +25,55 @@ public class PlayerManager{
 		});
 	}
 	
+	protected static synchronized void deleteDuplicated(OnlinePlayer current){
+		synchronized (players) {
+			for(OnlinePlayer p : getPlayers())
+				if(p != null && !p.equals(current) && !p.isDeleted())
+					if(p.getPlayerId() == current.getPlayerId()){
+						System.out.println("Deleting dublicate of "+current.getName());
+						players.remove(p);
+						p.setDeleted(true);
+					}
+		}
+	}
+	
 	public static ArrayList<OnlinePlayer> getPlayers(){
 		synchronized (players) {
 			return new ArrayList<>(players);
 		}
 	}
 	
-	public static OnlinePlayer getPlayer(String player){
+	public static OnlinePlayer getPlayer(@NonNull String player){
+		return getPlayer(player, true);
+	}
+	
+	public static OnlinePlayer getPlayer(@NonNull String player, boolean load){
 		for(OnlinePlayer p : getPlayers())
 			if(p.getName() != null)
 				if(p.getName().equalsIgnoreCase(player)){
-					p.waitWhileLoading();
-					if(!p.isLoaded())
-						p.load();
+					if(load){
+						p.waitWhileLoading();
+						if(!p.isLoaded())
+							p.load();
+					}
 					synchronized (players) {
 						players.resetTime(p);
 					}
 					return p;
 				}
-		OnlinePlayer var0 = new OnlinePlayer(player);
-		var0.load();
-		synchronized (players) {
-			players.add(var0);
+		if(load){
+			OnlinePlayer var0 = new OnlinePlayer(player);
+			var0.load();
+			synchronized (players) {
+				players.add(var0);
+			}
+			return var0;
 		}
-		return var0;
+		return null;
 	}
 	
 	public static OnlinePlayer getPlayer(int player){
+		Validate.isTrue(player>0, "Player ID isnt valid! (PlayerID: "+player+")");
 		for(OnlinePlayer p : getPlayers())
 			if(p.getPlayerId() == player){
 				p.waitWhileLoading();
@@ -67,7 +92,7 @@ public class PlayerManager{
 		return var0;
 	}
 	
-	public static OnlinePlayer getPlayer(UUID player){
+	public static OnlinePlayer getPlayer(@NonNull UUID player){
 		for(OnlinePlayer p : getPlayers())
 			if(p.getUuid() != null)
 				if(p.getUuid().equals(player)){

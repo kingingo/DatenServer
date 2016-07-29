@@ -163,6 +163,11 @@
  			 <artifactId>ThreadManager</artifactId>
   			 <version>1.0</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.theholywaffle</groupId>
+			<artifactId>teamspeak3-api</artifactId>
+			<version>1.0.14-SNAPSHOT</version>
+		</dependency>
 		<!-- Youtube API (Not used yet) <dependency> <groupId>com.google.api.client</groupId> 
 			<artifactId>google-api-data-youtube-v2</artifactId> <version>1.0.10-alpha</version> 
 			</dependency> -->

@@ -27,7 +27,7 @@ public class Terminal {
 			@Override
 			public void write(String message) {
 				Main.logger.log(Level.WARNING, message);
-				defaultErr.println("\r"+message);
+				Terminal.this.write("§c[ERROR] §6"+message);
 			}
 		});
 		writer = new ConsoleWriter(this);

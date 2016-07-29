@@ -22,6 +22,7 @@ import dev.wolveringer.language.LanguageManager;
 import dev.wolveringer.log.SystemLogger;
 import dev.wolveringer.mysql.MySQL;
 import dev.wolveringer.report.ReportManager;
+import dev.wolveringer.teamspeak.TeamspeakClient;
 import lombok.Getter;
 
 public class Main {
@@ -68,6 +69,13 @@ public class Main {
 			getConsoleWriter().sendMessage("§cCannot connect to MySQL");
 			return;
 		}
+		
+		TeamspeakClient.setInstance(ServerConfiguration.createClient());
+		if(TeamspeakClient.getInstance() == null){
+			getConsoleWriter().sendMessage("§cTeamspeak client cant connect!");
+			return;
+		}
+		getConsoleWriter().sendMessage("§aTeamspeak client connected!");
 
 		LanguageManager.init();
 		PlayerSkinManager.init();
