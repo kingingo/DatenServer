@@ -110,18 +110,23 @@ public class PlayerManager{
 		return var0;
 	}
 
-	public static List<String> getPlayersFromServer(String value) {
+	/**
+	 * Get a list of names of players online on a server
+	 * @param serverName the server name or <code>null</code> to get all players on all servers
+	 * @return a list of player names, never <code>null</code>
+	 */
+	public static List<String> getPlayersFromServer(String serverName) {
 		ArrayList<String> players = new ArrayList<>();
 		ArrayList<String> playerLow = new ArrayList<>();
 		
-		if(value == null){
+		if(serverName == null){
 			for(Client bungee : ServerThread.getBungeecords()){
 				players.addAll(bungee.getPlayers());
 			}
 			return players;
 		}
 		for(OnlinePlayer p : getPlayers())
-			if((p.getServer() != null && p.getServer().equalsIgnoreCase(value) && p.isPlaying()) || (value == null && p.isPlaying())){
+			if(p.getServer() != null && p.getServer().equalsIgnoreCase(serverName) && p.isPlaying()){
 				if(playerLow.contains(p.getName().toLowerCase()))
 					continue;
 				playerLow.add(p.getName().toLowerCase());
