@@ -46,6 +46,7 @@ public class ServerConfiguration {
 		config.addDefault("teamspeak.groups.linked", 5);
 		config.addDefault("teamspeak.groups.ignore", Arrays.asList(7,8,9));
 		config.addDefault("teamspeak.groups.mapping", Arrays.asList("owner|22","developer|23"));
+		config.addDefault("teamspeak.enabled", true);
 		
 		config.addDefault("savemanager.periode", 5*60*1000);
 		
@@ -72,7 +73,13 @@ public class ServerConfiguration {
 		return new InetSocketAddress(config.getString("server.host"), config.getInt("server.port"));
 	}
 	
+	public static boolean isTeamspeakBotEnabled(){
+		return config.getBoolean("teamspeak.enabled");
+	}
+	
 	public static TeamspeakClient createClient(){
+		if(!isTeamspeakBotEnabled())
+			return null;
 		try{
 			TeamspeakClient client = new TeamspeakClient(new TS3Config().setHost(config.getString("teamspeak.host")).setQueryPort(config.getInt("teamspeak.port")));
 			client.connect();

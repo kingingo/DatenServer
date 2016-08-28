@@ -81,7 +81,8 @@ public class MinecraftUtils {
 				g.setColor(Color.GREEN);
 				((Graphics2D)g).drawRect((int) HEAD_OVERLAY_REGION.getX(), (int) HEAD_OVERLAY_REGION.getY(), (int) HEAD_OVERLAY_REGION.getWidth(),(int) HEAD_OVERLAY_REGION.getHeight());
 				*/
-				BufferedImage img = getHead("WolverinDEV", true);
+				Image img = getHead("Janmm14", true);
+				img = img.getScaledInstance(16, 16, 1);
 				g.drawImage(img, 0, 0, this);
 			};
 		};

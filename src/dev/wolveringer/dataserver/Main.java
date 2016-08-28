@@ -70,13 +70,16 @@ public class Main {
 			return;
 		}
 		
-		TeamspeakClient.setInstance(ServerConfiguration.createClient());
-		if(TeamspeakClient.getInstance() == null){
-			getConsoleWriter().sendMessage("§cTeamspeak client cant connect!");
-			return;
+		if(ServerConfiguration.isTeamspeakBotEnabled()){
+			TeamspeakClient.setInstance(ServerConfiguration.createClient());
+			if(TeamspeakClient.getInstance() == null){
+				getConsoleWriter().sendMessage("§cTeamspeak client cant connect!");
+				return;
+			}
+			getConsoleWriter().sendMessage("§aTeamspeak client connected!");
 		}
-		getConsoleWriter().sendMessage("§aTeamspeak client connected!");
-
+		else
+			getConsoleWriter().sendMessage("§6Teamspeak client is disabled!");
 		LanguageManager.init();
 		PlayerSkinManager.init();
 		BanManager.setManager(new BanManager());

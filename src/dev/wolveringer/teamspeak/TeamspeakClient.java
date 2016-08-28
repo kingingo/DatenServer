@@ -202,7 +202,7 @@ public class TeamspeakClient {
 			}
 			this.client.getApi().deleteClientPermission(client.getDatabaseId(), "i_icon_id");
 			Map<ClientProperty, String> options = new HashMap<>();
-			options.put(ClientProperty.CLIENT_DESCRIPTION, "");
+			options.put(ClientProperty.CLIENT_DESCRIPTION, "Unlinked.");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -277,9 +277,7 @@ public class TeamspeakClient {
 		client.getAsyncApi().sendPrivateMessage(info.getId(), "Verwalten kannst du deine Ränge sowie dein Icon InGame per /ts");
 
 		updateIcon(player);
-		Map<ClientProperty, String> options = new HashMap<>();
-		options.put(ClientProperty.CLIENT_DESCRIPTION, "InGame-Name: " + player.getName());
-		client.getApi().editClient(info.getId(), options);
+		updateDiscription(player, info);
 	}
 
 	public void denyRequest(UUID uuid) {
@@ -335,6 +333,14 @@ public class TeamspeakClient {
 		return imageInByte;
 	}
 
+	public void updateDiscription(OnlinePlayer player,Client client){
+		//Minecraft username: WolverinDEV | PlayerID: 123321 | Online auf: SkyPvP
+		
+		Map<ClientProperty, String> options = new HashMap<>();
+		options.put(ClientProperty.CLIENT_DESCRIPTION, "InGame-Name: " + player.getName());
+		instance.getClient().getApi().editClient(client.getId(), options);
+	}
+	
 	public static void main(String[] args) {
 		// -DtsHost=ts.epicpvp.eu -DtsUsername=WolverinDEV_02
 		// -DtsPassword=aL8JPz4C
