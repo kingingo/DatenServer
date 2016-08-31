@@ -34,6 +34,7 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketForward;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildCostumDataAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildCostumDataResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildCreate;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildCreateResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildInformationRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildInformationResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemberRequest;
@@ -642,7 +643,7 @@ public class PacketHandlerBoss {
 				g = GildenManager.getManager().getGilde(((PacketGildSarch) packet).getValue());
 				break;
 			case PLAYER:
-				g = GildenManager.getManager().getGilde(Integer.parseInt(((PacketGildSarch) packet).getValue().split(";")[0]), GildeType.values()[Integer.parseInt(((PacketGildSarch) packet).getValue().split(";")[0])]);
+				g = GildenManager.getManager().getGilde(Integer.parseInt(((PacketGildSarch) packet).getValue().split(";")[0]), GildeType.values()[Integer.parseInt(((PacketGildSarch) packet).getValue().split(";")[1])]);
 				break;
 			case OWN_GILD:
 				g = GildenManager.getManager().getOwnGilde(Integer.valueOf(((PacketGildSarch) packet).getValue()));
@@ -671,7 +672,10 @@ public class PacketHandlerBoss {
 						return gc.getName();
 					}
 				});
-			//owner.writePacket(new PacketGildSarchResponse(packet.getPacketUUID(), new HashMap<UUID, String>(response))); //TODO
+			HashMap<UUID, String> hresponse = new HashMap<>();
+			for(Entry<UUID, String> e : response)
+				hresponse.put(e.getKey(), e.getValue());
+			owner.writePacket(new PacketGildSarchResponse(packet.getPacketUUID(),hresponse));
 		}
 		else if(packet instanceof PacketGildInformationRequest){
 			Gilde gilde = GildenManager.getManager().getGilde((((PacketGildInformationRequest) packet).getGild()));
@@ -793,6 +797,12 @@ public class PacketHandlerBoss {
 		}
 		else if(packet instanceof PacketGildCreate){
 			//TODO
+			if(GildenManager.getManager().getGilde(((PacketGildCreate) packet).getName()) != null){
+				owner.writePacket(new PacketGildCreateResponse(((PacketGildCreate) packet).getPlayerId(), null));
+				return;
+			}
+			Gilde gild = GildenManager.getManager().createGilde(((PacketGildCreate) packet).getName(), PlayerManager.getPlayer(((PacketGildCreate) packet).getPlayerId()));
+			owner.writePacket(new PacketGildCreateResponse(((PacketGildCreate) packet).getPlayerId(), gild.getUuid()));
 		}
 		else if(packet instanceof PacketTeamspeakAction){
 			switch (((PacketTeamspeakAction) packet).getAction()) {

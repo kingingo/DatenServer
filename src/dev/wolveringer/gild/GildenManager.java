@@ -52,6 +52,13 @@ public class GildenManager {
 	  INSERT INTO `GILDE_INFORMATION`(`uuid`, `section`, `key`, `value`) VALUES ('"+uuid+"','"+GildeType.ALL.toString()+"','active','false')
 		 */
 		UUID uuid = UUID.randomUUID();
+		Gilde temp;
+		while ((temp = getLoadedGilde(uuid)) != null) {
+			if(temp.isExist())
+				uuid = UUID.randomUUID();
+			else
+				gilden.remove(temp);
+		}
 		ArrayList<String> commands = new ArrayList<>();
 		commands.add("INSERT INTO `GILDE_INFORMATION`(`uuid`, `section`, `key`, `value`) VALUES ('"+uuid+"','"+GildeType.ALL.toString()+"','shortName','"+name+"')");
 		commands.add("INSERT INTO `GILDE_INFORMATION`(`uuid`, `section`, `key`, `value`) VALUES ('"+uuid+"','"+GildeType.ALL.toString()+"','name','"+name+"')");
@@ -60,7 +67,10 @@ public class GildenManager {
 			commands.add("INSERT INTO `GILDE_INFORMATION`(`uuid`, `section`, `key`, `value`) VALUES ('"+uuid+"','"+t.toString()+"','active','false')");
 		}
 		MySQL.getInstance().commandSync(commands.toArray(new String[0]));
-		return getGilde(uuid);
+		Gilde gilde = new Gilde(uuid);
+		gilde.load();
+		gilden.add(gilde);
+		return gilde;
 	}
 	
 	public Gilde getLoadedGilde(UUID uuid) {
@@ -80,6 +90,10 @@ public class GildenManager {
 	}
 
 	public Gilde getGilde(String name) {
+		return getGilde(name, true);
+	}
+	
+	public Gilde getGilde(String name, boolean load) {
 		for (Gilde g : gilden)
 			if (g != null && g.getName() != null)
 				if (g.getName() != null && g.getName().equalsIgnoreCase(name))

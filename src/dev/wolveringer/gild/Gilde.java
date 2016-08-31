@@ -30,6 +30,7 @@ public class Gilde {
 	private int ownerId;
 
 	private HashMap<GildeType, GildSection> selections = new HashMap<>();
+	@Getter
 	private boolean exist;
 	private boolean loaded;
 
@@ -116,7 +117,7 @@ public class Gilde {
 				types[index] = e.getKey();
 				groups[index++] = e.getValue();
 			}
-			return new MemberInformation(index, types, groups);
+			return new MemberInformation(playerId, types, groups);
 		}
 
 		public PlayerInfo(int playerId) {
@@ -134,8 +135,9 @@ public class Gilde {
 		};
 
 		for (GildSection s : getActiveSections())
-			for (Integer member : s.players)
-				info.get(member).ranks.put(s.getType(), s.getPermission().getGroup(member).getName());
+			for (Integer member : s.players){
+					info.get(member).ranks.put(s.getType(), s.getPermission().getGroup(member).getName());
+			}
 		MemberInformation[] infos = new MemberInformation[info.size()];
 		int index = 0;
 		for (PlayerInfo i : info.values())

@@ -1,5 +1,6 @@
 package dev.wolveringer.gild;
 
+import java.security.acl.Owner;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -125,6 +126,8 @@ public class GildSection {
 		if(!active)
 			for(Integer member : players)
 				removePlayer(member);
+		if(active)
+			addPlayer(handle.getOwnerId(), "owner");
 		if(active)
 			EventHelper.callGildEvent(handle.getUuid(), new GildePropertiesUpdate(handle.getUuid(), type, Property.ACTIVE_GILD_SECTION));
 		else
