@@ -3,6 +3,7 @@ package dev.wolveringer.dataserver.connection;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.SocketException;
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -27,6 +28,13 @@ public class SocketWriter {
 					try {
 						SocketWriter.this.write0(next);
 					} catch (IOException e) {
+						if(e instanceof SocketException){
+							if("Socket closed".equalsIgnoreCase(e.getMessage())){
+								System.err.println("Closed socket but have to write "+(SocketWriter.this.queuedPackets.size()+1)+" packets... :(");
+								SocketWriter.this.queuedPackets.clear();
+								return;
+							}
+						}
 						e.printStackTrace();
 					}
 				}
@@ -65,7 +73,7 @@ public class SocketWriter {
 		packet.write(dbuffer);
 		dbuffer.resetReaderIndex();
 		if (dbuffer.writerIndex() != dbuffer.readableBytes()) {
-			System.err.println(dbuffer.writerIndex() + "\\\\" + dbuffer.readableBytes() + " are not equal");
+			System.err.println(dbuffer.writerIndex() + "/" + dbuffer.readableBytes() + " are not equal");
 		}
 		int length = dbuffer.writerIndex();
 		byte[] buffer = new byte[length];
@@ -73,7 +81,7 @@ public class SocketWriter {
 		if (buffer.length != length) {
 			System.err.println(buffer.length + "/" + length + " are not equal");
 		}
-		this.dos.writeInt(length);
+		this.dos.writeInt(length); //TODO write controll length
 		this.dos.write(buffer, 0, length);
 		this.out.flush();
 	}

@@ -1,17 +1,11 @@
 package dev.wolveringer.gild;
 
-import java.security.acl.Owner;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import dev.wolveringer.dataserver.protocoll.packets.PacketGildCostumDataAction;
-import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemeberAction;
-import dev.wolveringer.dataserver.protocoll.packets.PacketGildUpdateSectionStatus;
-import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemeberAction.Action;
 import dev.wolveringer.event.EventHelper;
-import dev.wolveringer.events.gilde.GildePlayerEvent;
 import dev.wolveringer.events.gilde.GildePropertiesUpdate;
 import dev.wolveringer.events.gilde.GildePropertiesUpdate.Property;
 import dev.wolveringer.gilde.GildeType;
@@ -22,8 +16,6 @@ import dev.wolveringer.nbt.NBTTagCompound;
 import lombok.Getter;
 
 public class GildSection {
-	private static final String MEMBER_TABLE_NAME = "GILDE_MEMBERS";
-	
 	private static final String COSTUM_DATA_KEY = "costum_data";
 	
 	@Getter
@@ -32,6 +24,8 @@ public class GildSection {
 	private GildeType type;
 	@Getter
 	protected boolean active;
+	@Getter
+	private GildSectionMoney money = new GildSectionMoney(this);
 	private GildSectionPermission permissions = new GildSectionPermission(this);
 	private NBTTagCompound costumData;
 	
@@ -51,8 +45,9 @@ public class GildSection {
 			e.printStackTrace();
 			this.costumData = new NBTTagCompound();
 		}
-		permissions.loadGroups();
 		loadData();
+		permissions.loadGroups();
+		money.init();
 	}
 
 	public void loadData(){
@@ -121,10 +116,10 @@ public class GildSection {
 	public void setActive(boolean active) {
 		if(active == this.active)
 			return;
-		MySQL.getInstance().command("UPDATE `GILDE_INFORMATION` SET `value`='"+active+"' WHERE  `gilde`='"+handle.getUuid().toString()+"' AND `section`='"+type.toString()+"' AND `key`='active'");
+		MySQL.getInstance().command("UPDATE `GILDE_INFORMATION` SET `value`='"+active+"' WHERE  `uuid`='"+handle.getUuid().toString()+"' AND `section`='"+type.toString()+"' AND `key`='active'");
 		this.active = active;
 		if(!active)
-			for(Integer member : players)
+			for(Integer member : new ArrayList<>(players))
 				removePlayer(member);
 		if(active)
 			addPlayer(handle.getOwnerId(), "owner");

@@ -54,6 +54,7 @@ public class GildSectionPermission {
 		for (GildPermissionGroup g : groups)
 			if (g.getName().equalsIgnoreCase(name))
 				return g;
+		System.out.println("Did not found permissiongroup "+name+" (Groups: "+groups+")");
 		return null;
 	}
 	
@@ -70,7 +71,7 @@ public class GildSectionPermission {
 			MySQL.getInstance().command("DELETE FROM `GILDE_MEMBERS` WHERE `gilde`='"+handle.getHandle().getUuid().toString()+"' AND `section` = '"+handle.getType().toString()+"' AND `playerId` = '"+player+"'");
 		}else
 		{
-			if(!handle.players.contains(new Integer(player)))
+			if(group != null && !handle.players.contains(new Integer(player)))
 				throw new IllegalArgumentException("Cant set permission of a player whitch isnt in gild.");
 		}
 		if(group != null){

@@ -18,6 +18,20 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 public class Gilde {
+	public static class NOT_EXISTING_Gilde extends Gilde {
+
+		public NOT_EXISTING_Gilde(UUID uuid) {
+			super(uuid);
+		}
+		public NOT_EXISTING_Gilde(String name) {
+			super(UUID.randomUUID());
+		}
+		@Override
+		public boolean isExist() {
+			return false;
+		}
+	}
+	
 	public static final String TABLE_NAME = "GILDE_INFORMATION";
 
 	@Getter
@@ -68,6 +82,7 @@ public class Gilde {
 			exist = false;
 			return;
 		}
+		exist = true;
 		HashMap<InformationKey, String> values = new InitHashMap<InformationKey, String>() {
 			@Override
 			public String defaultValue(InformationKey key) {

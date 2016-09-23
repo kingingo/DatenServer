@@ -10,6 +10,7 @@ import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.gilde.GildeType;
 import dev.wolveringer.mysql.MySQL;
 
+//CREATE TABLE IF NOT EXISTS GILDE_MONEY (`gilde` VARCHAR(36), `section` VARCHAR(20), `date` BIGINT, `playerId` BIGINT, `amount` BIGINT, `message` TEXT)
 public class GildenManager {
 	public static GildenManager manager;
 	public static GildenManager getManager() {
@@ -41,15 +42,15 @@ public class GildenManager {
 		gilden.remove(getGilde(gilde));
 		MySQL.getInstance().command("DELETE FROM `GILDE_MEMBERS` WHERE `gilde`='"+gilde.toString()+"';");
 		MySQL.getInstance().command("DELETE FROM `GILDE_INFORMATION` WHERE `uuid`='"+gilde.toString()+"'");
-		MySQL.getInstance().command("DELETE FROM `GILDE_PERMISSIONS` WHERE `uuid`=''");
+		MySQL.getInstance().command("DELETE FROM `GILDE_PERMISSIONS` WHERE `uuid`='"+gilde.toString()+"'");
 	}
 
 	public Gilde createGilde(String name,OnlinePlayer player){
 		/*
 		 *  
-	 INSERT INTO `GILDE_INFORMATION`(`uuid`, `section`, `key`, `value`) VALUES ('"+uuid+"','"+GildeType.ALL.toString()+"','name','"+name+"')
-	 INSERT INTO `GILDE_INFORMATION`(`uuid`, `section`, `key`, `value`) VALUES ('"+uuid+"','"+GildeType.ALL.toString()+"','ownerId','"+owner+"')
-	  INSERT INTO `GILDE_INFORMATION`(`uuid`, `section`, `key`, `value`) VALUES ('"+uuid+"','"+GildeType.ALL.toString()+"','active','false')
+	      INSERT INTO `GILDE_INFORMATION`(`uuid`, `section`, `key`, `value`) VALUES ('"+uuid+"','"+GildeType.ALL.toString()+"','name','"+name+"')
+	      INSERT INTO `GILDE_INFORMATION`(`uuid`, `section`, `key`, `value`) VALUES ('"+uuid+"','"+GildeType.ALL.toString()+"','ownerId','"+owner+"')
+	      INSERT INTO `GILDE_INFORMATION`(`uuid`, `section`, `key`, `value`) VALUES ('"+uuid+"','"+GildeType.ALL.toString()+"','active','false')
 		 */
 		UUID uuid = UUID.randomUUID();
 		Gilde temp;
@@ -59,6 +60,8 @@ public class GildenManager {
 			else
 				gilden.remove(temp);
 		}
+		if(getGilde(name,false) != null)
+			gilden.remove(getGilde(name, false));
 		ArrayList<String> commands = new ArrayList<>();
 		commands.add("INSERT INTO `GILDE_INFORMATION`(`uuid`, `section`, `key`, `value`) VALUES ('"+uuid+"','"+GildeType.ALL.toString()+"','shortName','"+name+"')");
 		commands.add("INSERT INTO `GILDE_INFORMATION`(`uuid`, `section`, `key`, `value`) VALUES ('"+uuid+"','"+GildeType.ALL.toString()+"','name','"+name+"')");
@@ -98,9 +101,11 @@ public class GildenManager {
 			if (g != null && g.getName() != null)
 				if (g.getName() != null && g.getName().equalsIgnoreCase(name))
 					return g;
+		if(!load)
+			return null;
 		ArrayList<String[]> response = MySQL.getInstance().querySync("SELECT `uuid` FROM `GILDE_INFORMATION` WHERE `key`='name' AND `value`='"+name+"'");
 		if(response.size() == 0)
-			return null;
+			return new Gilde.NOT_EXISTING_Gilde(name);
 		return getGilde(UUID.fromString(response.get(0)[0]));
 	}
 
@@ -112,7 +117,7 @@ public class GildenManager {
 						return g;
 		ArrayList<String[]> response = MySQL.getInstance().querySync("SELECT `gilde` FROM `GILDE_MEMBERS` WHERE `playerId`='"+player+"' AND `section`='"+type.toString()+"'");
 		if(response.size() == 0)
-			return null;
+			return new Gilde.NOT_EXISTING_Gilde(UUID.randomUUID());
 		return getGilde(UUID.fromString(response.get(0)[0]));
 	}
 	
@@ -122,7 +127,7 @@ public class GildenManager {
 				return g;
 		ArrayList<String[]> response = MySQL.getInstance().querySync("SELECT `uuid` FROM `GILDE_INFORMATION` WHERE `key`='ownerId' AND `value`='"+player+"'");
 		if(response.size() == 0)
-			return null;
+			return new Gilde.NOT_EXISTING_Gilde(UUID.randomUUID());
 		return getGilde(UUID.fromString(response.get(0)[0]));
 	}
 	

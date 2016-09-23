@@ -15,7 +15,7 @@ import dev.wolveringer.mysql.MySQL.MySQLConfiguration;
 import dev.wolveringer.teamspeak.TeamspeakClient;
 
 public class ServerConfiguration {
-	private static Configuration config;
+	public static Configuration config;
 	private static MySQLConfiguration MySQLConfig;
 	
 	public static void init() {

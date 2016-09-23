@@ -33,14 +33,18 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketEventTypeSettings;
 import dev.wolveringer.dataserver.protocoll.packets.PacketForward;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildCostumDataAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildCostumDataResponse;
-import dev.wolveringer.dataserver.protocoll.packets.PacketGildCreate;
-import dev.wolveringer.dataserver.protocoll.packets.PacketGildCreateResponse;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildAction;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildActionResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildInformationRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildInformationResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemberRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemberResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemberResponse.MemberInformation;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemeberAction;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildMoneyAction;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildMoneyHistoryAction;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildMoneyHistoryResponse;
+import dev.wolveringer.dataserver.protocoll.packets.PacketGildMoneyResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildPermissionEdit;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildPermissionRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildPermissionResponse;
@@ -97,10 +101,14 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketTeamspeakRequestAction
 import dev.wolveringer.dataserver.skin.SkinCache;
 import dev.wolveringer.doublecoins.BoosterManager;
 import dev.wolveringer.event.EventHelper;
+import dev.wolveringer.events.gilde.GildeUpdateEvent;
 import dev.wolveringer.gild.GildPermissionGroup;
+import dev.wolveringer.gild.GildSection;
+import dev.wolveringer.gild.GildSectionMoney;
 import dev.wolveringer.gild.Gilde;
 import dev.wolveringer.gild.GildenManager;
 import dev.wolveringer.gilde.GildeType;
+import dev.wolveringer.gilde.MoneyLogRecord;
 import dev.wolveringer.language.LanguageFile;
 import dev.wolveringer.language.LanguageManager;
 import dev.wolveringer.report.ReportEntity;
@@ -655,7 +663,7 @@ public class PacketHandlerBoss {
 				break;
 			}
 			final Gilde gc = g;
-			if(g != null)
+			if(g != null && g.isExist())
 				response.add(new Entry<UUID, String>() {
 					@Override
 					public UUID getKey() {
@@ -795,14 +803,76 @@ public class PacketHandlerBoss {
 			gilde.getSelection(((PacketGildUpdateSectionStatus) packet).getType()).setActive(((PacketGildUpdateSectionStatus) packet).isState());
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		}
-		else if(packet instanceof PacketGildCreate){
+		else if(packet instanceof PacketGildAction){
 			//TODO
-			if(GildenManager.getManager().getGilde(((PacketGildCreate) packet).getName()) != null){
-				owner.writePacket(new PacketGildCreateResponse(((PacketGildCreate) packet).getPlayerId(), null));
+			Gilde g;
+			switch (((PacketGildAction) packet).getAction()) {
+			case CREATE:
+				if(GildenManager.getManager().getGilde(((PacketGildAction) packet).getValue()).isExist()){
+					owner.writePacket(new PacketGildActionResponse(((PacketGildAction) packet).getPlayerId(),  null, PacketGildActionResponse.Action.ERROR, "Gilde alredy exist."));
+					return;
+				}
+				g = GildenManager.getManager().createGilde(((PacketGildAction) packet).getValue(), PlayerManager.getPlayer(((PacketGildAction) packet).getPlayerId()));
+				owner.writePacket(new PacketGildActionResponse(((PacketGildAction) packet).getPlayerId(), g.getUuid(), PacketGildActionResponse.Action.SUCCESSFULL, "Sucessfull created."));
+				EventHelper.callGildEvent(g.getUuid(), new GildeUpdateEvent(g.getUuid(), GildeUpdateEvent.Action.CREATE, ""));
+				return;
+			case DELETE:
+				g = GildenManager.getManager().getGilde(((PacketGildAction) packet).getGilde());
+				if(!GildenManager.getManager().getGilde(((PacketGildAction) packet).getGilde()).isExist()){
+					owner.writePacket(new PacketGildActionResponse(((PacketGildAction) packet).getPlayerId(),  ((PacketGildAction) packet).getGilde(), PacketGildActionResponse.Action.ERROR, "Gilde not exist."));
+					return;
+				}
+				GildenManager.getManager().deleteGilde(g.getUuid());
+				owner.writePacket(new PacketGildActionResponse(((PacketGildAction) packet).getPlayerId(), ((PacketGildAction) packet).getGilde(), PacketGildActionResponse.Action.SUCCESSFULL, "Sucessfull deleted."));
+				EventHelper.callGildEvent(g.getUuid(), new GildeUpdateEvent(g.getUuid(), GildeUpdateEvent.Action.DELETE, ""));
+				return;
+			case RENAME_LONG:
+				owner.writePacket(new PacketGildActionResponse(((PacketGildAction) packet).getPlayerId(),  null, PacketGildActionResponse.Action.ERROR, "Operation nmot supported!"));
+				return;
+			case RENAME_SHORT:
+				owner.writePacket(new PacketGildActionResponse(((PacketGildAction) packet).getPlayerId(),  null, PacketGildActionResponse.Action.ERROR, "Operation nmot supported!"));
 				return;
 			}
-			Gilde gild = GildenManager.getManager().createGilde(((PacketGildCreate) packet).getName(), PlayerManager.getPlayer(((PacketGildCreate) packet).getPlayerId()));
-			owner.writePacket(new PacketGildCreateResponse(((PacketGildCreate) packet).getPlayerId(), gild.getUuid()));
+		}
+		else if(packet instanceof PacketGildMoneyAction){
+			Gilde gilde = GildenManager.getManager().getGilde((((PacketGildMoneyAction) packet).getGilde()));
+			if(gilde == null){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-2, "Gilde not found!")));
+				return;
+			}
+			if(!gilde.getSelection(((PacketGildMoneyAction) packet).getType()).isActive()){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Section not active!")));
+				return;
+			}
+			if(((PacketGildMoneyAction) packet).getAction() == dev.wolveringer.dataserver.protocoll.packets.PacketGildMoneyAction.Action.ADD || ((PacketGildMoneyAction) packet).getAction() == dev.wolveringer.dataserver.protocoll.packets.PacketGildMoneyAction.Action.REMOVE)
+				gilde.getSelection(((PacketGildMoneyAction) packet).getType()).getMoney().addBalance(((PacketGildMoneyAction) packet).getCalculatedAmount());
+			owner.writePacket(new PacketGildMoneyResponse(((PacketGildMoneyAction) packet).getGilde(), ((PacketGildMoneyAction) packet).getType(), ((PacketGildMoneyAction) packet).getPlayerId(), gilde.getSelection(((PacketGildMoneyAction) packet).getType()).getMoney().getCurrentBalance()));
+			//owner.writePacket(new PacketGildMoneyResponse(((PacketGildMoneyAction) packet).getGilde(), ((PacketGildMoneyAction) packet).getType(), new MoneyLogRecord[]{new MoneyLogRecord(-1, -1, gilde.getSelection(((PacketGildMoneyAction) packet).getType()).getMoney().getCurrentBalance(), null)}));
+			return;
+		}
+		else if(packet instanceof PacketGildMoneyHistoryAction){
+			Gilde gilde = GildenManager.getManager().getGilde((((PacketGildMoneyHistoryAction) packet).getGilde()));
+			if(gilde == null){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-2, "Gilde not found!")));
+				return;
+			}
+			if(!gilde.getSelection(((PacketGildMoneyHistoryAction) packet).getType()).isActive()){
+				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Section not active!")));
+				return;
+			}
+			GildSectionMoney money = gilde.getSelection(((PacketGildMoneyHistoryAction) packet).getType()).getMoney();
+			switch (((PacketGildMoneyHistoryAction) packet).getAction()) {
+			case ADD:
+				money.logRecord(((PacketGildMoneyHistoryAction) packet).getPlayerId(), ((PacketGildMoneyHistoryAction) packet).getAmount(), ((PacketGildMoneyHistoryAction) packet).getReason());
+				owner.writePacket(new PacketOutPacketStatus(packet, null));
+				break;
+			case GET:
+				owner.writePacket(new PacketGildMoneyHistoryResponse(((PacketGildMoneyHistoryAction) packet).getGilde(), ((PacketGildMoneyHistoryAction) packet).getType(), money.getRecords().toArray(new MoneyLogRecord[0])));
+				break;
+			default:
+				break;
+			}
+			return;
 		}
 		else if(packet instanceof PacketTeamspeakAction){
 			switch (((PacketTeamspeakAction) packet).getAction()) {

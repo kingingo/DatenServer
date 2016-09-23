@@ -58,7 +58,7 @@ public class ReaderThread {
 		if (length <= 0) {
 			int contollLength = readInt();
 			if (contollLength != Math.abs(length)) {
-				throw new RuntimeException("Reader index wrong (Wrong length (" + length + "/" + contollLength + "))");
+				throw new RuntimeException("Reader index wrong (Wrong length (" + length + "/" + contollLength + "), Info [Name: "+client.getName()+", IP: "+client.getHost()+"])");
 			}
 			length = contollLength;
 		}
@@ -129,9 +129,5 @@ public class ReaderThread {
 		if (reader != null) {
 			reader.interrupt();
 		}
-	}
-
-	public static void main(String[] args) {
-		System.out.println(UnsignedInteger.asUnsigned(Short.MIN_VALUE));
 	}
 }

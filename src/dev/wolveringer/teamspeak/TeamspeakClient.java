@@ -18,6 +18,7 @@ import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 
+import com.github.theholywaffle.teamspeak3.TS3Api;
 import com.github.theholywaffle.teamspeak3.TS3Config;
 import com.github.theholywaffle.teamspeak3.TS3Query;
 import com.github.theholywaffle.teamspeak3.TS3Query.FloodRate;
@@ -27,6 +28,8 @@ import com.github.theholywaffle.teamspeak3.api.event.ClientJoinEvent;
 import com.github.theholywaffle.teamspeak3.api.event.TS3EventAdapter;
 import com.github.theholywaffle.teamspeak3.api.event.TS3EventType;
 import com.github.theholywaffle.teamspeak3.api.event.TextMessageEvent;
+import com.github.theholywaffle.teamspeak3.api.reconnect.ConnectionHandler;
+import com.github.theholywaffle.teamspeak3.api.reconnect.ReconnectStrategy;
 import com.github.theholywaffle.teamspeak3.api.wrapper.Client;
 import com.github.theholywaffle.teamspeak3.api.wrapper.FileTransfare;
 
@@ -67,6 +70,21 @@ public class TeamspeakClient {
 		this.config.setFloodRate(FloodRate.UNLIMITED);
 		this.groupMapping = ServerConfiguration.getGroupMapping();
 		this.ignoreGroups = ServerConfiguration.getIgnoreGroup();
+		config.setReconnectStrategy(ReconnectStrategy.exponentialBackoff());
+		config.setConnectionHandler(new ConnectionHandler() {
+
+			@Override
+			public void onConnect(TS3Query ts3Query) {
+				login(ServerConfiguration.config.getString("teamspeak.username"), ServerConfiguration.config.getString("teamspeak.password"), ServerConfiguration.config.getInt("teamspeak.serverId"));
+				ts3Query.getApi().setNickname(ServerConfiguration.config.getString("teamspeak.nickname"));
+				System.out.println("§aTeamspeak client connected!");
+			}
+
+			@Override
+			public void onDisconnect(TS3Query ts3Query) {
+				System.out.println("§cTeamspeak client disconnected!");
+			}
+		});
 		this.client = new TS3Query(config);
 		this.client.getApi().addTS3Listeners(new TS3EventAdapter() {
 			@Override
@@ -160,6 +178,7 @@ public class TeamspeakClient {
 					getClient().getAsyncApi().pokeClient(e.getClientId(), "[b]Willkommen! Bitte verifiziere dich![/b]");
 				}
 			}
+			
 		});
 	}
 
@@ -287,8 +306,17 @@ public class TeamspeakClient {
 	}
 
 	public void connect() {
+		System.out.println("§6Teamspeak client reconnected!");
 		client.connect();
 		connected = true;
+		ThreadFactory.getFactory().createThread(()->{
+			while (connected) {
+				if(!client.isConnected()){
+					connected = false;
+					connect();
+				}
+			}
+		});
 	}
 
 	public boolean login(String username, String password, int serverId) {
@@ -342,18 +370,32 @@ public class TeamspeakClient {
 	}
 	
 	public static void main(String[] args) {
+		//WolverinDEV_03
+		//vHbzrtxd
 		// -DtsHost=ts.epicpvp.eu -DtsUsername=WolverinDEV_02
 		// -DtsPassword=aL8JPz4C
-		System.out.println(System.getProperty("tsHost"));
-		TeamspeakClient client = new TeamspeakClient(new TS3Config().setHost(System.getProperty("tsHost")).setDebugLevel(Level.ALL));
-		client.connect();
-		System.out.println("Connected");
-		if (!client.login(System.getProperty("tsUsername"), System.getProperty("tsPassword"), 1)) {
-			System.out.println("Cant login!");
-			System.exit(-1);
-		}
-		System.out.println("Logged in");
-		Client player = client.client.getApi().getClientByNameExact("CuzImZyp | Flo", true);
+		final TS3Config config = new TS3Config();
+		config.setHost(System.getProperty("tsHost"));
+		config.setDebugLevel(Level.ALL);
+
+		final TS3Query query = new TS3Query(config);
+		query.connect();
+
+		final TS3Api api = query.getApi();
+		api.login(System.getProperty("tsUsername"), System.getProperty("tsPassword"));
+		api.selectVirtualServerById(1);
+		String message = "Ne war ein Problem mit meinem Windows System und nicht mit der pom. Musste build.source.encoding neu hinzufügen weil windows eben WINDOWS-0532895437593475348765346894378647896438764678439679836789468943SHITENCODING used und nicht UTF-8";
+		api.sendPrivateMessage(api.getClientByNameExact("WolverinDEV", false).getId(), message);
+		//TeamspeakClient client = new TeamspeakClient(new TS3Config().setHost(System.getProperty("tsHost")).setDebugLevel(Level.ALL));
+		//client.connect();
+		//System.out.println("Connected");
+		//if (!client.login(System.getProperty("tsUsername"), System.getProperty("tsPassword"), 1)) {
+		//	System.out.println("Cant login!");
+		//	System.exit(-1);
+		//}
+		//System.out.println("Logged in");
+		//Client player = client.client.getApi().getClientByNameExact("CuzImZyp | Flo", true);
+		//client.client.getApi().broadcast("Hello world");
 		// client.setMinecraftIcon(player, "CuzImZyp");
 	}
 }
