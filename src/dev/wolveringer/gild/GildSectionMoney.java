@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import dev.wolveringer.event.EventHelper;
+import dev.wolveringer.events.gilde.GildeMoneyChangeEvent;
 import dev.wolveringer.gilde.MoneyLogRecord;
 import dev.wolveringer.mysql.MySQL;
 import dev.wolveringer.sync.WaitForObject;
@@ -41,7 +43,7 @@ public class GildSectionMoney {
 							currentBalance = Integer.parseInt(response.get(0)[0]);
 						else
 						{
-							records.add(new MoneyLogRecord(Long.parseLong(element[0]), Integer.parseInt(element[1]), Integer.parseInt(element[0]), element[3]));
+							records.add(new MoneyLogRecord(Long.parseLong(element[2]), Integer.parseInt(element[1]), Integer.parseInt(element[0]), element[3]));
 						}
 					}catch(Exception e){
 						e.printStackTrace();
@@ -64,12 +66,19 @@ public class GildSectionMoney {
 	public void logRecord(int playerId,int amount,String message,long date){
 		initObject.waitFor(5000);
 		MySQL.getInstance().command("INSERT INTO `GILDE_MONEY` (`gilde`, `section`, `date`, `playerId`, `amount`, `message`) VALUES ('"+handle.getHandle().getUuid()+"', '"+handle.getType().name()+"', '"+date+"', '"+playerId+"', '"+amount+"', '"+ObjectUtils.toString(message)+"');");
-		records.add(new MoneyLogRecord(date, playerId, amount, message));
+		MoneyLogRecord r;
+		records.add(r = new MoneyLogRecord(date, playerId, amount, message));
+		EventHelper.callGildEvent(handle.getHandle().getUuid(), new GildeMoneyChangeEvent(handle.getHandle().getUuid(), handle.getType(), GildeMoneyChangeEvent.Action.HISTORY_ADD, -1, r));
 	}
 	
 	public synchronized void addBalance(int balance){
 		initObject.waitFor(5000);
 		this.currentBalance += balance;
 		MySQL.getInstance().command("UPDATE `GILDE_MONEY` SET `amount`='"+balance+"' WHERE `gilde`='"+handle.getHandle().getUuid()+"' AND `section`='"+handle.getType().name()+"' `date`='-1' AND `playerId`='-1");
+		
+		if(balance > 0)
+			EventHelper.callGildEvent(handle.getHandle().getUuid(), new GildeMoneyChangeEvent(handle.getHandle().getUuid(), handle.getType(), GildeMoneyChangeEvent.Action.ADD, Math.abs(balance), null));
+		else
+			EventHelper.callGildEvent(handle.getHandle().getUuid(), new GildeMoneyChangeEvent(handle.getHandle().getUuid(), handle.getType(), GildeMoneyChangeEvent.Action.REMOVE, Math.abs(balance), null));
 	}
 }
