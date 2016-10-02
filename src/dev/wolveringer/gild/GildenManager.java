@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import dev.wolveringer.arrays.CachedArrayList;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.gilde.GildeType;
+import dev.wolveringer.gilde.GildeVariables;
 import dev.wolveringer.mysql.MySQL;
 
 //CREATE TABLE IF NOT EXISTS GILDE_MONEY (`gilde` VARCHAR(36), `section` VARCHAR(20), `date` BIGINT, `playerId` BIGINT, `amount` BIGINT, `message` TEXT)
@@ -20,7 +21,7 @@ public class GildenManager {
 		GildenManager.manager = manager;
 	}
 	
-	private CachedArrayList<Gilde> gilden = new CachedArrayList<>(20, TimeUnit.MINUTES);
+	private CachedArrayList<Gilde> gilden = new CachedArrayList<>(25, TimeUnit.MINUTES);
 	public GildenManager() {
 	}
 
@@ -43,6 +44,7 @@ public class GildenManager {
 		MySQL.getInstance().command("DELETE FROM `GILDE_MEMBERS` WHERE `gilde`='"+gilde.toString()+"';");
 		MySQL.getInstance().command("DELETE FROM `GILDE_INFORMATION` WHERE `uuid`='"+gilde.toString()+"'");
 		MySQL.getInstance().command("DELETE FROM `GILDE_PERMISSIONS` WHERE `uuid`='"+gilde.toString()+"'");
+		MySQL.getInstance().command("DELETE FROM `GILDE_MONEY` WHERE `gilde`='"+gilde.toString()+"'");
 	}
 
 	public Gilde createGilde(String name,OnlinePlayer player){
@@ -80,7 +82,7 @@ public class GildenManager {
 		for (Gilde g : new ArrayList<>(gilden))
 			if (g != null && g.getUuid() != null)
 				if (g.getUuid().equals(uuid))
-					return g;
+					return useGilde(g);
 		return null;
 	}
 
@@ -88,7 +90,7 @@ public class GildenManager {
 		for (Gilde g : new ArrayList<>(gilden))
 			if (g != null && g.getUuid() != null)
 				if (g.getUuid().equals(uuid))
-					return g;
+					return useGilde(g);
 		return loadGilde(uuid);
 	}
 
@@ -100,7 +102,7 @@ public class GildenManager {
 		for (Gilde g : new ArrayList<>(gilden))
 			if (g != null && g.getName() != null)
 				if (g.getName() != null && g.getName().equalsIgnoreCase(name))
-					return g;
+					return useGilde(g);
 		if(!load)
 			return null;
 		ArrayList<String[]> response = MySQL.getInstance().querySync("SELECT `uuid` FROM `GILDE_INFORMATION` WHERE `key`='name' AND `value`='"+name+"'");
@@ -114,8 +116,8 @@ public class GildenManager {
 			if (g != null && g.getName() != null)
 				for (GildSection s : g.getActiveSections())
 					if (s.getType() == type && s.players.contains(new Integer(player)))
-						return g;
-		ArrayList<String[]> response = MySQL.getInstance().querySync("SELECT `gilde` FROM `GILDE_MEMBERS` WHERE `playerId`='"+player+"' AND `section`='"+type.toString()+"'");
+						return useGilde(g);
+		ArrayList<String[]> response = MySQL.getInstance().querySync("SELECT `gilde` FROM `GILDE_MEMBERS` WHERE `playerId`='"+player+"' AND `section`='"+type.toString()+"' AND `rank`!='"+GildeVariables.INVITE_GROUP+"'");
 		if(response.size() == 0)
 			return new Gilde.NOT_EXISTING_Gilde(UUID.randomUUID());
 		return getGilde(UUID.fromString(response.get(0)[0]));
@@ -124,7 +126,7 @@ public class GildenManager {
 	public Gilde getOwnGilde(int player){
 		for (Gilde g : new ArrayList<>(gilden))
 			if(g.getOwnerId() == player)
-				return g;
+				return useGilde(g);
 		ArrayList<String[]> response = MySQL.getInstance().querySync("SELECT `uuid` FROM `GILDE_INFORMATION` WHERE `key`='ownerId' AND `value`='"+player+"'");
 		if(response.size() == 0)
 			return new Gilde.NOT_EXISTING_Gilde(UUID.randomUUID());
@@ -146,5 +148,10 @@ public class GildenManager {
 			}
 		}
 		return out;
+	}
+	
+	private Gilde useGilde(Gilde g){
+		gilden.resetTime(g);
+		return g;
 	}
 }

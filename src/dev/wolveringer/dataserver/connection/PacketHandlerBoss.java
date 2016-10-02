@@ -282,6 +282,9 @@ public class PacketHandlerBoss {
 				case NICKNAME:
 					values.add(new SettingValue(s, player.getNickname()));
 					break;
+				case LAST_PASSWORD_CHANGED:
+					values.add(new SettingValue(s, String.valueOf(player.getLastPasswordChange())));
+					break;
 				default:
 					break;
 				}
@@ -739,6 +742,15 @@ public class PacketHandlerBoss {
 				break;
 			case KICK:
 				gilde.getSelection(((PacketGildMemeberAction) packet).getType()).removePlayer(((PacketGildMemeberAction) packet).getPlayerId());
+				break;
+			case ACCEPT_REQUEST:
+				gilde.getSelection(((PacketGildMemeberAction) packet).getType()).acceptRequest(((PacketGildMemeberAction) packet).getPlayerId());
+				break;
+			case INVITE:
+				gilde.getSelection(((PacketGildMemeberAction) packet).getType()).addRequest(((PacketGildMemeberAction) packet).getPlayerId());
+				break;
+			case REMOVE_INVITE:
+				gilde.getSelection(((PacketGildMemeberAction) packet).getType()).removeRequest(((PacketGildMemeberAction) packet).getPlayerId());
 				break;
 			default:
 				System.out.println("Type -> "+((PacketGildMemeberAction) packet).getAction()+" not supported");

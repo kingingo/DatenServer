@@ -8,7 +8,9 @@ import dev.wolveringer.event.EventHelper;
 import dev.wolveringer.events.gilde.GildePermissionEvent;
 import dev.wolveringer.mysql.MySQL;
 import lombok.Getter;
+import lombok.ToString;
 
+@ToString
 public class GildPermissionGroup {
 	@Getter
 	private GildSectionPermission handle;

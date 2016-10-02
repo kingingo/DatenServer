@@ -63,6 +63,7 @@ public class GildSectionPermission {
 	}
 	
 	public void setGroup(int player,GildPermissionGroup group){
+		System.out.println("Setgroup "+group+" for "+player);
 		GildPermissionGroup old = getGroup(player);
 		if(old != null && old.equals(group))
 			return;
@@ -75,6 +76,7 @@ public class GildSectionPermission {
 				throw new IllegalArgumentException("Cant set permission of a player whitch isnt in gild.");
 		}
 		if(group != null){
+			System.out.println("New group: "+group.getName());
 			players.put(new Integer(player), group.getName());
 			MySQL.getInstance().command("INSERT INTO `GILDE_MEMBERS`(`gilde`, `section`, `playerId`, `rank`) VALUES ('"+handle.getHandle().getUuid().toString()+"','"+handle.getType().toString()+"','"+player+"','"+group.getName()+"')");
 		}
@@ -103,7 +105,7 @@ public class GildSectionPermission {
 		if(g != null)
 			return;
 		groups.add(g = new GildPermissionGroup(this, group));
-		g.addPermission("group.importance-0",false); //creates the group
+		g.addPermission("permission.itemid.6",false); //creates the group
 		EventHelper.callGildEvent(handle.getHandle().getUuid(), new GildePermissionEvent(handle.getHandle().getUuid(), handle.getType(), GildePermissionEvent.Action.GROUP_ADD, group, null));
 	}
 }/*

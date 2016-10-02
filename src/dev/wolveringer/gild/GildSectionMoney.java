@@ -35,7 +35,7 @@ public class GildSectionMoney {
 				}
 				if(response.size() == 0){
 					MySQL.getInstance().command("INSERT INTO `GILDE_MONEY` (`gilde`, `section`, `date`, `playerId`, `amount`, `message`) VALUES ('"+handle.getHandle().getUuid()+"', '"+handle.getType().name()+"', '-1', '-1', '0', 'Current bank balance');");
-					response.add(new String[]{"0"});
+					response.add(new String[]{"0","-1","-1",""});
 				}
 				for(String[] element : response){
 					try{
@@ -74,7 +74,7 @@ public class GildSectionMoney {
 	public synchronized void addBalance(int balance){
 		initObject.waitFor(5000);
 		this.currentBalance += balance;
-		MySQL.getInstance().command("UPDATE `GILDE_MONEY` SET `amount`='"+balance+"' WHERE `gilde`='"+handle.getHandle().getUuid()+"' AND `section`='"+handle.getType().name()+"' `date`='-1' AND `playerId`='-1");
+		MySQL.getInstance().command("UPDATE `GILDE_MONEY` SET `amount`='"+balance+"' WHERE `gilde`='"+handle.getHandle().getUuid()+"' AND `section`='"+handle.getType().name()+"' AND `date`='-1' AND `playerId`='-1'");
 		
 		if(balance > 0)
 			EventHelper.callGildEvent(handle.getHandle().getUuid(), new GildeMoneyChangeEvent(handle.getHandle().getUuid(), handle.getType(), GildeMoneyChangeEvent.Action.ADD, Math.abs(balance), null));

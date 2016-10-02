@@ -50,6 +50,9 @@ public class OnlinePlayer {
 	@Setter
 	private boolean deleted = false;
 	
+	@Getter
+	private long lastPasswordChange = -1;
+	
 	public OnlinePlayer(String name) {
 		this.name = name;
 	}
@@ -117,11 +120,11 @@ public class OnlinePlayer {
 		if (this.newPlayer) {
 			MySQL.getInstance().commandSync("INSERT INTO `user_properties`(`playerId`, `password`, `premium`,`language`) VALUES ('" + this.playerId + "','',0,'" + LanguageType.ENGLISH.getShortName() + "')");
 		}
-		response = MySQL.getInstance().querySync("SELECT `password`,`premium`,`language`,`nickname` FROM `user_properties` WHERE `playerId`='" + this.playerId + "'", 1);
+		response = MySQL.getInstance().querySync("SELECT `password`,`premium`,`language`,`nickname`,`pwChangeDate` FROM `user_properties` WHERE `playerId`='" + this.playerId + "'", 1);
 		if (response.size() == 0) {
 			System.err.println("Cant find user properties for: " + this.playerId + " (" + this.name + ")");
 			MySQL.getInstance().commandSync("INSERT INTO `user_properties`(`playerId`, `password`, `premium`,`language`) VALUES ('" + this.playerId + "','',0,'" + LanguageType.ENGLISH.getShortName() + "')");
-			response = MySQL.getInstance().querySync("SELECT `password`,`premium`,`language`,`nickname` FROM `user_properties` WHERE `playerId`='" + this.playerId + "'", 1);
+			response = MySQL.getInstance().querySync("SELECT `password`,`premium`,`language`,`nickname`,`pwChangeDate` FROM `user_properties` WHERE `playerId`='" + this.playerId + "'", 1);
 		}
 		if (!((String[]) response.get(0))[0].equalsIgnoreCase("")) {
 			this.loginPassword = ((String[]) response.get(0))[0];
@@ -131,7 +134,7 @@ public class OnlinePlayer {
 		this.nickname = response.get(0).length > 3 ? response.get(0)[3] : null;
 		if(this.nickname == null || this.nickname.equalsIgnoreCase("null") || this.nickname.length() == 0)
 			this.nickname = null;
-		
+		this.lastPasswordChange = Long.parseLong(response.get(0)[4]);
 		this.skinManager = new PlayerSkinManager(this);
 		this.skinManager.load();
 		this.statsManager = new StatsManager(this);
@@ -167,7 +170,7 @@ public class OnlinePlayer {
 
 	public void setPassword(String value) {
 		this.loginPassword = value;
-		MySQL.getInstance().command("UPDATE `user_properties` SET `password`='" + value + "' WHERE `playerId`='" + playerId + "'");
+		MySQL.getInstance().command("UPDATE `user_properties` SET `password`='" + value + "',`pwChangeDate`='"+(lastPasswordChange = System.currentTimeMillis())+"' WHERE `playerId`='" + playerId + "'");
 	}
 
 	public void setPremium(Boolean valueOf) { // TODO

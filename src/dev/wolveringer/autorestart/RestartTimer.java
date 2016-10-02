@@ -1,12 +1,9 @@
 package dev.wolveringer.autorestart;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.lang3.StringUtils;
 
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.connection.server.ServerThread;
@@ -91,12 +88,12 @@ public class RestartTimer extends TimerTask{
 			}
 		}
 		broadcast("§c§l>> §c§lServer restart!");
+		for(Client c : ServerThread.getBungeecords()){
+			c.writePacket(new PacketServerAction(new PacketServerAction.PlayerAction[]{new PacketServerAction.PlayerAction(-1, Action.RESTART, "§cGlobal network restart!")}));
+		}
 		for(Client c : ServerThread.getServer(ClientType.ALL)){
 			if(c.getType() != ClientType.BUNGEECORD)
 				c.writePacket(new PacketServerAction(new PacketServerAction.PlayerAction[]{new PacketServerAction.PlayerAction(-1, Action.RESTART, "§cGlobal network restart!")}));
-		}
-		for(Client c : ServerThread.getBungeecords()){
-			c.writePacket(new PacketServerAction(new PacketServerAction.PlayerAction[]{new PacketServerAction.PlayerAction(-1, Action.RESTART, "§cGlobal network restart!")}));
 		}
 	}
 	
