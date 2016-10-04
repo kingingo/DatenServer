@@ -1,8 +1,6 @@
 package dev.wolveringer.language;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -10,7 +8,6 @@ import java.nio.charset.Charset;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.soap.Node;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -25,7 +22,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import dev.wolveringer.dataserver.player.LanguageType;
+import eu.epicpvp.datenserver.definitions.dataserver.player.LanguageType;
 import lombok.Getter;
 
 public class LanguageFile {
@@ -52,7 +49,7 @@ public class LanguageFile {
 		}
 		xmlTransformer = transformer;
 	}
-	
+
 	@Getter
 	private File file;
 	@Getter
@@ -63,7 +60,7 @@ public class LanguageFile {
 	private Document xmlFile;
 	@Getter
 	private Double version;
-	
+
 	public LanguageFile(LanguageType language) {
 		this.language = language;
 		this.file = new File(LanguageManager.languageDir, language.getShortName() + "/EpicPvPMC Text.xml");
@@ -98,7 +95,7 @@ public class LanguageFile {
 		if(version == null)
 			version = 1D;
 	}
-	
+
 	public void saveDocument(){
 		try {
 			FileOutputStream os = new FileOutputStream(file);

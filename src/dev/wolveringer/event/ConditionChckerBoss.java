@@ -5,14 +5,14 @@ import java.util.UUID;
 
 import dev.wolveringer.booster.BoosterType;
 import dev.wolveringer.client.connection.ClientType;
-import dev.wolveringer.dataserver.gamestats.GameType;
-import dev.wolveringer.dataserver.player.Setting;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
+import eu.epicpvp.datenserver.definitions.dataserver.player.Setting;
 import dev.wolveringer.events.EventCondition;
 import dev.wolveringer.events.EventConditions;
 
 public class ConditionChckerBoss {
 	private static final HashMap<EventConditions, ConditionChecker> checkers = new HashMap<>();
-	
+
 	static  {
 		checkers.put(EventConditions.CLIENT_TYPE_ARRAY, new ConditionChecker<ClientType>() {
 			@Override
@@ -57,7 +57,7 @@ public class ConditionChckerBoss {
 			}
 		});
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static boolean checkOr(EventCondition<?> con,Object[] value){
 		for(Object o : value){

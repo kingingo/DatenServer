@@ -9,7 +9,7 @@ import java.util.List;
 
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.connection.server.ServerThread;
-import dev.wolveringer.dataserver.gamestats.GameType;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
@@ -39,7 +39,7 @@ public class Client {
 	private boolean connected;
 	@Getter
 	private EventHandlerBoss eventHander;
-	
+
 	public Client(Socket socket,ServerThread owner) {
 		this.socket = socket;
 		this.server = owner;
@@ -57,17 +57,17 @@ public class Client {
 		this.reader.start();
 		this.eventHander = new EventHandlerBoss(this);
 		lastPingTime = System.currentTimeMillis();
-	}	
-	
+	}
+
 	public synchronized void disconnect(){
 		disconnect(null);
 	}
-	
+
 	public synchronized void disconnect(String message){
 		writePacket(new PacketDisconnect(message));
 		closePipeline();
 	}
-	
+
 	protected synchronized void closePipeline(){
 		if(!connected){
 			reader.close();
@@ -94,7 +94,7 @@ public class Client {
 		ServerThread.removeServer(this);
 		ArcadeManager.serverDisconnected(name);
 	}
-	
+
 	 public void writePacket(Packet packet)
 	  {
 	    if ((this.server == null) && (this.server == null)) {
@@ -122,12 +122,12 @@ public class Client {
 	      e.printStackTrace();
 	    }
 	  }
-	  
-	 
+
+
 	protected PacketHandlerBoss getHandlerBoss(){
 		return boss;
 	}
-	
+
 	public ServerStatus getStatus() {
 		return status;
 	}
@@ -140,7 +140,7 @@ public class Client {
 		}
 		return out;
 	}
-	
+
 	public long getPing() {
 		return lastPing;
 	}
@@ -160,11 +160,11 @@ public class Client {
 	public boolean isConnected() {
 		return connected;
 	}
-	
+
 	public InetAddress getRemoteAdress(){
 		return ((InetSocketAddress)socket.getRemoteSocketAddress()).getAddress();
 	}
-	
+
 	public boolean isReachable(int timeout) {
 		long sended = System.currentTimeMillis();
 		writePacket(new PacketPong(sended));

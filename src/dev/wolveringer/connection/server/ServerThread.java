@@ -8,21 +8,21 @@ import java.util.ArrayList;
 
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.dataserver.connection.Client;
-import dev.wolveringer.dataserver.gamestats.GameType;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
 
 public class ServerThread {
 	private static ArrayList<Client> clients = new ArrayList<>();
-	
+
 	public static void registerTestServer(Client client){
 		synchronized (clients) {
 			clients.add(client);
 		}
 	}
-	
+
 	public static ArrayList<Client> getBungeecords(){
 		return getServer(ClientType.BUNGEECORD);
 	}
-	
+
 	public static ArrayList<Client> getServer(ClientType type){
 		ArrayList<Client> out = new ArrayList<>();
 		for(Client c : new ArrayList<>(clients)){
@@ -44,7 +44,7 @@ public class ServerThread {
 		return out;
 	}
 
-	
+
 	public static Client getServer(String name){
 		if(name == null)
 			return null;
@@ -54,23 +54,23 @@ public class ServerThread {
 				return c;
 		return null;
 	}
-	
+
 	public static void removeServer(Client client) {
 		synchronized (clients) {
 			clients.remove(client);
 		}
 	}
-	
+
 	private ServerSocket socket;
 	private InetSocketAddress localAddr;
 	private Thread acceptThread;
 	private Thread timeoutThread;
-	
-	
+
+
 	public ServerThread(InetSocketAddress localAddr) {
 		this.localAddr = localAddr;
 	}
-	
+
 	public void start() throws IOException{
 		socket = new ServerSocket(localAddr.getPort(), 0, localAddr.getAddress());
 		acceptThread = new Thread(new Runnable() {

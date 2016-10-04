@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import eu.epicpvp.datenserver.definitions.report.ReportEntity;
+import eu.epicpvp.datenserver.definitions.report.ReportWorker;
 import org.apache.commons.lang3.StringUtils;
 
 import dev.wolveringer.dataserver.player.OnlinePlayer;
@@ -17,14 +19,14 @@ import dev.wolveringer.mysql.MySQL;
 
 public class ReportManager {
 	private static ReportManager instance;
-	
+
 	public static ReportManager getInstance() {
 		return instance;
 	}
 	public static void setInstance(ReportManager instance) {
 		ReportManager.instance = instance;
 	}
-	
+
 	private static long lastId = System.currentTimeMillis();
 	private static synchronized int createReportId() {
 		int id = (int) (System.currentTimeMillis() % (Math.pow(2, 31)));
@@ -120,7 +122,7 @@ public class ReportManager {
 				return e;
 		return null;
 	}
-	
+
 	public void addWorker(ReportEntity e,int playerId){
 		ReportWorker w = new ReportWorker(e.getReportId(), playerId, System.currentTimeMillis(), -1);
 		e.getWorkers().add(w);

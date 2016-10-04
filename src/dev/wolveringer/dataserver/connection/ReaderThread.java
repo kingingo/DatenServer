@@ -1,19 +1,12 @@
 package dev.wolveringer.dataserver.connection;
 
 import java.io.DataInputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.Buffer;
-import java.util.logging.Level;
 
-import com.google.common.primitives.UnsignedInteger;
-
-import dev.wolveringer.dataserver.Main;
-import dev.wolveringer.dataserver.protocoll.DataBuffer;
+import eu.epicpvp.datenserver.definitions.dataserver.protocoll.DataBuffer;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutPacketStatus;
-import dev.wolveringer.dataserver.protocoll.packets.Packet.PacketDirection;
 
 public class ReaderThread {
 	private Client client;
@@ -98,7 +91,7 @@ public class ReaderThread {
 			}
 		});
 	}
-	
+
 	 public final int readInt() throws IOException {
 	        int ch1 = in.read();
 	        int ch2 = in.read();

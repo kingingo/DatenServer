@@ -10,6 +10,8 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsEdit.EditStats;
 import dev.wolveringer.dataserver.protocoll.packets.PacketOutStats;
 import dev.wolveringer.gamestats.Statistic;
 import dev.wolveringer.mysql.MySQL;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.StatsKey;
 
 public class StatsManager {
 	public static final String TABLE_PREFIX = "statistics_";
@@ -87,7 +89,7 @@ public class StatsManager {
 		}
 		statistic.setNeedSave(true);
 	}
-	
+
 	public PacketOutStats getStats(GameType game) {
 		if (!stats.containsKey(game))
 			loadStats(game);

@@ -1,7 +1,7 @@
 package dev.wolveringer.dataserver.terminal.commands;
 
-import dev.wolveringer.dataserver.gamestats.GameType;
-import dev.wolveringer.dataserver.gamestats.StatsKey;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.StatsKey;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsEdit.Action;
@@ -55,7 +55,7 @@ public class CommandStats implements CommandExecutor{
 					writer.sendMessage("§cCant find StatsKey "+args[4]);
 					return;
 				}
-				
+
 			}
 		}
 	}
@@ -64,7 +64,7 @@ public class CommandStats implements CommandExecutor{
 	public ArgumentList getArguments() {
 		return ArgumentList.builder().arg(new Argument("/smanager info <Playername> <Gametype>", "Show the statistik of a Gametype")).arg(new Argument("/smanager change <Playername> <GameType> <add/remove/set> <StatsKey> <Value>", "Change the statistik of a player")).build();
 	}
-	
+
 	public static void main(String[] args) {
 		System.out.println(Action.valueOf("add"));
 	}

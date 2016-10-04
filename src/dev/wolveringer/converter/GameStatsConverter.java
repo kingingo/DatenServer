@@ -6,21 +6,21 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 
-import dev.wolveringer.dataserver.gamestats.GameType;
-import dev.wolveringer.dataserver.gamestats.StatsKey;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.StatsKey;
 import dev.wolveringer.mysql.MySQL;
 
 public class GameStatsConverter {
 	private MySQL _old;
 	private MySQL _new;
 	private PlayerIdConverter  ids;
-	
+
 	public GameStatsConverter(MySQL _old,MySQL _new,PlayerIdConverter  ids) {
 		this._old =_old;
 		this._new = _new;
 		this.ids = ids;
 	}
-	
+
 	public void transfare(){
 		System.out.println("Transfaring game stats");
 		for(GameType type : GameType.values()){
@@ -67,7 +67,7 @@ public class GameStatsConverter {
 			}
 		}
 	}
-	
+
 	private String buildSelect(GameType game,String tablePrefix,String rowName) {
 		// Table name: users_"+typ.getKürzel()
 		StatsKey[] keys = game.getStats();
@@ -97,7 +97,7 @@ public class GameStatsConverter {
 		String mySQLSyntax = "INSERT INTO `" + "statistics_" + game.getShortName() + "` (`playerId`," + rowNames.substring(0, rowNames.length() - 1) + ") VALUES ('" + args[0] + "'," + values.substring(0, values.length() - 1) + ")";
 		return mySQLSyntax;
 	}
-	
+
 	public static void main(String[] args) {
 		System.out.println("X: "+Arrays.asList(StatsKey.values()));
 	}

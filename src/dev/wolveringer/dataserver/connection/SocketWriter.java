@@ -7,7 +7,7 @@ import java.net.SocketException;
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import dev.wolveringer.dataserver.protocoll.DataBuffer;
+import eu.epicpvp.datenserver.definitions.dataserver.protocoll.DataBuffer;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
 
 public class SocketWriter {

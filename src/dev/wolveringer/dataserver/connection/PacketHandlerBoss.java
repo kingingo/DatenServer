@@ -1,6 +1,5 @@
 package dev.wolveringer.dataserver.connection;
 
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,16 +10,15 @@ import java.util.UUID;
 import dev.wolveringer.booster.NetworkBooster;
 import dev.wolveringer.configuration.ServerConfiguration;
 import dev.wolveringer.connection.server.ServerThread;
-import dev.wolveringer.dataserver.ban.BanEntity;
+import eu.epicpvp.datenserver.definitions.dataserver.ban.BanEntity;
 import dev.wolveringer.dataserver.ban.BanManager;
-import dev.wolveringer.dataserver.gamestats.GameState;
-import dev.wolveringer.dataserver.gamestats.GameType;
-import dev.wolveringer.dataserver.gamestats.StatsKey;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameState;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
 import dev.wolveringer.dataserver.gamestats.TopStatsManager;
-import dev.wolveringer.dataserver.player.LanguageType;
+import eu.epicpvp.datenserver.definitions.dataserver.player.LanguageType;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.player.PlayerManager;
-import dev.wolveringer.dataserver.player.Setting;
+import eu.epicpvp.datenserver.definitions.dataserver.player.Setting;
 import dev.wolveringer.dataserver.protocoll.packets.Packet;
 import dev.wolveringer.dataserver.protocoll.packets.PacketBoosterActive;
 import dev.wolveringer.dataserver.protocoll.packets.PacketBoosterStatusRequest;
@@ -39,7 +37,6 @@ import dev.wolveringer.dataserver.protocoll.packets.PacketGildInformationRequest
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildInformationResponse;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemberRequest;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemberResponse;
-import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemberResponse.MemberInformation;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildMemeberAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildMoneyAction;
 import dev.wolveringer.dataserver.protocoll.packets.PacketGildMoneyHistoryAction;
@@ -102,8 +99,6 @@ import dev.wolveringer.dataserver.skin.SkinCache;
 import dev.wolveringer.doublecoins.BoosterManager;
 import dev.wolveringer.event.EventHelper;
 import dev.wolveringer.events.gilde.GildeUpdateEvent;
-import dev.wolveringer.gild.GildPermissionGroup;
-import dev.wolveringer.gild.GildSection;
 import dev.wolveringer.gild.GildSectionMoney;
 import dev.wolveringer.gild.Gilde;
 import dev.wolveringer.gild.GildenManager;
@@ -111,7 +106,7 @@ import dev.wolveringer.gilde.GildeType;
 import dev.wolveringer.gilde.MoneyLogRecord;
 import dev.wolveringer.language.LanguageFile;
 import dev.wolveringer.language.LanguageManager;
-import dev.wolveringer.report.ReportEntity;
+import eu.epicpvp.datenserver.definitions.report.ReportEntity;
 import dev.wolveringer.report.ReportManager;
 import dev.wolveringer.serverbalancer.ArcadeManager;
 import dev.wolveringer.serverbalancer.ArcadeManager.ServerType;
@@ -124,7 +119,7 @@ public class PacketHandlerBoss {
 	private boolean handshakeComplete = false;
 
 	public PacketHandlerBoss(Client owner) {
-		
+
 		"".equals("");
 		this.owner = owner;
 	}
@@ -408,7 +403,7 @@ public class PacketHandlerBoss {
 			default:
 				break;
 			}
-			
+
 			//IS THAT RIGHT?
 			owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Server/Bungeecord not found")));
 		} else if (packet instanceof PacketPing) {
@@ -645,7 +640,7 @@ public class PacketHandlerBoss {
 			BoosterManager.getManager().activeBooster(player, p.getTime(), p.getType());
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		}
-		
+
 		else if(packet instanceof PacketGildSarch){
 			List<Entry<UUID, String>> response = new ArrayList<>();
 			Gilde g = null;

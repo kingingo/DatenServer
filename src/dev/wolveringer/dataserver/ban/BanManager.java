@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import dev.wolveringer.mysql.MySQL;
 import dev.wolveringer.mysql.MySQL.MySQLConfiguration;
+import eu.epicpvp.datenserver.definitions.dataserver.ban.BanEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -68,7 +69,7 @@ public class BanManager {
 		private BanEntity entity;
 		private int match;
 	}
-	
+
 	public ArrayList<BanEntity> getEntitys(String name, String ip, UUID uuid) {
 		if (ip != null)
 			ip.toLowerCase();
@@ -103,7 +104,7 @@ public class BanManager {
 		}
 		return returnEntities;
 	}
-	
+
 	public void banPlayer(String name, String ip, String suuid, String banner, String bannerUUID, String bannerIP, int level, long end, String reson) {
 		UUID uuid = suuid != null ? UUID.fromString(suuid) : null;
 
@@ -145,7 +146,7 @@ public class BanManager {
 	private String buildXORMySQL(String row,String input){
 		return input == null ? "("+row+"='null' OR "+row+"='undefined')" : row+"='"+input+"'";
 	}
-	
+
 	public void unbanPlayer(String name, UUID uuid, String ip) {
 		BanEntity ban = getEntity(name, ip, uuid);
 		if (ban != null) {

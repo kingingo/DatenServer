@@ -5,7 +5,7 @@ import dev.wolveringer.dataserver.terminal.ArgumentList;
 import dev.wolveringer.dataserver.terminal.CommandExecutor;
 import dev.wolveringer.dataserver.terminal.ConsoleWriter;
 import dev.wolveringer.dataserver.terminal.ArgumentList.Argument;
-import dev.wolveringer.report.ReportEntity;
+import eu.epicpvp.datenserver.definitions.report.ReportEntity;
 import dev.wolveringer.report.ReportManager;
 
 public class CommandReport implements CommandExecutor{

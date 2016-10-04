@@ -9,7 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -17,9 +16,8 @@ import dev.wolveringer.arrays.CachedArrayList;
 import dev.wolveringer.client.connection.ClientType;
 import dev.wolveringer.connection.server.ServerThread;
 import dev.wolveringer.dataserver.connection.Client;
-import dev.wolveringer.dataserver.connection.ServerStatus;
-import dev.wolveringer.dataserver.gamestats.GameState;
-import dev.wolveringer.dataserver.gamestats.GameType;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameState;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -74,11 +72,11 @@ public class ArcadeManager {
 		//types.add(new ServerType(GameType.BedWars, "2x4"));
 		//types.add(new ServerType(GameType.BedWars, "4x4"));
 	}
-	
+
 	public static HashMap<ServerType, ArrayList<Client>> getLastCalculated() {
 		return lastCalculated;
 	}
-	
+
 	@SuppressWarnings("serial")
 	private static HashMap<ServerType, CachedArrayList<UUID>> serverChanging = new HashMap<ServerType, CachedArrayList<UUID>>() {
 		public CachedArrayList<UUID> get(Object key) {
@@ -91,7 +89,7 @@ public class ArcadeManager {
 		};
 	};
 	private static CachedArrayList<String> notFree = new CachedArrayList<>(1, TimeUnit.MINUTES);
-	
+
 	public static void serverConnected(ServerType game){
 		if(serverChanging.get(game).size() > 0)
 			serverChanging.get(game).remove(0);
@@ -114,7 +112,7 @@ public class ArcadeManager {
 		int needed = oneeded;
 		if(needed == 0)
 			needed = servers.size(); //Adding left servers to games
-		
+
 		while (needed > 0 && freeServersLeft > 0) {
 			int filled = 0;
 			for (ServerType game : types) {
@@ -171,7 +169,7 @@ public class ArcadeManager {
 				ServerType game2 = (ServerType) o2.getKey();
 				return Integer.compare(calculateNeeded(servers, game1), calculateNeeded(servers, game2));
 			}
-			
+
 		});
 
 		Map<K, V> result = new LinkedHashMap<>();
@@ -180,11 +178,11 @@ public class ArcadeManager {
 		}
 		return result;
 	}
-	
+
 	private static int calculateNeeded(HashMap<ServerType, ArrayList<Client>> server,ServerType game){
 		return Math.max(0, getMinServer(game)-(server.get(game).size())-serverChanging.get(game).size());
 	}
-	
+
 	private static int getMinServer(ServerType game){
 		return MIN_FREE_SERVER;
 	}
@@ -244,7 +242,7 @@ public class ArcadeManager {
 		}
 		System.out.println("Connected:: "+ServerThread.getServer(ClientType.ACARDE));
 	}
-	
+
 	private static ServerType getType(GameType state,String modifier){
 		ServerType currunt = new ServerType(state, modifier);
 		if(!types.contains(currunt))

@@ -6,6 +6,8 @@ import java.util.HashMap;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.mysql.MySQL;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.StatsKey;
 
 public class TopStatsManager {
 	private static TopStatsManager manager;
@@ -16,11 +18,11 @@ public class TopStatsManager {
 		return manager;
 	}
 	private HashMap<GameType, HashMap<StatsKey, ArrayList<OnlinePlayer>>> topList = new HashMap<>();
-	
+
 	public TopStatsManager() {
-	
+
 	}
-	
+
 	@Deprecated
 	public ArrayList<OnlinePlayer> getTopTenCached(GameType game,StatsKey key){
 		if(!topList.containsKey(game))
@@ -29,7 +31,7 @@ public class TopStatsManager {
 			loadKey(game, key);
 		return topList.get(game).get(key);
 	}
-	
+
 	public ArrayList<String[]> getTopTen(GameType game,StatsKey key){
 		ArrayList<String[]> query = MySQL.getInstance().querySync("SELECT `playerId`,`"+key.getMySQLName()+"` FROM `" + StatsManager.TABLE_PREFIX +game.getShortName()+"` ORDER BY `"+key.getMySQLName()+"` DESC LIMIT 10", -1);
 		ArrayList<String[]> out = new ArrayList<>();
@@ -37,11 +39,11 @@ public class TopStatsManager {
 			out.add(new String[]{PlayerManager.getPlayer(Integer.parseInt(in[0])).getName(),in[1]});
 		return out;
 	}
-	
+
 	private void loadGame(GameType game){
-		
+
 	}
 	private void loadKey(GameType game,StatsKey key){
-		
+
 	}
 }

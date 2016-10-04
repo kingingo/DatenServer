@@ -34,8 +34,8 @@ import com.github.theholywaffle.teamspeak3.api.wrapper.Client;
 import com.github.theholywaffle.teamspeak3.api.wrapper.FileTransfare;
 
 import dev.wolveringer.configuration.ServerConfiguration;
-import dev.wolveringer.dataserver.gamestats.GameType;
-import dev.wolveringer.dataserver.gamestats.StatsKey;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.StatsKey;
 import dev.wolveringer.dataserver.player.OnlinePlayer;
 import dev.wolveringer.dataserver.player.PlayerManager;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInStatsEdit;
@@ -178,7 +178,7 @@ public class TeamspeakClient {
 					getClient().getAsyncApi().pokeClient(e.getClientId(), "[b]Willkommen! Bitte verifiziere dich![/b]");
 				}
 			}
-			
+
 		});
 	}
 
@@ -363,12 +363,12 @@ public class TeamspeakClient {
 
 	public void updateDiscription(OnlinePlayer player,Client client){
 		//Minecraft username: WolverinDEV | PlayerID: 123321 | Online auf: SkyPvP
-		
+
 		Map<ClientProperty, String> options = new HashMap<>();
 		options.put(ClientProperty.CLIENT_DESCRIPTION, "InGame-Name: " + player.getName());
 		instance.getClient().getApi().editClient(client.getId(), options);
 	}
-	
+
 	public static void main(String[] args) {
 		//WolverinDEV_03
 		//vHbzrtxd

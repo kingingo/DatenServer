@@ -1,8 +1,8 @@
 package dev.wolveringer.dataserver.connection;
 
 import dev.wolveringer.client.connection.ClientType;
-import dev.wolveringer.dataserver.gamestats.GameState;
-import dev.wolveringer.dataserver.gamestats.GameType;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameState;
+import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
 import dev.wolveringer.dataserver.protocoll.packets.PacketInServerStatus;
 import dev.wolveringer.serverbalancer.ArcadeManager;
 import dev.wolveringer.serverbalancer.ArcadeManager.ServerType;
@@ -21,9 +21,9 @@ public class ServerStatus {
 	private boolean visiable = false;
 	private Client owner;
 	private String serverId = "unknown";
-	
+
 	private boolean registered = false;
-	
+
 	public ServerStatus(Client owner){
 		this.owner = owner;
 	}

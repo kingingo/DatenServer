@@ -3,6 +3,7 @@ package dev.wolveringer.dataserver.player;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import eu.epicpvp.datenserver.definitions.dataserver.player.LanguageType;
 import org.apache.commons.lang3.StringUtils;
 
 import dev.wolveringer.client.connection.ClientType;
@@ -49,10 +50,10 @@ public class OnlinePlayer {
 	@Getter
 	@Setter
 	private boolean deleted = false;
-	
+
 	@Getter
 	private long lastPasswordChange = -1;
-	
+
 	public OnlinePlayer(String name) {
 		this.name = name;
 	}
@@ -151,7 +152,7 @@ public class OnlinePlayer {
 		this.nickname = nickname;
 		MySQL.getInstance().command("UPDATE `user_properties` SET `nickname`='" + nickname + "' WHERE `playerId`='" + playerId + "'");
 	}
-	
+
 	public Client getPlayerBungeecord() {
 		if (owner != null && owner.getType() != ClientType.BUNGEECORD)
 			return null;
