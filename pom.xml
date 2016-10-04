@@ -1,6 +1,7 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>dev.wolveringer</groupId>
+	<groupId>eu.epicpvp</groupId>
 	<artifactId>DatenServer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
@@ -29,7 +30,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>false</addClasspath>
-							<mainClass>dev.wolveringer.dataserver.Main</mainClass>
+							<mainClass>eu.epicpvp.dataserver.Main</mainClass>
 							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 						</manifest>
@@ -63,9 +64,9 @@
 					<minimizeJar>true</minimizeJar>
 					<filters>
 						<filter>
-							<artifact>dev.wolveringer.datenserver:**</artifact>
+							<artifact>eu.epicpvp.datenserver:**</artifact>
 							<includes>
-								<include>dev/wolveringer/**</include>
+								<include>eu/epicpvp/**</include>
 								<include>**/META-INF/**</include>
 							</includes>
 						</filter>
@@ -136,22 +137,17 @@
 			<version>3.4</version>
 		</dependency>
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.38</version>
-		</dependency>
-		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>11.0</version>
 		</dependency>
 		<dependency>
-			<groupId>dev.wolveringer.datenserver</groupId>
+			<groupId>eu.epicpvp.datenserver</groupId>
 			<artifactId>definitions</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>dev.wolveringer.datenserver</groupId>
+			<groupId>eu.epicpvp.datenserver</groupId>
 			<artifactId>packets</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
@@ -161,7 +157,7 @@
 			<version>1.2</version>
 		</dependency>
 		<dependency>
-			<groupId>dev.wolveringer</groupId>
+			<groupId>eu.epicpvp</groupId>
 			<artifactId>YamlConfiguration</artifactId>
 			<version>1.2</version>
 		</dependency>
@@ -176,7 +172,7 @@
 			<version>2.6.2</version>
 		</dependency>
 		<dependency>
-			 <groupId>dev.wolveringer</groupId>
+			 <groupId>eu.epicpvp</groupId>
  			 <artifactId>ThreadManager</artifactId>
   			 <version>1.0</version>
 		</dependency>
@@ -185,8 +181,8 @@
 			<artifactId>teamspeak3-api</artifactId>
 			<version>1.0.14-SNAPSHOT</version>
 		</dependency>
-		<!-- Youtube API (Not used yet) <dependency> <groupId>com.google.api.client</groupId> 
-			<artifactId>google-api-data-youtube-v2</artifactId> <version>1.0.10-alpha</version> 
+		<!-- Youtube API (Not used yet) <dependency> <groupId>com.google.api.client</groupId>
+			<artifactId>google-api-data-youtube-v2</artifactId> <version>1.0.10-alpha</version>
 			</dependency> -->
 	</dependencies>
 </project>
