@@ -11,7 +11,7 @@ import eu.epicpvp.datenserver.definitions.connection.ClientType;
 import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
 
 public class ServerThread {
-	private static ArrayList<Client> clients = new ArrayList<>();
+	private static final ArrayList<Client> clients = new ArrayList<>();
 
 	public static void registerTestServer(Client client){
 		synchronized (clients) {
@@ -25,9 +25,11 @@ public class ServerThread {
 
 	public static ArrayList<Client> getServer(ClientType type){
 		ArrayList<Client> out = new ArrayList<>();
-		for(Client c : new ArrayList<>(clients)){
+		ArrayList<Client> clients = new ArrayList<>(ServerThread.clients);
+		clients.sort((o1, o2) -> o1.getName().compareTo(o2.getName()));
+		for(Client c : clients){
 			if(!c.isConnected() || c.getEventHander() == null){
-				clients.remove(c);
+				ServerThread.clients.remove(c);
 				continue;
 			}
 			if(c.getType() == type || type == ClientType.ALL)
@@ -41,6 +43,7 @@ public class ServerThread {
 		for(Client c : new ArrayList<>(clients))
 			if(c.getStatus().getTyp() == type)
 				out.add(c);
+		out.sort((o1, o2) -> o1.getName().compareTo(o2.getName()));
 		return out;
 	}
 
@@ -48,10 +51,11 @@ public class ServerThread {
 	public static Client getServer(String name){
 		if(name == null)
 			return null;
-		for(Client c : new ArrayList<>(clients))
-			if(c.getName() != null)
-			if(c.getName().equalsIgnoreCase(name))
+		for(Client c : new ArrayList<>(clients)) {
+			String clientName = c.getName();
+			if(clientName != null && clientName.equalsIgnoreCase(name))
 				return c;
+		}
 		return null;
 	}
 
