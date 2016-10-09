@@ -15,7 +15,6 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-
 import javax.imageio.ImageIO;
 
 import com.github.theholywaffle.teamspeak3.TS3Api;
@@ -32,7 +31,6 @@ import com.github.theholywaffle.teamspeak3.api.reconnect.ConnectionHandler;
 import com.github.theholywaffle.teamspeak3.api.reconnect.ReconnectStrategy;
 import com.github.theholywaffle.teamspeak3.api.wrapper.Client;
 import com.github.theholywaffle.teamspeak3.api.wrapper.FileTransfare;
-
 import eu.epicpvp.configuration.ServerConfiguration;
 import eu.epicpvp.dataserver.player.OnlinePlayer;
 import eu.epicpvp.dataserver.player.PlayerManager;
@@ -167,16 +165,13 @@ public class TeamspeakClient {
 					if (g.equalsIgnoreCase(String.valueOf(ServerConfiguration.getTeamspeakLinkedGroupId()))) {
 						return;
 					}
-				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "Hey " + e.getClientNickname() + "! Wie folgt kannst du dich verifizieren:");
+				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "Hey " + e.getClientNickname() + "! Ich bin der Verifizierungsbot.");
+				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "Du kannst mit folgenden Schritten deine Teamspeak(TS)-Identität mit deinem Minecraftnamen verbinden:");
 				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "1. Joine auf unser Netzwerk: ClashMC.eu");
-				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "2. Sende deinen Minecraft-Nick in diesen Channel");
-				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "3. Bestätige die Anfrage, welche dir InGame zugesendet wird");
-				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "4. Genieße viele Vorteile als Verifizierter-Spieler");
-				if (e.getClientNickname().contains("DominikEnders")) {
-					getClient().getAsyncApi().pokeClient(e.getClientId(), "[b]Hey du wichser. Bitter volführe deine verifizirung und zwar jetzt![/b]");
-				} else {
-					getClient().getAsyncApi().pokeClient(e.getClientId(), "[b]Willkommen! Bitte verifiziere dich![/b]");
-				}
+				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "2. Sende deinen Minecraft-Nick in diesen Channel.");
+				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "3. Bestätige die Anfrage, welche dir InGame zugesendet wird.");
+				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "4. Genieße viele Vorteile als verifizierter TS-Nutzer!");
+				getClient().getAsyncApi().pokeClient(e.getClientId(), "[b]Willkommen! Bitte verifiziere dich![/b]");
 			}
 
 		});
@@ -214,14 +209,14 @@ public class TeamspeakClient {
 			Client client = getClient().getApi().getClientByUId(identifier);
 			int databaseId = client.getDatabaseId();
 			getClient().getApi().removeClientFromServerGroup(ServerConfiguration.getTeamspeakLinkedGroupId(), databaseId);
-			getClient().getAsyncApi().sendPrivateMessage(client.getId(), "You identity is unlinked right now.");
+			getClient().getAsyncApi().sendPrivateMessage(client.getId(), "Die Verlinkung von Minecraft und Teamspeak wurde aufgelöst.");
 			for (int group : client.getServerGroups()) {
-				if (!ignoreGroups.contains(new Integer(group)))
+				if (!ignoreGroups.contains(group))
 					this.client.getApi().removeClientFromServerGroup(group, client.getDatabaseId());
 			}
 			this.client.getApi().deleteClientPermission(client.getDatabaseId(), "i_icon_id");
-			Map<ClientProperty, String> options = new HashMap<>();
-			options.put(ClientProperty.CLIENT_DESCRIPTION, "Unlinked.");
+//			Map<ClientProperty, String> options = new EnumMap<>(ClientProperty.class);
+//			options.put(ClientProperty.CLIENT_DESCRIPTION, "Unlinked.");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -243,11 +238,11 @@ public class TeamspeakClient {
 		targetGroups.add(ServerConfiguration.getTeamspeakLinkedGroupId());
 
 		for (int group : client.getServerGroups()) {
-			if (targetGroups.contains(new Integer(group))) {
+			if (targetGroups.contains(group)) {
 				targetGroups.remove(new Integer(group));
 				continue;
 			}
-			if (!ignoreGroups.contains(new Integer(group)))
+			if (!ignoreGroups.contains(group))
 				this.client.getApi().removeClientFromServerGroup(group, client.getDatabaseId());
 		}
 
@@ -291,7 +286,7 @@ public class TeamspeakClient {
 		getClient().getApi().addClientToServerGroup(ServerConfiguration.getTeamspeakLinkedGroupId(), info.getDatabaseId());
 		player.getStatsManager().applayChanges(new PacketInStatsEdit(player.getPlayerId(), new PacketInStatsEdit.EditStats[] { new PacketInStatsEdit.EditStats(GameType.TEAMSPEAK, Action.SET, StatsKey.TEAMSPEAK_IDENTITY, info.getUniqueIdentifier()) }));
 		client.getAsyncApi().sendPrivateMessage(info.getId(), "Danke das du dich verifieziert hast!");
-		client.getAsyncApi().sendPrivateMessage(info.getId(), "Nun ist es für dich möglich den Support, weitere Channel sowie einen Avatar zu nutzen!");
+		client.getAsyncApi().sendPrivateMessage(info.getId(), "Nun ist es für dich möglich, den Support, weitere Channel sowie einen Avatar zu nutzen!");
 		client.getAsyncApi().sendPrivateMessage(info.getId(), "");
 		client.getAsyncApi().sendPrivateMessage(info.getId(), "Verwalten kannst du deine Ränge sowie dein Icon InGame per /ts");
 
@@ -302,7 +297,7 @@ public class TeamspeakClient {
 	public void denyRequest(UUID uuid) {
 		Client info = requests.get(uuid).getKey();
 		requests.remove(uuid);
-		client.getApi().sendPrivateMessage(info.getId(), "Link request canceled!");
+		client.getApi().sendPrivateMessage(info.getId(), "Die Verlinkungsanfrage wurde abgelehnt.");
 	}
 
 	public void connect() {
@@ -333,8 +328,8 @@ public class TeamspeakClient {
 		client.getApi().setNickname(name);
 	}
 
-	private int minAdd = 10000;
-
+	private static final int minAdd = 1000000;
+	
 	public void setMinecraftIcon(Client client, String skin) {
 		try {
 			Image image = MinecraftUtils.getHead(skin, true);
