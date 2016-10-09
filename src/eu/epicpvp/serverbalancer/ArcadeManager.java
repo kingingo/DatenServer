@@ -98,9 +98,10 @@ public class ArcadeManager {
 		notFree.remove(name);
 	}
 
+	@SuppressWarnings("unchecked")
 	public static HashMap<ServerType, ArrayList<Client>> balance() {
 		HashMap<ServerType, ArrayList<Client>> servers = buildGameServerLobbyIndex();
-		if (servers.size() == 0) //Keine server registriert
+		if (servers.isEmpty()) //Keine server registriert
 			return null;
 		sortLobbysByPlayers(servers);
 		ArrayList<Client> var0 = buildFreeServerIndex(servers); //Cut server > MIN_FREE_SERVER
@@ -145,7 +146,9 @@ public class ArcadeManager {
 			System.out.println(needed+":"+freeServersLeft);
 		}
 		lastCalculated = (HashMap<ServerType, ArrayList<Client>>) servers.clone();
-		System.out.println("Free Server left: "+freeServersLeft+" Orginal needed Servers: "+oneeded);
+		if (oneeded != 0 || freeServersLeft <= 0) {
+			System.out.println("Free Server left: "+freeServersLeft+" Orginal needed Servers: "+oneeded);
+		}
 		return servers;
 	}
 

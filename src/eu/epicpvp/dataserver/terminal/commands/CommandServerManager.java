@@ -314,9 +314,9 @@ public class CommandServerManager implements CommandExecutor {
 		builder.arg(new Argument("/smanager stop [-subtype <pattern> | -gametype <gametype> | -type <clientype> | -m <message>]", "Stop all servers with condition"));
 		builder.arg(new Argument("/smanager switch <ClientName> <GameType> [<SubType>]", "Switch a server to an other type"));
 		builder.arg(new Argument("/smanager setVisiabe <ClientName> <flag>", "Set the server visiablety", true));
-		builder.arg(new Argument("/smanager blocklist add <Gametype> <Subtype>", "Add servertype to blacklist"));
-		builder.arg(new Argument("/smanager blocklist remove <Gametype> <Subtype>", "Remove servertype from blacklist"));
-		builder.arg(new Argument("/smanager blocklist list", "List all blocked server types."));
+		builder.arg(new Argument("/smanager blacklist add <Gametype> <Subtype>", "Add servertype to blacklist"));
+		builder.arg(new Argument("/smanager blacklist remove <Gametype> <Subtype>", "Remove servertype from blacklist"));
+		builder.arg(new Argument("/smanager blacklist list", "List all blocked server types."));
 		builder.arg(new Argument("/smanager printQueue", "Print the Arcade server assignment."));
 		return builder.build();
 	}
