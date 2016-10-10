@@ -7,6 +7,7 @@ import java.io.InputStream;
 import eu.epicpvp.dataserver.protocoll.packets.Packet;
 import eu.epicpvp.dataserver.protocoll.packets.PacketOutPacketStatus;
 import eu.epicpvp.datenserver.definitions.dataserver.protocoll.DataBuffer;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 public class ReaderThread {
 	private Client client;
@@ -84,9 +85,13 @@ public class ReaderThread {
 						stack[i] = new PacketOutPacketStatus.Error(2, e.getStackTrace()[(i - 1)].toString());
 					}
 					ReaderThread.this.client.writePacket(new PacketOutPacketStatus(packet, stack));
-					System.err.println("Error while handeling packet" + Integer.toHexString(id) + " (Client: "
+					System.err.println("Error while handeling packet " + id + "/" + Integer.toHexString(id) + " (Client: "
 							+ ReaderThread.this.client.getName() + ")");
 					e.printStackTrace();
+					String stackTrace = ExceptionUtils.getStackTrace(e);
+					for (String line : stackTrace.split("\n")) {
+						System.err.println(line);
+					}
 				}
 			}
 		});
