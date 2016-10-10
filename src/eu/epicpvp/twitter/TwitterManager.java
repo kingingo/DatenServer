@@ -1,7 +1,7 @@
 package eu.epicpvp.twitter;
 
-import java.util.HashMap;
-
+import lombok.Getter;
+import lombok.Setter;
 import twitter4j.RateLimitStatusEvent;
 import twitter4j.RateLimitStatusListener;
 import twitter4j.Twitter;
@@ -11,30 +11,16 @@ import twitter4j.User;
 import twitter4j.conf.ConfigurationBuilder;
 
 public class TwitterManager implements RateLimitStatusListener{
-	private static TwitterManager manager;
-	private HashMap<String,Boolean> isFollower;
+	@Setter
+	@Getter
+	public static TwitterManager twitterManager;
 	
-	public static void setManager(TwitterManager manager) {
-		TwitterManager.manager = manager;
-	}
-	
-	public static TwitterManager getManager() {
-		return manager;
-	}
-	
-	private String consumer_key;
-	private String consumer_secret;
-	private String token_access;
-	private String token_secret;
 	private Twitter twitter;
 	private ConfigurationBuilder config;
 	
 	public TwitterManager(String consumer_key,String consumer_secret,String token_access,String token_secret) {
-		this.consumer_key = consumer_key;
-		this.consumer_secret = consumer_secret;
-		this.token_access = token_access;
-		this.token_secret = token_secret;
 		this.config = new ConfigurationBuilder().setDebugEnabled(false).setAsyncNumThreads(10).setOAuthConsumerKey(consumer_key).setOAuthConsumerSecret(consumer_secret).setOAuthAccessToken(token_access).setOAuthAccessTokenSecret(token_secret);
+		connect();
 	}
 	
 	public void connect(){

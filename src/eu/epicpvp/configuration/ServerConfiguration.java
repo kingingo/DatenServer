@@ -12,6 +12,7 @@ import com.github.theholywaffle.teamspeak3.TS3Config;
 import eu.epicpvp.configuration.file.YamlConfiguration;
 import eu.epicpvp.mysql.MySQL.MySQLConfiguration;
 import eu.epicpvp.teamspeak.TeamspeakClient;
+import eu.epicpvp.twitter.TwitterManager;
 
 public class ServerConfiguration {
 	public static Configuration config;
@@ -46,6 +47,12 @@ public class ServerConfiguration {
 		config.addDefault("teamspeak.groups.ignore", Arrays.asList(7,8,9));
 		config.addDefault("teamspeak.groups.mapping", Arrays.asList("owner|22","developer|23"));
 		config.addDefault("teamspeak.enabled", true);
+
+		config.addDefault("twitter.enabled", false);
+		config.addDefault("twitter.consumer.key", "oqijDmSyaYchleoKg4BZHkgAy");
+		config.addDefault("twitter.consumer.secret", "baZ1ACY5HCcB16i5IkJgImS0zsRg5EvSBRNUDSdS9nE8PSk94v");
+		config.addDefault("twitter.token.access", "2683690933-Q3RICLRM0NLFKJ3C38t8gQDEFyPAQDoOFhtAYTU");
+		config.addDefault("twitter.token.secret", "FWYWzxX8p7FStWIqyDiaX7zPBEAunz1P397DpzQxymL3R");
 		
 		config.addDefault("savemanager.periode", 5*60*1000);
 		
@@ -72,8 +79,19 @@ public class ServerConfiguration {
 		return new InetSocketAddress(config.getString("server.host"), config.getInt("server.port"));
 	}
 	
+	public static boolean isTwitterEnabled(){
+		return config.getBoolean("twitter.enabled");
+	}
+	
 	public static boolean isTeamspeakBotEnabled(){
 		return config.getBoolean("teamspeak.enabled");
+	}
+	
+	public static TwitterManager createTwitter(){
+		if(isTwitterEnabled()){
+			return new TwitterManager(config.getString("twitter.consumer.key"), config.getString("twitter.consumer.secret"), config.getString("twitter.token.access"), config.getString("twitter.token.secret"));
+		}
+		return null;
 	}
 	
 	public static TeamspeakClient createClient(){

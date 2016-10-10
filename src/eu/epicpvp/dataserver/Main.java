@@ -23,6 +23,7 @@ import eu.epicpvp.log.SystemLogger;
 import eu.epicpvp.mysql.MySQL;
 import eu.epicpvp.report.ReportManager;
 import eu.epicpvp.teamspeak.TeamspeakClient;
+import eu.epicpvp.twitter.TwitterManager;
 import lombok.Getter;
 
 public class Main {
@@ -80,6 +81,13 @@ public class Main {
 		}
 		else
 			getConsoleWriter().sendMessage("§6Teamspeak client is disabled!");
+		
+		if(ServerConfiguration.isTwitterEnabled()){
+			TwitterManager.setTwitterManager(ServerConfiguration.createTwitter());
+		}
+		else
+			getConsoleWriter().sendMessage("§6Twitter client is disabled!");
+		
 		LanguageManager.init();
 		PlayerSkinManager.init();
 		BanManager.setManager(new BanManager());
@@ -91,6 +99,7 @@ public class Main {
 		BoosterManager.setManager(new BoosterManager());
 		ReportManager.getInstance().load();
 		GildenManager.setManager(new GildenManager());
+		
 		
 		TickScheduler s = new TickScheduler();
 		s.start();
