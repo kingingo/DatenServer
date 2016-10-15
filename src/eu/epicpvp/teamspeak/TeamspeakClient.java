@@ -167,7 +167,7 @@ public class TeamspeakClient {
 					}
 				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "Hey " + e.getClientNickname() + "! Ich bin der Verifizierungsbot.");
 				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "Du kannst mit folgenden Schritten deine Teamspeak(TS)-Identität mit deinem Minecraftnamen verbinden:");
-				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "1. Joine auf unser Netzwerk: ClashMC.eu");
+				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "1. Joine auf unser Netzwerk: EpicPvP.eu");
 				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "2. Sende deinen Minecraft-Nick in diesen Channel.");
 				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "3. Bestätige die Anfrage, welche dir InGame zugesendet wird.");
 				getClient().getAsyncApi().sendPrivateMessage(e.getClientId(), "4. Genieße viele Vorteile als verifizierter TS-Nutzer!");
