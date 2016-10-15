@@ -29,11 +29,11 @@ public class GildSection {
 	private GildSectionMoney money = new GildSectionMoney(this);
 	private GildSectionPermission permissions = new GildSectionPermission(this);
 	private NBTTagCompound costumData;
-	
+
 	protected ArrayList<Integer> players = new ArrayList<>();
 	@Getter
 	protected ArrayList<Integer> requestedPlayers = new ArrayList<>();
-	
+
 	public GildSection(Gilde handle, GildeType type,boolean active,HashMap<InformationKey, String> infos) {
 		this.handle = handle;
 		this.type = type;
@@ -63,7 +63,7 @@ public class GildSection {
 		};
 		for(String[] info : informations)
 			values.put(info[0], info[1]);
-		
+
 		try {
 			if(values.get(COSTUM_DATA_KEY).equalsIgnoreCase("")){
 				this.costumData = new NBTTagCompound();
@@ -74,7 +74,7 @@ public class GildSection {
 			e.printStackTrace();
 			this.costumData = new NBTTagCompound();
 		}
-		
+
 		ArrayList<String[]> members = MySQL.getInstance().querySync("SELECT `playerId`, `rank` FROM `GILDE_MEMBERS` WHERE `gilde`='"+handle.getUuid().toString()+"' AND `section`='"+type.toString()+"'");
 		for(String[] member : members){
 			if(member[1].equalsIgnoreCase(INVITE_GROUP)){
@@ -83,23 +83,23 @@ public class GildSection {
 			else
 			{
 				players.add(Integer.parseInt(member[0]));
-				permissions.players.put(Integer.parseInt(member[0]), member[1]);	
+				permissions.players.put(Integer.parseInt(member[0]), member[1]);
 			}
 		}
 	}
-	
+
 	public void addRequest(int player){
 		requestedPlayers.add((Integer)player);
 		MySQL.getInstance().command("INSERT INTO `GILDE_MEMBERS`(`gilde`, `section`, `playerId`, `rank`) VALUES ('"+handle.getUuid().toString()+"','"+getType().toString()+"','"+player+"','"+INVITE_GROUP+"')");
 		EventHelper.callGildEvent(getHandle().getUuid(), new GildePlayerEvent(getHandle().getUuid(), GildePlayerEvent.Action.ADD, player, getType(), INVITE_GROUP));
 	}
-	
+
 	public void removeRequest(int player){
 		requestedPlayers.remove((Object)(Integer)player);
 		MySQL.getInstance().command("DELETE FROM `GILDE_MEMBERS` WHERE `gilde`='"+getHandle().getUuid().toString()+"' AND `section` = '"+getType().toString()+"' AND `playerId` = '"+player+"' AND rank='"+INVITE_GROUP+"'");
 		EventHelper.callGildEvent(getHandle().getUuid(), new GildePlayerEvent(getHandle().getUuid(), GildePlayerEvent.Action.REMOVE, player, getType(), INVITE_GROUP));
 	}
-	
+
 	public void acceptRequest(int player){
 		requestedPlayers.remove((Object)(Integer)player);
 		for(Gilde g : GildenManager.getManager().getAllLoadedGilden()){
@@ -110,15 +110,15 @@ public class GildSection {
 		MySQL.getInstance().command("DELETE FROM `GILDE_MEMBERS` WHERE `playerId` = '"+player+"' AND rank='"+INVITE_GROUP+"'");
 		addPlayer(player, "default");
 	}
-	
+
 	public GildSectionPermission getPermission(){
 		return permissions;
 	}
-	
+
 	public List<Integer> getPlayers() {
 		return Collections.unmodifiableList(players);
 	}
-	
+
 	public void removePlayer(int player){
 		if(players.contains(new Integer(player))){
 			players.remove(new Integer(player));
@@ -131,20 +131,20 @@ public class GildSection {
 		}
 		permissions.setGroup(player, permissions.getGroup(rank));
 	}
-	
+
 	public NBTTagCompound getCostumData() {
 		return costumData;
 	}
-	
+
 	public void setCostumData(NBTTagCompound comp){
 		this.costumData = comp;
 		try {
-			MySQL.getInstance().command("UPDATE `GILDE_INFORMATION` SET `value`='"+NBTCompressedStreamTools.toString(comp)+"' WHERE  `gilde`='"+handle.getUuid().toString()+"' AND `section`='"+type.toString()+"' AND `key`='"+COSTUM_DATA_KEY+"'");
+			MySQL.getInstance().command("UPDATE `GILDE_INFORMATION` SET `value`='"+NBTCompressedStreamTools.toString(comp)+"' WHERE `uuid`='"+handle.getUuid().toString()+"' AND `section`='"+type.toString()+"' AND `key`='"+COSTUM_DATA_KEY+"'");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void setActive(boolean active) {
 		if(active == this.active)
 			return;
