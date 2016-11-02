@@ -331,7 +331,7 @@ public class PacketHandlerBoss {
 			owner.writePacket(new PacketOutBanStats(packet.getPacketUUID(), entities.subList(0, Math.min(((PacketInBanStatsRequest) packet).getDeep(), entities.size()))));
 		} else if (packet instanceof PacketInBanPlayer) {//TODO
 			PacketInBanPlayer p = (PacketInBanPlayer) packet;
-			BanManager.getManager().banPlayer(p.getName(), p.getIp(), p.getUuid(), p.getBannerName(), p.getBannerUuid(), p.getBannerIp(), p.getLevel(), p.getEnd(), p.getReson());
+			BanManager.getManager().banPlayer(p.getName(), p.getIp(), p.getUuid(), p.getBannerName(), p.getBannerUuid(), p.getBannerIp(), p.getLevel(), p.getEnd(), p.getReason());
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		} else if (packet instanceof PacketServerAction) { //TODO
 			ArrayList<Error> errors = new ArrayList<>();
