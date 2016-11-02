@@ -23,14 +23,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 public class ArcadeManager {
-	
+
 	@AllArgsConstructor
 	@Getter
 	public static class ServerType {
-		
+
 		private GameType type;
 		private String modifier;
-		
+
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -39,7 +39,7 @@ public class ArcadeManager {
 			result = prime * result + ((type == null) ? 0 : type.hashCode());
 			return result;
 		}
-		
+
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -59,9 +59,9 @@ public class ArcadeManager {
 			return true;
 		}
 	}
-	
+
 	private static final int MIN_FREE_SERVER = 2;
-	
+
 	private static HashMap<ServerType, ArrayList<Client>> lastCalculated = new HashMap<>();
 	private static ArrayList<ServerType> types = new ArrayList<>();
 	private static HashMap<GameType, ArrayList<String>> blacklist = new HashMap<GameType, ArrayList<String>>() {
@@ -71,21 +71,21 @@ public class ArcadeManager {
 				super.put((GameType) key, out = new ArrayList<>());
 			return out;
 		}
-		
+
 		;
 	};
-	
+
 	static {
 		//types.add(new ServerType(GameType.BedWars, "2x1"));
 		//types.add(new ServerType(GameType.BedWars, "2x2"));
 		//types.add(new ServerType(GameType.BedWars, "2x4"));
 		//types.add(new ServerType(GameType.BedWars, "4x4"));
 	}
-	
+
 	public static HashMap<ServerType, ArrayList<Client>> getLastCalculated() {
 		return lastCalculated;
 	}
-	
+
 	@SuppressWarnings("serial")
 	private static HashMap<ServerType, CachedArrayList<UUID>> serverChanging = new HashMap<ServerType, CachedArrayList<UUID>>() {
 		public CachedArrayList<UUID> get(Object key) {
@@ -96,20 +96,20 @@ public class ArcadeManager {
 			}
 			return arraylist;
 		}
-		
+
 		;
 	};
 	private static CachedArrayList<String> notFree = new CachedArrayList<>(1, TimeUnit.MINUTES);
-	
+
 	public static void serverConnected(ServerType game) {
 		if (serverChanging.get(game).size() > 0)
 			serverChanging.get(game).remove(0);
 	}
-	
+
 	public static void serverDisconnected(String name) {
 		notFree.remove(name);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static HashMap<ServerType, ArrayList<Client>> balance() {
 		HashMap<ServerType, ArrayList<Client>> servers = buildGameServerLobbyIndex();
@@ -120,12 +120,12 @@ public class ArcadeManager {
 		servers = shortByNeeded(servers); //Short games by needed Server
 		int freeServersLeft = var0.size();
 		Iterator<Client> freeServer = var0.iterator();
-		
+
 		int oneeded = calculateNeededServers(servers); //Orginal needed
 		int needed = oneeded;
 		if (needed == 0)
 			needed = servers.size(); //Adding left servers to games
-		
+
 		while (needed > 0 && freeServersLeft > 0) {
 			int filled = 0;
 			for (ServerType game : types) {
@@ -163,18 +163,18 @@ public class ArcadeManager {
 		}
 		return servers;
 	}
-	
+
 	private static int calculateNeededServers(HashMap<ServerType, ArrayList<Client>> servers) {
 		int out = 0;
 		for (ServerType g : servers.keySet())
 			out += calculateNeeded(servers, g);
 		return out;
 	}
-	
+
 	private static HashMap<ServerType, ArrayList<Client>> shortByNeeded(HashMap<ServerType, ArrayList<Client>> servers) {
 		return (HashMap<ServerType, ArrayList<Client>>) sortByValue((Map) servers, servers);
 	}
-	
+
 	public static <K, V> Map<K, V> sortByValue(Map<K, V> map, HashMap<ServerType, ArrayList<Client>> servers) {
 		List<Map.Entry<K, V>> list = new LinkedList<>(map.entrySet());
 		Collections.sort(list, new Comparator<Map.Entry<K, V>>() {
@@ -185,22 +185,22 @@ public class ArcadeManager {
 				return Integer.compare(calculateNeeded(servers, game1), calculateNeeded(servers, game2));
 			}
 		});
-		
+
 		Map<K, V> result = new LinkedHashMap<>();
 		for (Map.Entry<K, V> entry : list) {
 			result.put(entry.getKey(), entry.getValue());
 		}
 		return result;
 	}
-	
+
 	private static int calculateNeeded(HashMap<ServerType, ArrayList<Client>> server, ServerType game) {
 		return Math.max(0, getMinServer(game) - (server.get(game).size()) - serverChanging.get(game).size());
 	}
-	
+
 	private static int getMinServer(ServerType game) {
 		return MIN_FREE_SERVER;
 	}
-	
+
 	private static void sortLobbysByPlayers(HashMap<ServerType, ArrayList<Client>> servers) {
 		for (ServerType g : servers.keySet())
 			Collections.sort(servers.get(g), new Comparator<Client>() {
@@ -210,7 +210,7 @@ public class ArcadeManager {
 				}
 			});
 	}
-	
+
 	private static ArrayList<Client> buildFreeServerIndex(HashMap<ServerType, ArrayList<Client>> servers) {
 		ArrayList<Client> out = new ArrayList<>();
 		for (ServerType g : servers.keySet()) {
@@ -223,7 +223,7 @@ public class ArcadeManager {
 		}
 		return out;
 	}
-	
+
 	private static HashMap<ServerType, ArrayList<Client>> buildGameServerLobbyIndex() {
 		HashMap<ServerType, ArrayList<Client>> out = new HashMap<ServerType, ArrayList<Client>>() {
 			public ArrayList<Client> get(Object key) {
@@ -234,19 +234,19 @@ public class ArcadeManager {
 				}
 				return arraylist;
 			}
-			
+
 			;
 		};
-		
+
 		for (Client c : ServerThread.getServer(ClientType.ACARDE)) {
 			if (c.isConnected() && c.getStatus() != null && c.getStatus().getTyp() != null && c.getStatus().isVisiable() && c.getStatus().getState() == GameState.LobbyPhase && !notFree.contains(c.getName())) {
 				out.get(getType(c.getStatus().getTyp(), c.getStatus().getSubType())).add(c);
 			}
 		}
-		
+
 		return out;
 	}
-	
+
 	public static void writeServers() {
 		if (lastCalculated.isEmpty()) //Keine Server registriert
 			System.out.println("No servers");
@@ -259,7 +259,7 @@ public class ArcadeManager {
 			else
 				System.out.println("§aGame: §6" + serverType.getType() + "§7[§e" + serverType.getModifier() + "§7] §aServer: §6" + entry.getValue());
 		}
-		ArrayList<Client> arcadeServers = ServerThread.getServer(ClientType.ACARDE);
+		List<Client> arcadeServers = ServerThread.getServer(ClientType.ACARDE);
 		System.out.println("§aConnected: §6" + arcadeServers.size() + " §aList: §f" + arcadeServers);
 		for (GameState state : GameState.values()) {
 			List<Client> list = arcadeServers.stream().filter(client -> client.getStatus().getState() == state).collect(Collectors.toList());
@@ -268,14 +268,14 @@ public class ArcadeManager {
 			}
 		}
 	}
-	
+
 	private static ServerType getType(GameType state, String modifier) {
 		ServerType currunt = new ServerType(state, modifier);
 		if (!types.contains(currunt))
 			types.add(currunt);
 		return currunt;
 	}
-	
+
 	public static HashMap<GameType, ArrayList<String>> getBlackList() {
 		return blacklist;
 	}
