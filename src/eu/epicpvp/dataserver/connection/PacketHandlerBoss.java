@@ -157,29 +157,30 @@ public class PacketHandlerBoss {
 		}
 
 		if (packet instanceof PacketForward) {
-			if (((PacketForward) packet).getTarget() == null && ((PacketForward) packet).getCtarget() == null) {
+			PacketForward packetFwd = (PacketForward) packet;
+			if (packetFwd.getTarget() == null && packetFwd.getCtarget() == null) {
 				owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Both targets are null")));
-				System.out.println("Forward failed packet to " + ((PacketForward) packet).getTarget() + ":" + ((PacketForward) packet).getCtarget());
+				System.out.println("Forward failed packet to " + packetFwd.getTarget() + ":" + packetFwd.getCtarget());
 				return;
 			}
-			if (((PacketForward) packet).getTarget() != null) {
-				Client c = ServerThread.getServer(((PacketForward) packet).getTarget());
+			if (packetFwd.getTarget() != null) {
+				Client c = ServerThread.getServer(packetFwd.getTarget());
 				if (c == null) {
-					owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Target " + ((PacketForward) packet).getTarget() + " not found!")));
+					owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Target " + packetFwd.getTarget() + " not found!")));
 					return;
 				}
 				c.writePacket(packet);
 				owner.writePacket(new PacketOutPacketStatus(packet, null));
 				return;
 			}
-			if (((PacketForward) packet).getCtarget() != null) {
-				ArrayList<Client> ca = ServerThread.getServer(((PacketForward) packet).getCtarget());
+			if (packetFwd.getCtarget() != null) {
+				List<Client> ca = ServerThread.getServer(packetFwd.getCtarget());
 				for (Client c : ca)
 					c.writePacket(packet);
 				owner.writePacket(new PacketOutPacketStatus(packet, null));
 				return;
 			}
-			System.out.println("Forward failed packet to " + ((PacketForward) packet).getTarget() + ":" + ((PacketForward) packet).getCtarget());
+			System.out.println("Forward failed packet to " + packetFwd.getTarget() + ":" + packetFwd.getCtarget());
 			owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Undefined error....")));
 
 		} else if (packet instanceof PacketInServerSwitch) {
@@ -421,7 +422,7 @@ public class PacketHandlerBoss {
 					limit = Integer.parseInt(t.getTarget().substring("targetlimit;".length()));
 				if (t.getTargetType() != null) {
 					System.out.println("Boardcast backet to "+t.getTargetType()+" with limit: "+t.getTarget()+"("+limit+")");
-					ArrayList<Client> targets = ServerThread.getServer(t.getTargetType());
+					List<Client> targets = ServerThread.getServer(t.getTargetType());
 					for (Client tc : targets){
 						if(count >= limit && limit != -1)
 							continue;
@@ -438,21 +439,6 @@ public class PacketHandlerBoss {
 					} else {
 						client.writePacket(packet);
 					}
-				}
-			}
-			owner.writePacket(new PacketOutPacketStatus(packet, null));
-		} else if (packet instanceof PacketForward) {
-			if (((PacketForward) packet).getCtarget() != null) {
-				ArrayList<Client> targets = ServerThread.getServer(((PacketForward) packet).getCtarget());
-				for (Client tc : targets)
-					if (tc != owner)
-						tc.writePacket(packet);
-			} else {
-				Client client = ServerThread.getServer(((PacketForward) packet).getTarget());
-				if (client == null) {
-					owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Target not found")));
-				} else {
-					client.writePacket(packet);
 				}
 			}
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
