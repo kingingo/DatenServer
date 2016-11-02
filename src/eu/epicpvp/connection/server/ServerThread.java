@@ -5,56 +5,66 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import eu.epicpvp.dataserver.connection.Client;
 import eu.epicpvp.datenserver.definitions.connection.ClientType;
 import eu.epicpvp.datenserver.definitions.dataserver.gamestats.GameType;
 
 public class ServerThread {
+
 	private static final ArrayList<Client> clients = new ArrayList<>();
 
-	public static void registerTestServer(Client client){
+	public static void registerTestServer(Client client) {
 		synchronized (clients) {
-			clients.add(client);
+			if (client != null) {
+				clients.add(client);
+			}
 		}
 	}
 
-	public static ArrayList<Client> getBungeecords(){
+	public static List<Client> getBungeecords() {
 		return getServer(ClientType.BUNGEECORD);
 	}
 
-	public static ArrayList<Client> getServer(ClientType type){
-		ArrayList<Client> out = new ArrayList<>();
-		ArrayList<Client> clients = new ArrayList<>(ServerThread.clients);
-		clients.sort((o1, o2) -> o1.getName().compareTo(o2.getName()));
-		for(Client c : clients){
-			if(!c.isConnected() || c.getEventHander() == null){
-				ServerThread.clients.remove(c);
-				continue;
-			}
-			if(c.getType() == type || type == ClientType.ALL)
-				out.add(c);
+	public static List<Client> getServer(ClientType type) {
+		List<Client> clients = new ArrayList<>(ServerThread.clients);
+		Stream<Client> clientStream =
+				clients.stream()
+						.filter(Objects::nonNull)
+						.filter(client -> {
+							if (!client.isConnected() || client.getEventHander() == null) {
+								ServerThread.clients.remove(client);
+								return false;
+							}
+							return true;
+						});
+		if (type != ClientType.ALL) {
+			clientStream = clientStream.filter(client -> client.getType() == type);
 		}
-		return out;
+		return clientStream
+				.sorted((client1, client2) -> client1.getName().compareTo(client2.getName()))
+				.collect(Collectors.toList());
 	}
 
-	public static ArrayList<Client> getServer(GameType type){
-		ArrayList<Client> out = new ArrayList<>();
-		for(Client c : new ArrayList<>(clients))
-			if(c.getStatus().getTyp() == type)
-				out.add(c);
-		out.sort((o1, o2) -> o1.getName().compareTo(o2.getName()));
-		return out;
+	public static List<Client> getServer(GameType type) {
+		return new ArrayList<>(clients).stream()
+				.filter(Objects::nonNull)
+				.filter(client -> client.getStatus().getTyp() == type)
+				.sorted((client1, client2) -> client1.getName().compareTo(client2.getName()))
+				.collect(Collectors.toList());
 	}
 
-
-	public static Client getServer(String name){
-		if(name == null)
+	public static Client getServer(String name) {
+		if (name == null)
 			return null;
-		for(Client c : new ArrayList<>(clients)) {
-			String clientName = c.getName();
-			if(clientName != null && clientName.equalsIgnoreCase(name))
-				return c;
+		for (Client client : new ArrayList<>(clients)) {
+			String clientName = client.getName();
+			if (clientName != null && clientName.equalsIgnoreCase(name))
+				return client;
 		}
 		return null;
 	}
@@ -70,37 +80,36 @@ public class ServerThread {
 	private Thread acceptThread;
 	private Thread timeoutThread;
 
-
 	public ServerThread(InetSocketAddress localAddr) {
 		this.localAddr = localAddr;
 	}
 
-	public void start() throws IOException{
+	public void start() throws IOException {
 		socket = new ServerSocket(localAddr.getPort(), 0, localAddr.getAddress());
 		acceptThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				while (!socket.isClosed()) {
-					try{
+					try {
 						Socket csocket = socket.accept();
 						Client client = new Client(csocket, ServerThread.this);
 						clients.add(client);
-					}catch(Exception e){
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 			}
 		});
-		timeoutThread = new Thread(){
+		timeoutThread = new Thread() {
 			public void run() {
 				while (!socket.isClosed()) {
-					for(Client c : new ArrayList<>(clients)){
-						if(c.getLastPingTime() != -1)
-							if(System.currentTimeMillis()-c.getLastPingTime()>7500 && c.isConnected()){
-								System.out.println("Client timed out "+c.getName()+"] ("+(System.currentTimeMillis()-c.getLastPingTime())+")");
-								try{
+					for (Client c : new ArrayList<>(clients)) {
+						if (c.getLastPingTime() != -1)
+							if (System.currentTimeMillis() - c.getLastPingTime() > 7500 && c.isConnected()) {
+								System.out.println("Client timed out " + c.getName() + "] (" + (System.currentTimeMillis() - c.getLastPingTime()) + ")");
+								try {
 									c.disconnect("Server -> Client | Timeout!");
-								}catch(Exception e){
+								} catch (Exception e) {
 									e.printStackTrace();
 								}
 							}
@@ -111,13 +120,16 @@ public class ServerThread {
 						e.printStackTrace();
 					}
 				}
-			};
+			}
+
+			;
 		};
 		acceptThread.start();
 		timeoutThread.start();
 	}
+
 	public void stop() {
-		for(Client c : new ArrayList<>(clients))
+		for (Client c : new ArrayList<>(clients))
 			c.disconnect("Datenserver is shutting down!");
 		try {
 			socket.close();
