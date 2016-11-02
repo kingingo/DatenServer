@@ -131,7 +131,7 @@ public class PacketHandlerBoss {
 					owner.disconnect("Password incorrect [" + ((PacketHandshakeInStart) packet).getHost() + "|" + ((PacketHandshakeInStart) packet).getName() + "]");
 					return;
 				}
-				if (!((PacketHandshakeInStart) packet).getProtocollVersion().equalsIgnoreCase(Packet.PROTOCOLL_VERSION) && false) {
+				if (false && !((PacketHandshakeInStart) packet).getProtocollVersion().equalsIgnoreCase(Packet.PROTOCOLL_VERSION)) {
 					owner.disconnect("Protocollversion is not up to date!");
 					//System.out.println("A client try to connect with version-number: " + ((PacketHandshakeInStart) packet).getProtocollVersion() + " Server-version: " + Packet.PROTOCOLL_VERSION);
 					return;
@@ -164,19 +164,19 @@ public class PacketHandlerBoss {
 				return;
 			}
 			if (packetFwd.getTarget() != null) {
-				Client c = ServerThread.getServer(packetFwd.getTarget());
-				if (c == null) {
+				Client client = ServerThread.getServer(packetFwd.getTarget());
+				if (client == null) {
 					owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Target " + packetFwd.getTarget() + " not found!")));
 					return;
 				}
-				c.writePacket(packet);
+				client.writePacket(packet);
 				owner.writePacket(new PacketOutPacketStatus(packet, null));
 				return;
 			}
 			if (packetFwd.getCtarget() != null) {
-				List<Client> ca = ServerThread.getServer(packetFwd.getCtarget());
-				for (Client c : ca)
-					c.writePacket(packet);
+				List<Client> clientList = ServerThread.getServer(packetFwd.getCtarget());
+				for (Client client : clientList)
+					client.writePacket(packet);
 				owner.writePacket(new PacketOutPacketStatus(packet, null));
 				return;
 			}
@@ -354,24 +354,25 @@ public class PacketHandlerBoss {
 			owner.getStatus().applyPacket((PacketInServerStatus) packet);
 			owner.writePacket(new PacketOutPacketStatus(packet, null));
 		} else if (packet instanceof PacketInServerStatusRequest) {
-			switch (((PacketInServerStatusRequest) packet).getAction()) {
+			PacketInServerStatusRequest packetCast = (PacketInServerStatusRequest) packet;
+			switch (packetCast.getAction()) {
 			case BUNGEECORD:
 				for (Client client : ServerThread.getBungeecords())
-					if (client.getName().equalsIgnoreCase(((PacketInServerStatusRequest) packet).getValue())) {
+					if (client.getName().equalsIgnoreCase(packetCast.getValue())) {
 						List<String> player = client.getPlayers();
-						owner.writePacket(new PacketOutServerStatus(Action.BUNGEECORD, null, ((PacketInServerStatusRequest) packet).getValue(), client.getStatus().getServerId(), client.getStatus().isVisiable(), client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), ((PacketInServerStatusRequest) packet).isPlayer() ? player : null));
+						owner.writePacket(new PacketOutServerStatus(Action.BUNGEECORD, null, packetCast.getValue(), client.getStatus().getServerId(), client.getStatus().isVisiable(), client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), packetCast.isPlayer() ? player : null));
 						return;
 					}
 				break;
 			case SERVER:
-				List<String> player = PlayerManager.getPlayersFromServer(((PacketInServerStatusRequest) packet).getValue());
-				Client client = ServerThread.getServer(((PacketInServerStatusRequest) packet).getValue());
+				List<String> player = PlayerManager.getPlayersFromServer(packetCast.getValue());
+				Client client = ServerThread.getServer(packetCast.getValue());
 				if (client == null) {
 					owner.writePacket(new PacketOutPacketStatus(packet, new PacketOutPacketStatus.Error(-1, "Server/Bungeecord not found")));
 					return;
 				}
 				if (player != null) {
-					owner.writePacket(new PacketOutServerStatus(Action.SERVER, new GameType[]{client.getStatus().getTyp()}, ((PacketInServerStatusRequest) packet).getValue(), client.getStatus().getServerId(), client.getStatus().isVisiable(), client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), ((PacketInServerStatusRequest) packet).isPlayer() ? player : null));
+					owner.writePacket(new PacketOutServerStatus(Action.SERVER, new GameType[]{client.getStatus().getTyp()}, packetCast.getValue(), client.getStatus().getServerId(), client.getStatus().isVisiable(), client.getStatus().getState(), player.size(), client.getStatus().getMaxPlayers(), packetCast.isPlayer() ? player : null));
 					return;
 				}
 				break;
@@ -382,24 +383,24 @@ public class PacketHandlerBoss {
 					playersCount = playersCount+bungee.getStatus().getPlayers();
 				}
 				if (players != null) {
-					owner.writePacket(new PacketOutServerStatus(Action.GENERAL, null, ((PacketInServerStatusRequest) packet).getValue(), "network", true, GameState.NONE, playersCount, -1, ((PacketInServerStatusRequest) packet).isPlayer() ? players : null));
+					owner.writePacket(new PacketOutServerStatus(Action.GENERAL, null, packetCast.getValue(), "network", true, GameState.NONE, playersCount, -1, packetCast.isPlayer() ? players : null));
 					return;
 				}
 				break;
 			case GAMETYPE:
 				ArrayList<Client> allClients = new ArrayList<>();
-				for (GameType type : ((PacketInServerStatusRequest) packet).getGames())
+				for (GameType type : packetCast.getGames())
 					allClients.addAll(ServerThread.getServer(type));
 				ArrayList<String> splayers = new ArrayList<>();
 				int playercount = 0;
 				int maxPlayerCount = 0;
 				for (Client c : allClients) {
-					if (((PacketInServerStatusRequest) packet).isPlayer())
+					if (packetCast.isPlayer())
 						splayers.addAll(c.getPlayers());
 					playercount += c.getStatus().getPlayers();
 					maxPlayerCount += c.getStatus().getMaxPlayers();
 				}
-				owner.writePacket(new PacketOutServerStatus(Action.GAMETYPE, ((PacketInServerStatusRequest) packet).getGames(), ((PacketInServerStatusRequest) packet).getValue(), "GameType[]", true, GameState.NONE, playercount, maxPlayerCount, ((PacketInServerStatusRequest) packet).isPlayer() ? splayers : null));
+				owner.writePacket(new PacketOutServerStatus(Action.GAMETYPE, packetCast.getGames(), packetCast.getValue(), "GameType[]", true, GameState.NONE, playercount, maxPlayerCount, packetCast.isPlayer() ? splayers : null));
 				break;
 			default:
 				break;

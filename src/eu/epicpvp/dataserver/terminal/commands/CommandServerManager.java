@@ -101,7 +101,12 @@ public class CommandServerManager implements CommandExecutor {
 						player += c.getPlayers().size();
 						writer.sendMessage(" §7- §" + (c.isConnected() ? "a" : "c") + c.getName() + "§r§7[§b" + c.getStatus().getSubType() + "§7] §eServer-ID: §b" + c.getStatus().getServerId() + " §eType: §b" + c.getType() + " §eGame: §b" + c.getStatus().getTyp() + " §eState: §b" + c.getStatus().getState() + " §ePlayers: §b" + c.getStatus().getPlayers()+"§e|§b"+c.getPlayers().size() + " §ePublic: §b" + c.getStatus().isVisiable());
 					}
-					writer.sendMessage("§b" + count + " §aServers are now displayed. Player online on these servers: §b" + player);
+					writer.sendMessage("§b" + count + " §aServers are now displayed. Player online on these servers (incorrect): §b" + player);
+					int playersCount = 0;
+					for(Client bungee : ServerThread.getBungeecords()){
+						playersCount = playersCount+bungee.getStatus().getPlayers();
+					}
+					writer.sendMessage("§aCurrently online players (real): §b" + playersCount );
 				} else
 					writer.sendMessage("§cEs wurden keine Server unter diesem Parameter gefunden.");
 			} else if (args[0].equalsIgnoreCase("printLobbies")) {

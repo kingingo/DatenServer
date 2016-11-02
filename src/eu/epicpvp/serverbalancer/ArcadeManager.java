@@ -65,6 +65,7 @@ public class ArcadeManager {
 	private static HashMap<ServerType, ArrayList<Client>> lastCalculated = new HashMap<>();
 	private static ArrayList<ServerType> types = new ArrayList<>();
 	private static HashMap<GameType, ArrayList<String>> blacklist = new HashMap<GameType, ArrayList<String>>() {
+		@Override
 		public java.util.ArrayList<String> get(Object key) {
 			ArrayList<String> out = super.get(key);
 			if (out == null)
@@ -88,6 +89,7 @@ public class ArcadeManager {
 
 	@SuppressWarnings("serial")
 	private static HashMap<ServerType, CachedArrayList<UUID>> serverChanging = new HashMap<ServerType, CachedArrayList<UUID>>() {
+		@Override
 		public CachedArrayList<UUID> get(Object key) {
 			CachedArrayList<UUID> arraylist = super.get(key);
 			if (arraylist == null) {
@@ -172,7 +174,7 @@ public class ArcadeManager {
 	}
 
 	private static HashMap<ServerType, ArrayList<Client>> shortByNeeded(HashMap<ServerType, ArrayList<Client>> servers) {
-		return (HashMap<ServerType, ArrayList<Client>>) sortByValue((Map) servers, servers);
+		return (HashMap<ServerType, ArrayList<Client>>) sortByValue(servers, servers);
 	}
 
 	public static <K, V> Map<K, V> sortByValue(Map<K, V> map, HashMap<ServerType, ArrayList<Client>> servers) {
@@ -202,8 +204,8 @@ public class ArcadeManager {
 	}
 
 	private static void sortLobbysByPlayers(HashMap<ServerType, ArrayList<Client>> servers) {
-		for (ServerType g : servers.keySet())
-			Collections.sort(servers.get(g), new Comparator<Client>() {
+		for (Map.Entry<ServerType, ArrayList<Client>> entry : servers.entrySet())
+			Collections.sort(entry.getValue(), new Comparator<Client>() {
 				@Override
 				public int compare(Client o1, Client o2) {
 					return Integer.compare(o2.getStatus().getPlayers(), o1.getStatus().getPlayers()); //Short 3>2>1
@@ -213,10 +215,10 @@ public class ArcadeManager {
 
 	private static ArrayList<Client> buildFreeServerIndex(HashMap<ServerType, ArrayList<Client>> servers) {
 		ArrayList<Client> out = new ArrayList<>();
-		for (ServerType g : servers.keySet()) {
-			ArrayList<Client> i = servers.get(g);
-			if (i.size() > getMinServer(g)) {
-				List<Client> ft = new ArrayList<>(i.subList(getMinServer(g), i.size())); //Serers > 3 (min-Server anzahl) werden nicht benötigt (Auf diesem Server dürften sowieso keine Spieler sein)
+		for (Map.Entry<ServerType, ArrayList<Client>> entry : servers.entrySet()) {
+			ArrayList<Client> i = entry.getValue();
+			if (i.size() > getMinServer(entry.getKey())) {
+				List<Client> ft = new ArrayList<>(i.subList(getMinServer(entry.getKey()), i.size())); //Serers > 3 (min-Server anzahl) werden nicht benötigt (Auf diesem Server dürften sowieso keine Spieler sein)
 				i.removeAll(ft);
 				out.addAll(ft); //Adding as free-server
 			}
@@ -226,6 +228,7 @@ public class ArcadeManager {
 
 	private static HashMap<ServerType, ArrayList<Client>> buildGameServerLobbyIndex() {
 		HashMap<ServerType, ArrayList<Client>> out = new HashMap<ServerType, ArrayList<Client>>() {
+			@Override
 			public ArrayList<Client> get(Object key) {
 				ArrayList<Client> arraylist = super.get(key);
 				if (arraylist == null) {
@@ -234,13 +237,12 @@ public class ArcadeManager {
 				}
 				return arraylist;
 			}
-
-			;
 		};
 
-		for (Client c : ServerThread.getServer(ClientType.ACARDE)) {
-			if (c.isConnected() && c.getStatus() != null && c.getStatus().getTyp() != null && c.getStatus().isVisiable() && c.getStatus().getState() == GameState.LobbyPhase && !notFree.contains(c.getName())) {
-				out.get(getType(c.getStatus().getTyp(), c.getStatus().getSubType())).add(c);
+		for (Client client : ServerThread.getServer(ClientType.ACARDE)) {
+			if (client.isConnected() && client.getStatus() != null && client.getStatus().getTyp() != null && client.getStatus().isVisiable()
+					&& client.getStatus().getState() == GameState.LobbyPhase && !notFree.contains(client.getName())) {
+				out.get(getType(client.getStatus().getTyp(), client.getStatus().getSubType())).add(client);
 			}
 		}
 
