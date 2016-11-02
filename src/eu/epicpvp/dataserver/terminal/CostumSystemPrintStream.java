@@ -6,14 +6,16 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Locale;
 
+import eu.epicpvp.dataserver.Main;
+import lombok.NonNull;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
-import eu.epicpvp.dataserver.Main;
-
 @SuppressWarnings("deprecation")
 public class CostumSystemPrintStream extends PrintStream {
+
 	String buffer;
+
 	public CostumSystemPrintStream() {
 		super(new OutputStream() {
 			@Override
@@ -23,149 +25,185 @@ public class CostumSystemPrintStream extends PrintStream {
 		});
 	}
 
+	@Override
 	public int hashCode() {
 		return out.hashCode();
 	}
 
-	public void write(byte[] b) throws IOException {
+	@Override
+	public void write(@NonNull byte[] b) throws IOException {
 		write(b, 0, b.length);
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 		return out.equals(obj);
 	}
 
+	@Override
 	public String toString() {
 		return "CP";
 	}
 
+	@Override
 	public void flush() {}
 
+	@Override
 	public void close() {}
+
+	@Override
 	public boolean checkError() {
 		return false;
 	}
 
+	@Override
 	public void write(int b) {
 		println(b);
 	}
 
-	public void write(byte[] buf, int off, int len) {
-		write("§cWritebyte: "+Arrays.toString(ArrayUtils.subarray(buf, off, off+len)));
+	@Override
+	public void write(@NonNull byte[] buf, int off, int len) {
+		write("§cWritebyte: " + Arrays.toString(ArrayUtils.subarray(buf, off, off + len)));
 	}
 
+	@Override
 	public void print(boolean b) {
 		println(b);
 	}
 
+	@Override
 	public void print(char c) {
 		println(c);
 	}
 
+	@Override
 	public void print(int i) {
 		println(i);
 	}
 
+	@Override
 	public void print(long l) {
 		println(l);
 	}
 
+	@Override
 	public void print(float f) {
 		println(f);
 	}
 
+	@Override
 	public void print(double d) {
 		println(d);
 	}
 
-	public void print(char[] s) {
+	@Override
+	public void print(@NonNull char[] s) {
 		println(s);
 	}
 
+	@Override
 	public void print(String s) {
 		println(s);
 	}
 
+	@Override
 	public void print(Object obj) {
 		println(obj);
 	}
 
+	@Override
 	public void println() {
 		write("");
 	}
 
-	public void println(boolean x) {
-		write(x+"");
+	@Override
+	public void println(boolean b) {
+		write(Boolean.toString(b));
 	}
 
-	public void println(char x) {
-		write(ObjectUtils.toString(x));
+	@Override
+	public void println(char c) {
+		write(Character.toString(c));
 	}
 
-	public void println(int x) {
-		write(ObjectUtils.toString(x));
+	@Override
+	public void println(int i) {
+		write(Integer.toString(i));
 	}
 
-	public void println(long x) {
-		write(ObjectUtils.toString(x));
+	@Override
+	public void println(long l) {
+		write(Long.toString(l));
 	}
 
-	public void println(float x) {
-		write(ObjectUtils.toString(x));
+	@Override
+	public void println(float f) {
+		write(Float.toString(f));
 	}
 
-	public void println(double x) {
-		write(ObjectUtils.toString(x));
+	@Override
+	public void println(double d) {
+		write(Double.toString(d));
 	}
 
-	public void println(char[] x) {
-		write(ObjectUtils.toString(x));
+	@Override
+	public void println(@NonNull char[] ca) {
+		write(String.valueOf(ca));
 	}
 
+	@Override
 	public void println(String x) {
-		write("["+Debugger.getLastCallerClass()+"] "+ObjectUtils.toString(x));
+		write("§a[" + Debugger.getLastCallerClass() + "] §f" + ObjectUtils.toString(x));
 	}
 
+	@Override
 	public void println(Object x) {
 		write(ObjectUtils.toString(x));
 	}
 
-	public PrintStream printf(String format, Object... args) {
+	@Override
+	public PrintStream printf(@NonNull String format, Object... args) {
 		write(String.format(format, args));
 		return this;
 	}
 
-	public PrintStream printf(Locale l, String format, Object... args) {
-		write(String.format(l,format, args));
+	@Override
+	public PrintStream printf(Locale l, @NonNull String format, Object... args) {
+		write(String.format(l, format, args));
 		return this;
 	}
 
-	public PrintStream format(String format, Object... args) {
+	@Override
+	public PrintStream format(@NonNull String format, Object... args) {
 		write(String.format(format, args));
 		return this;
 	}
 
-	public PrintStream format(Locale l, String format, Object... args) {
-		write(String.format(l,format, args));
+	@Override
+	public PrintStream format(Locale l, @NonNull String format, Object... args) {
+		write(String.format(l, format, args));
 		return this;
 	}
 
+	@Override
 	public PrintStream append(CharSequence csq) {
-		write("§cAppend: "+csq);
+		write("§cAppend: " + csq);
 		return this;
 	}
 
+	@Override
 	public PrintStream append(CharSequence csq, int start, int end) {
-		write("§cAppend: "+csq);
+		write("§cAppend: " + csq);
 		return this;
 	}
 
+	@Override
 	public PrintStream append(char c) {
-		write("§cAppend: "+c);
+		write("§cAppend: " + c);
 		return this;
 	}
-	
-	public void write(String message){
+
+	public void write(String message) {
 		Main.getConsoleWriter().write(message);
 	}
 }

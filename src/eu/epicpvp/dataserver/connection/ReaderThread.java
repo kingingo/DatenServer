@@ -86,7 +86,7 @@ public class ReaderThread {
 					}
 					ReaderThread.this.client.writePacket(new PacketOutPacketStatus(packet, stack));
 					System.err.println("Error while handeling packet " + id + "/" + Integer.toHexString(id) + " (Client: "
-							+ ReaderThread.this.client.getName() + ")");
+							+ ReaderThread.this.client.getName() + ") message: " + e.getMessage());
 					e.printStackTrace();
 					String stackTrace = ExceptionUtils.getStackTrace(e);
 					for (String line : stackTrace.split("\n")) {

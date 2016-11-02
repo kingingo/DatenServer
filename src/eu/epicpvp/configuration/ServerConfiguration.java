@@ -17,7 +17,7 @@ import eu.epicpvp.twitter.TwitterManager;
 public class ServerConfiguration {
 	public static Configuration config;
 	private static MySQLConfiguration MySQLConfig;
-	
+
 	public static void init() {
 		if (!new File("config.yml").exists())
 			try {
@@ -32,14 +32,14 @@ public class ServerConfiguration {
 		config.addDefault("MySQL.user", "root");
 		config.addDefault("MySQL.password", "undefined");
 		config.addDefault("MySQL.autoReconnect", true);
-		
+
 		config.addDefault("server.port", 1111);
 		config.addDefault("server.host", "localhost");
 		config.addDefault("server.password", "HelloWorld");
-		
+
 		config.addDefault("teamspeak.host", "localhost");
 		config.addDefault("teamspeak.port", 10011);
-		config.addDefault("teamspeak.nickname", "WolverinDEV");
+		config.addDefault("teamspeak.nickname", "Verify");
 		config.addDefault("teamspeak.username", "serveradmin");
 		config.addDefault("teamspeak.password", "undefined");
 		config.addDefault("teamspeak.serverId", 1);
@@ -53,9 +53,9 @@ public class ServerConfiguration {
 		config.addDefault("twitter.consumer.secret", "baZ1ACY5HCcB16i5IkJgImS0zsRg5EvSBRNUDSdS9nE8PSk94v");
 		config.addDefault("twitter.token.access", "2683690933-Q3RICLRM0NLFKJ3C38t8gQDEFyPAQDoOFhtAYTU");
 		config.addDefault("twitter.token.secret", "FWYWzxX8p7FStWIqyDiaX7zPBEAunz1P397DpzQxymL3R");
-		
+
 		config.addDefault("savemanager.periode", 5*60*1000);
-		
+
 		config.options().copyDefaults(true);
 		config.save();
 	}
@@ -70,30 +70,30 @@ public class ServerConfiguration {
 	public static String getServerPassword(){
 		return config.getString("server.password");
 	}
-	
+
 	public static int getSaveManagerPeriode(){
 		return config.getInt("savemanager.periode");
 	}
-	
+
 	public static InetSocketAddress getServerHost() {
 		return new InetSocketAddress(config.getString("server.host"), config.getInt("server.port"));
 	}
-	
+
 	public static boolean isTwitterEnabled(){
 		return config.getBoolean("twitter.enabled");
 	}
-	
+
 	public static boolean isTeamspeakBotEnabled(){
 		return config.getBoolean("teamspeak.enabled");
 	}
-	
+
 	public static TwitterManager createTwitter(){
 		if(isTwitterEnabled()){
 			return new TwitterManager(config.getString("twitter.consumer.key"), config.getString("twitter.consumer.secret"), config.getString("twitter.token.access"), config.getString("twitter.token.secret"));
 		}
 		return null;
 	}
-	
+
 	public static TeamspeakClient createClient(){
 		if(!isTeamspeakBotEnabled())
 			return null;
@@ -110,18 +110,18 @@ public class ServerConfiguration {
 		}
 		return null;
 	}
-	
+
 	public static List<Integer> getIgnoreGroup(){
 		return config.getIntegerList("teamspeak.groups.ignore");
 	}
-	
+
 	public static HashMap<String, Integer> getGroupMapping(){
 		HashMap<String, Integer> out = new HashMap<>();
 		for(String s : config.getStringList("teamspeak.groups.mapping"))
 			out.put(s.split("\\|")[0], Integer.parseInt(s.split("\\|")[1]));
 		return out;
 	}
-	
+
 	public static int getTeamspeakLinkedGroupId(){
 		return config.getInt("teamspeak.groups.linked");
 	}
