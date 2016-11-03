@@ -7,6 +7,8 @@ import java.io.InputStream;
 import eu.epicpvp.dataserver.protocoll.packets.Packet;
 import eu.epicpvp.dataserver.protocoll.packets.PacketOutPacketStatus;
 import eu.epicpvp.datenserver.definitions.dataserver.protocoll.DataBuffer;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 public class ReaderThread {
@@ -63,35 +65,39 @@ public class ReaderThread {
 		}
 		final byte[] bbuffer = new byte[length];
 		this.din.readFully(bbuffer, 0, length);
-		ThreadHandleManager.join(new Runnable() {
-			public void run() {
-				if (!ReaderThread.this.active) {
-					return;
+		ThreadHandleManager.join(() -> {
+			if (!ReaderThread.this.active) {
+				return;
+			}
+			DataBuffer buffer = new DataBuffer(bbuffer);
+			int id = 0;
+			Packet packet = Packet.createPacket(id = buffer.readInt(), buffer, Packet.PacketDirection.TO_SERVER);
+			if (packet == null) {
+				System.out.println("packet is null! (Seems like packet not found!) (IP: "
+						+ client.host + "/" + client.getRemoteAdress() + ")");
+			}
+			try {
+				client.getHandlerBoss().handle(packet);
+			} catch (Exception e) {
+				int length1 = Math.min(e.getStackTrace().length + 1, 10);
+				PacketOutPacketStatus.Error[] stack = new PacketOutPacketStatus.Error[length1];
+				stack[0] = new PacketOutPacketStatus.Error(1, "Exception: " + e.getMessage());
+				for (int i = 1; i < length1; i++) {
+					stack[i] = new PacketOutPacketStatus.Error(2, e.getStackTrace()[(i - 1)].toString());
 				}
-				DataBuffer buffer = new DataBuffer(bbuffer);
-				int id = 0;
-				Packet packet = Packet.createPacket(id = buffer.readInt(), buffer, Packet.PacketDirection.TO_SERVER);
+				client.writePacket(new PacketOutPacketStatus(packet, stack));
+				String simpleName;
 				if (packet == null) {
-					System.out.println("packet is null! (Seems like packet not found!) (IP: "
-							+ ReaderThread.this.client.host + "/" + ReaderThread.this.client.getRemoteAdress() + ")");
+					simpleName = "null";
+				} else {
+					simpleName = packet.getClass().getSimpleName() + ReflectionToStringBuilder.toString(packet, ToStringStyle.NO_CLASS_NAME_STYLE);
 				}
-				try {
-					ReaderThread.this.client.getHandlerBoss().handle(packet);
-				} catch (Exception e) {
-					int length = Math.min(e.getStackTrace().length + 1, 10);
-					PacketOutPacketStatus.Error[] stack = new PacketOutPacketStatus.Error[length];
-					stack[0] = new PacketOutPacketStatus.Error(1, "Exception: " + e.getMessage());
-					for (int i = 1; i < length; i++) {
-						stack[i] = new PacketOutPacketStatus.Error(2, e.getStackTrace()[(i - 1)].toString());
-					}
-					ReaderThread.this.client.writePacket(new PacketOutPacketStatus(packet, stack));
-					System.err.println("Error while handeling packet " + id + "/" + Integer.toHexString(id) + " (Client: "
-							+ ReaderThread.this.client.getName() + ") message: " + e.getMessage());
-					e.printStackTrace();
-					String stackTrace = ExceptionUtils.getStackTrace(e);
-					for (String line : stackTrace.split("\n")) {
-						System.err.println(line);
-					}
+				System.err.println("Error while handeling packet " + id + "/" + Integer.toHexString(id) + " packet: " + simpleName + " (Client: "
+						+ client.getName() + ") message: " + e.getMessage());
+				e.printStackTrace();
+				String stackTrace = ExceptionUtils.getStackTrace(e);
+				for (String line : stackTrace.split("\n")) {
+					System.err.println(line);
 				}
 			}
 		});
@@ -122,7 +128,7 @@ public class ReaderThread {
 		if (in != null)
 			try {
 				in.close();
-			} catch (Exception e) {
+			} catch (Exception ignored) {
 			}
 		if (reader != null) {
 			reader.interrupt();
