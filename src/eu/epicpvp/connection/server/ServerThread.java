@@ -43,9 +43,10 @@ public class ServerThread {
 							return true;
 						});
 		if (type != ClientType.ALL) {
-			clientStream = clientStream.filter(client -> client.getType() == type);
+			clientStream = clientStream.filter(client -> client != null && client.getType() == type);
 		}
 		return clientStream
+				.filter(Objects::nonNull)
 				.sorted((client1, client2) -> client1.getName().compareTo(client2.getName()))
 				.collect(Collectors.toList());
 	}
