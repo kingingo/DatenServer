@@ -47,10 +47,13 @@ public class ServerThread {
 		}
 		return clientStream
 				.filter(Objects::nonNull)
-				.sorted((client1, client2) -> client1.getName().compareTo(client2.getName()))
+				.sorted((client1, client2) -> nullAlternative(client1.getName(), "").compareTo(nullAlternative(client2.getName(), "")))
 				.collect(Collectors.toList());
 	}
 
+	private static <T> T nullAlternative(T val, T nullAlt) {
+		return val != null ? val : nullAlt;
+	}
 	public static List<Client> getServer(GameType type) {
 		return new ArrayList<>(clients).stream()
 				.filter(Objects::nonNull)
