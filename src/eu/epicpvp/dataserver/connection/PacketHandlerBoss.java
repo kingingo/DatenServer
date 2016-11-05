@@ -422,7 +422,7 @@ public class PacketHandlerBoss {
 				if(t.getTarget() != null && t.getTarget().startsWith("targetlimit;"))
 					limit = Integer.parseInt(t.getTarget().substring("targetlimit;".length()));
 				if (t.getTargetType() != null) {
-					System.out.println("Boardcast backet to "+t.getTargetType()+" with limit: "+t.getTarget()+"("+limit+")");
+					System.out.println("Broadcast packet to "+t.getTargetType()+" with limit: "+t.getTarget()+"("+limit+")");
 					List<Client> targets = ServerThread.getServer(t.getTargetType());
 					for (Client tc : targets){
 						if(count >= limit && limit != -1)
