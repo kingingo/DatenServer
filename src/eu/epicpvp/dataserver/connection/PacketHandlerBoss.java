@@ -560,7 +560,7 @@ public class PacketHandlerBoss {
 				if (ids == null)
 					ids = new int[0];
 				owner.writePacket(new PacketPlayerIdResponse(packet.getPacketUUID(), ids));
-			}, "PacketPlayerIdRequest handler uuids: " + Arrays.toString(packetIdReq.getUuids()) + " names: " + Arrays.toString(packetIdReq.getNames()) + " ids: " + packetIdReq);
+			}, "PacketPlayerIdRequest handler uuids: " + Arrays.toString(packetIdReq.getUuids()) + " names: " + Arrays.toString(packetIdReq.getNames()) + " ids: " + packetIdReq).start();
 		} else if(packet instanceof PacketReportRequest){
 			PacketReportRequest p = (PacketReportRequest) packet;
 			List<ReportEntity> response;
