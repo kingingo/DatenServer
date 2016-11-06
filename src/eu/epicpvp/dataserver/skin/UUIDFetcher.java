@@ -31,12 +31,14 @@ public class UUIDFetcher implements Callable<Map<String, UUID>> {
             UUID response;
             try {
                 response = new UUIDFetcher(Collections.singletonList(name)).call().get(name);
-                return response;
+                if (response != null) {
+                    return response;
+                }
             } catch (Exception ex) {
                 System.err.println("Error while fetching UUID for " + name + ", use offline uuid");
                 ex.printStackTrace();
-                return UUID.nameUUIDFromBytes(("OfflinePlayer:"+name).getBytes());
             }
+            return UUID.nameUUIDFromBytes(("OfflinePlayer:"+name).getBytes());
 		};
 	});
 

@@ -534,31 +534,33 @@ public class PacketHandlerBoss {
 				owner.writePacket(new PacketLanguageResponse(r.getType(), file.getVersion(), file.getFileAsString()));
 			}
 		} else if (packet instanceof PacketPlayerIdRequest) {
-			int[] ids = null;
 			PacketPlayerIdRequest packetIdReq = (PacketPlayerIdRequest) packet;
-			if (packetIdReq.getUuids() != null) {
-				ids = new int[packetIdReq.getUuids().length];
-				for (int i = 0; i < ids.length; i++)
-					try {
-						ids[i] = PlayerManager.getPlayer(packetIdReq.getUuids()[i]).getPlayerId();
-					} catch (Exception e) {
-						e.printStackTrace();
-						ids[i] = -3;
-					}
-			} else if (packetIdReq.getNames() != null) {
-				ids = new int[packetIdReq.getNames().length];
-				for (int i = 0; i < ids.length; i++) {
-					try {
-						ids[i] = PlayerManager.getPlayer(packetIdReq.getNames()[i]).getPlayerId();
-					} catch (Exception e) {
-						e.printStackTrace();
-						ids[i] = -2;
+			new Thread(() -> {
+				int[] ids = null;
+				if (packetIdReq.getUuids() != null) {
+					ids = new int[packetIdReq.getUuids().length];
+					for (int i = 0; i < ids.length; i++)
+						try {
+							ids[i] = PlayerManager.getPlayer(packetIdReq.getUuids()[i]).getPlayerId();
+						} catch (Exception e) {
+							e.printStackTrace();
+							ids[i] = -3;
+						}
+				} else if (packetIdReq.getNames() != null) {
+					ids = new int[packetIdReq.getNames().length];
+					for (int i = 0; i < ids.length; i++) {
+						try {
+							ids[i] = PlayerManager.getPlayer(packetIdReq.getNames()[i]).getPlayerId();
+						} catch (Exception e) {
+							e.printStackTrace();
+							ids[i] = -2;
+						}
 					}
 				}
-			}
-			if(ids == null)
-				ids = new int[0];
-			owner.writePacket(new PacketPlayerIdResponse(packet.getPacketUUID(), ids));
+				if (ids == null)
+					ids = new int[0];
+				owner.writePacket(new PacketPlayerIdResponse(packet.getPacketUUID(), ids));
+			}, "PacketPlayerIdRequest handler uuids: " + Arrays.toString(packetIdReq.getUuids()) + " names: " + Arrays.toString(packetIdReq.getNames()) + " ids: " + packetIdReq);
 		} else if(packet instanceof PacketReportRequest){
 			PacketReportRequest p = (PacketReportRequest) packet;
 			List<ReportEntity> response;
