@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import lombok.NonNull;
 import org.json.JSONObject;
 
 import com.google.common.cache.Cache;
@@ -19,7 +20,8 @@ public class SkinCache {
 	private static final String PROFILE_URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
 
 	private static Cache<UUID, Skin> profileCache = CacheBuilder.newBuilder().maximumSize(500).expireAfterWrite(4, TimeUnit.HOURS).build(new CacheLoader<UUID, Skin>() {
-		public Skin load(UUID uuid) throws Exception {
+		@Override
+		public Skin load(@NonNull UUID uuid) throws Exception {
 			Skin out = null;
 			try{
 				out = loadSkin(uuid);

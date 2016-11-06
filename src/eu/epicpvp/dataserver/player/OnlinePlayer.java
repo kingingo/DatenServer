@@ -71,22 +71,24 @@ public class OnlinePlayer {
 		ArrayList<String[]> response;
 		if (this.playerId != -1) {
 			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `playerId`='" + this.playerId + "'", 1);
+		} else if (this.uuid != null) {
+			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `users`.`uuid`='" + this.uuid + "'", 1);
 		} else if (this.name != null) {
 			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + this.name + "'", 1);
-			if (response.size() == 0) {
+			if (response.isEmpty()) {
 				response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + this.name.toLowerCase() + "'", 1);
-				if (response.size() != 0) {
-					System.out.println("Updating username (lowercase to real): " + this.name + ":" + ((String[]) response.get(0))[1]);
-					MySQL.getInstance().commandSync("UPDATE `users` SET `name`='" + ((String[]) response.get(0))[1] + "' WHERE `name`='" + this.name + "'");
+				if (!response.isEmpty()) {
+					System.out.println("Updating username (lowercase to real): " + this.name + ":" + response.get(0)[1]);
+					MySQL.getInstance().commandSync("UPDATE `users` SET `name`='" + response.get(0)[1] + "' WHERE `name`='" + this.name + "'");
 				} else {
 					try {
 						this.uuid = UUIDFetcher.getUUIDOf(this.name);
 						response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `uuid`='" + this.uuid + "'", 1);
-						if (response.size() != 0) {
-							ArrayList<String[]> querryUUID = MySQL.getInstance().querySync("SELECT `premium` FROM `user_properties` WHERE `playerId`='" + Integer.parseInt(((String[]) response.get(0))[0]) + "'", 1);
-							if ((querryUUID.size() > 0) && (((String[]) querryUUID.get(0))[0].equalsIgnoreCase("1"))) {
-								this.playerId = Integer.parseInt(((String[]) response.get(0))[0]);
-								System.out.println("Player " + ((String[]) response.get(0))[1] + " change his name to " + this.name);
+						if (!response.isEmpty()) {
+							ArrayList<String[]> querryUUID = MySQL.getInstance().querySync("SELECT `premium` FROM `user_properties` WHERE `playerId`='" + Integer.parseInt(response.get(0)[0]) + "'", 1);
+							if ((!querryUUID.isEmpty()) && (querryUUID.get(0)[0].equalsIgnoreCase("1"))) {
+								this.playerId = Integer.parseInt(response.get(0)[0]);
+								System.out.println("Player " + response.get(0)[1] + " change his name to " + this.name);
 								setName(this.name);
 							}
 						}
@@ -96,13 +98,9 @@ public class OnlinePlayer {
 				}
 			}
 		} else {
-			if (this.uuid != null) {
-				response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `users`.`uuid`='" + this.uuid + "'", 1);
-			} else {
-				throw new RuntimeException("Cant load an player without informations (" + name + " - "+uuid+" - "+playerId+")!");
-			}
+			throw new RuntimeException("Cant load an player without informations (" + name + " - "+uuid+" - "+playerId+")!");
 		}
-		if (response.size() == 0) {
+		if (response.isEmpty()) {
 			if (this.name == null) {
 				throw new RuntimeException("Cant create a new player without a name! (" + this.playerId + ":" + this.name + ":" + this.uuid + ":" + this.server + ")");
 			}
@@ -110,30 +108,30 @@ public class OnlinePlayer {
 			MySQL.getInstance().commandSync("INSERT INTO `users`(`name`, `uuid`) VALUES ('" + this.name + "','" + UUIDManager.getOfflineUUID(this.name) + "')");
 			response = MySQL.getInstance().querySync("SELECT `playerId`, `name`, `uuid` FROM `users` WHERE `name`='" + this.name + "'", 1);
 		}
-		System.out.println("User credicals for " + this.playerId + ":" + this.name + ":" + this.uuid + " -> " + StringUtils.join((Object[]) response.get(0), ":"));
-		this.playerId = Integer.parseInt(((String[]) response.get(0))[0]);
+		System.out.println("User credicals for " + this.playerId + ":" + this.name + ":" + this.uuid + " -> " + StringUtils.join(response.get(0), ":"));
+		this.playerId = Integer.parseInt(response.get(0)[0]);
 		if (this.name == null) {
-			this.name = ((String[]) response.get(0))[1];
-		} else if (!this.name.equals(((String[]) response.get(0))[1])) {
+			this.name = response.get(0)[1];
+		} else if (!this.name.equals(response.get(0)[1])) {
 			setName(this.name);
 		}
-		this.uuid = UUID.fromString(((String[]) response.get(0))[2]);
+		this.uuid = UUID.fromString(response.get(0)[2]);
 		if (this.newPlayer) {
 			MySQL.getInstance().commandSync("INSERT INTO `user_properties`(`playerId`, `password`, `premium`,`language`) VALUES ('" + this.playerId + "','',0,'" + LanguageType.ENGLISH.getShortName() + "')");
 		}
 		response = MySQL.getInstance().querySync("SELECT `password`,`premium`,`language`,`nickname`,`pwChangeDate` FROM `user_properties` WHERE `playerId`='" + this.playerId + "'", 1);
-		if (response.size() == 0) {
+		if (response.isEmpty()) {
 			System.err.println("Cant find user properties for: " + this.playerId + " (" + this.name + ")");
 			MySQL.getInstance().commandSync("INSERT INTO `user_properties`(`playerId`, `password`, `premium`,`language`) VALUES ('" + this.playerId + "','',0,'" + LanguageType.ENGLISH.getShortName() + "')");
 			response = MySQL.getInstance().querySync("SELECT `password`,`premium`,`language`,`nickname`,`pwChangeDate` FROM `user_properties` WHERE `playerId`='" + this.playerId + "'", 1);
 		}
-		if (!((String[]) response.get(0))[0].equalsIgnoreCase("")) {
-			this.loginPassword = ((String[]) response.get(0))[0];
+		if (!response.get(0)[0].equalsIgnoreCase("")) {
+			this.loginPassword = response.get(0)[0];
 		}
-		this.isPremium = ((((String[]) response.get(0))[1].equalsIgnoreCase("1")) || (((String[]) response.get(0))[1].equalsIgnoreCase("true")));
-		this.language = LanguageType.getLanguageFromName(((String[]) response.get(0))[2]);
+		this.isPremium = ((response.get(0)[1].equalsIgnoreCase("1")) || (response.get(0)[1].equalsIgnoreCase("true")));
+		this.language = LanguageType.getLanguageFromName(response.get(0)[2]);
 		this.nickname = response.get(0).length > 3 ? response.get(0)[3] : null;
-		if(this.nickname == null || this.nickname.equalsIgnoreCase("null") || this.nickname.length() == 0)
+		if(this.nickname == null || this.nickname.equalsIgnoreCase("null") || this.nickname.isEmpty())
 			this.nickname = null;
 		this.lastPasswordChange = Long.parseLong(response.get(0)[4]);
 		this.skinManager = new PlayerSkinManager(this);

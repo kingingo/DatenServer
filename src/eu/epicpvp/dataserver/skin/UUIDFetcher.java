@@ -5,15 +5,13 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-
-import org.json.JSONArray;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -22,16 +20,23 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import lombok.NonNull;
+import org.json.JSONArray;
 
 public class UUIDFetcher implements Callable<Map<String, UUID>> {
 
 	private static LoadingCache<String, UUID> uuidCache = CacheBuilder.newBuilder().maximumSize(500).expireAfterWrite(4, TimeUnit.HOURS).build(new CacheLoader<String, UUID>() {
-		public UUID load(String name) throws Exception {
-			UUID response = new UUIDFetcher(Arrays.asList(name)).call().get(name);
-//			System.out.println("Cant contact mojang...: "+response);
-			if(response == null)
-				return UUID.nameUUIDFromBytes(("OfflinePlayer:"+name).getBytes());
-			return response;
+		@Override
+        public UUID load(@NonNull String name) throws Exception {
+            UUID response;
+            try {
+                response = new UUIDFetcher(Collections.singletonList(name)).call().get(name);
+                return response;
+            } catch (Exception ex) {
+                System.err.println("Error while fetching UUID for " + name + ", use offline uuid");
+                ex.printStackTrace();
+                return UUID.nameUUIDFromBytes(("OfflinePlayer:"+name).getBytes());
+            }
 		};
 	});
 
@@ -63,8 +68,8 @@ public class UUIDFetcher implements Callable<Map<String, UUID>> {
             JsonArray array = (JsonArray) jsonParser.parse(new InputStreamReader(connection.getInputStream()));
             for (Object profile : array) {
             	JsonObject jsonProfile = (JsonObject) profile;
-                String id = (String) jsonProfile.get("id").getAsString();
-                String name = (String) jsonProfile.get("name").getAsString();
+                String id = jsonProfile.get("id").getAsString();
+                String name = jsonProfile.get("name").getAsString();
                 UUID uuid = UUIDFetcher.getUUID(id);
                 uuidMap.put(name, uuid);
             }

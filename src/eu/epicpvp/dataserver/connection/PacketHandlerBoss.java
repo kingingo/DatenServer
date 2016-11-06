@@ -535,25 +535,26 @@ public class PacketHandlerBoss {
 			}
 		} else if (packet instanceof PacketPlayerIdRequest) {
 			int[] ids = null;
-			if (((PacketPlayerIdRequest) packet).getNames() != null) {
-				ids = new int[((PacketPlayerIdRequest) packet).getNames().length];
+			PacketPlayerIdRequest packetIdReq = (PacketPlayerIdRequest) packet;
+			if (packetIdReq.getUuids() != null) {
+				ids = new int[packetIdReq.getUuids().length];
+				for (int i = 0; i < ids.length; i++)
+					try {
+						ids[i] = PlayerManager.getPlayer(packetIdReq.getUuids()[i]).getPlayerId();
+					} catch (Exception e) {
+						e.printStackTrace();
+						ids[i] = -3;
+					}
+			} else if (packetIdReq.getNames() != null) {
+				ids = new int[packetIdReq.getNames().length];
 				for (int i = 0; i < ids.length; i++) {
 					try {
-						ids[i] = PlayerManager.getPlayer(((PacketPlayerIdRequest) packet).getNames()[i]).getPlayerId();
+						ids[i] = PlayerManager.getPlayer(packetIdReq.getNames()[i]).getPlayerId();
 					} catch (Exception e) {
 						e.printStackTrace();
 						ids[i] = -2;
 					}
 				}
-			} else if (((PacketPlayerIdRequest) packet).getUuids() != null) {
-				ids = new int[((PacketPlayerIdRequest) packet).getUuids().length];
-				for (int i = 0; i < ids.length; i++)
-					try {
-						ids[i] = PlayerManager.getPlayer(((PacketPlayerIdRequest) packet).getUuids()[i]).getPlayerId();
-					} catch (Exception e) {
-						e.printStackTrace();
-						ids[i] = -3;
-					}
 			}
 			if(ids == null)
 				ids = new int[0];
